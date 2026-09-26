@@ -1,0 +1,399 @@
+/* Estilos específicos del Kardex Digital (dashboard, tabla, modales).
+   globals.css se mantiene con solo variables, reset y componentes
+   genéricos (.btn, .card, .input-field); todo lo demás vive aquí. */
+
+.kardex-page {
+  padding: var(--spacing-base);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.kardex-col-center {
+  text-align: center;
+}
+
+/* --- KardexHeader --- */
+.kardex-header-card {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.kardex-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.kardex-header-title {
+  margin-bottom: 0.2rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.kardex-header-selects {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.kardex-select-month {
+  min-width: 170px;
+}
+
+.kardex-select-year {
+  min-width: 110px;
+}
+
+.kardex-header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.kardex-btn-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+/* --- KardexNavigation --- */
+.kardex-nav-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.kardex-nav-card {
+  flex: 1;
+  min-width: 300px;
+}
+
+.kardex-nav-card-title {
+  font-size: 1.1rem;
+}
+
+.kardex-week-list {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.kardex-week-btn {
+  flex: 1 1 60px;
+  padding: 0.5rem;
+}
+
+.kardex-category-wrap {
+  margin-top: 1rem;
+}
+
+/* --- KardexTable --- */
+.kardex-table-card {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.kardex-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.kardex-loading-box {
+  padding: 1rem 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+  color: var(--color-primary-dark);
+}
+
+.kardex-table-banner {
+  padding: 1rem;
+  background-color: var(--color-primary-dark);
+  color: white;
+}
+
+.kardex-table-banner h3 {
+  margin: 0;
+  color: white;
+}
+
+.kardex-table-scroll {
+  overflow-x: auto;
+}
+
+.kardex-table {
+  min-width: 1000px;
+}
+
+/* Columna fija (ALIMENTO) y celdas de días. En celulares angostos la tabla
+   tiene min-width: 1000px, así que la columna fija (20% = 200px) por sí
+   sola ocupa más de la mitad de la pantalla y deja casi nada para las
+   columnas que se recorren con el dedo. Por debajo de 480px se reduce el
+   ancho fijo y el padding de las celdas de día, para que quepan varias
+   columnas a la vez en el espacio que sí se puede desplazar. */
+.kardex-sticky-th,
+.kardex-sticky-td {
+  width: 20%;
+  position: sticky;
+  left: 0;
+}
+
+.kardex-sticky-th {
+  z-index: 2;
+  background-color: var(--color-primary-dark);
+}
+
+.kardex-sticky-td {
+  z-index: 1;
+  font-weight: 500;
+  background-color: var(--color-bg-card);
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
+}
+
+.kardex-unit-cell {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
+.kardex-day-th {
+  text-align: center;
+  width: 70px;
+  padding: 0.4rem;
+}
+
+.kardex-day-date-badge {
+  font-size: 0.85em;
+  color: var(--color-primary-dark);
+  background-color: white;
+  border-radius: 12px;
+  padding: 2px 6px;
+  margin-top: 6px;
+  display: inline-block;
+  font-weight: bold;
+  min-width: 24px;
+}
+
+.kardex-day-cell {
+  padding: 0.5rem;
+}
+
+/* A diferencia de .kardex-day-cell, esta celda (SALDO ANT.) no se ajusta
+   en el breakpoint móvil — en el original nunca tuvo padding responsive. */
+.kardex-balance-cell {
+  padding: 0.5rem;
+}
+
+.kardex-balance-edit-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.kardex-balance-value {
+  font-weight: 600;
+}
+
+.kardex-edit-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.kardex-day-input {
+  padding: 0.5rem;
+  min-width: 60px;
+}
+
+.kardex-entrada-input {
+  min-width: 70px;
+}
+
+.kardex-input-center {
+  text-align: center;
+  width: 100%;
+}
+
+/* Modificadores de estado para los inputs de la tabla. El orden importa:
+   una celda puede tener salida > 0 (verde) Y estar en una fila en error
+   (borde rojo) a la vez — el borde rojo de error debe ganar, por eso su
+   regla va después en la cascada. */
+.kardex-input-has-exit {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--color-success);
+}
+
+.kardex-input-invalid-day {
+  background-color: #E2E8F0;
+  opacity: 0.5;
+}
+
+.kardex-input-error {
+  border-color: var(--color-accent-red);
+  box-shadow: 0 0 0 2px rgba(230, 51, 69, 0.15);
+}
+
+.kardex-final-balance-cell {
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.2em;
+  border-left: 2px solid var(--color-border);
+}
+
+.kardex-final-balance-error {
+  color: var(--color-accent-red);
+}
+
+@media (max-width: 480px) {
+  .kardex-sticky-th,
+  .kardex-sticky-td {
+    width: 90px;
+    padding: 0.4rem;
+    font-size: 0.85em;
+  }
+
+  .kardex-day-cell {
+    padding: 0.25rem;
+  }
+
+  .kardex-day-input {
+    padding: 0.35rem;
+    min-width: 42px;
+    font-size: 0.9em;
+  }
+
+  .kardex-entrada-input {
+    min-width: 50px;
+  }
+}
+
+/* --- Modales (AjusteModal, HistorialModal) --- */
+.kardex-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.kardex-modal-card-sm {
+  max-width: 440px;
+  width: 100%;
+}
+
+.kardex-modal-card-lg {
+  max-width: 700px;
+  width: 100%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.kardex-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.kardex-modal-title-wrap {
+  margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.kardex-modal-subtitle {
+  color: var(--color-text-muted);
+  margin-top: -0.5rem;
+}
+
+.kardex-modal-desc {
+  margin-bottom: 1rem;
+}
+
+.kardex-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.kardex-form-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: bold;
+}
+
+.kardex-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.kardex-tabs-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.kardex-modal-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.kardex-months-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.kardex-ajustes-table-wrap {
+  overflow-x: auto;
+}
+
+.kardex-ajustes-table {
+  width: 100%;
+  min-width: 560px;
+  font-size: 0.9rem;
+}
+
+/* --- ErrorToast --- */
+.kardex-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-accent-red);
+  color: white;
+  padding: 0.9rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  z-index: 2000;
+  max-width: 90vw;
+  font-weight: 600;
+  text-align: center;
+}

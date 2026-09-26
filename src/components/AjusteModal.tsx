@@ -28,20 +28,20 @@ export default function AjusteModal({
   onClose: () => void;
 }) {
   return (
-    <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
-      <div className="card" style={{ maxWidth: "440px", width: "100%" }}>
-        <h3 style={{ marginTop: 0 }}>{isBootstrap ? "Registrar saldo inicial" : "Corregir saldo"}</h3>
-        <p style={{ color: "var(--color-text-muted)", marginTop: "-0.5rem" }}>
+    <div className="kardex-modal-overlay">
+      <div className="card kardex-modal-card-sm">
+        <h3>{isBootstrap ? "Registrar saldo inicial" : "Corregir saldo"}</h3>
+        <p className="kardex-modal-subtitle">
           {product.name} — Semana {currentWeek}
         </p>
-        <p style={{ marginBottom: "1rem" }}>
+        <p className="kardex-modal-desc">
           {isBootstrap
             ? "Aún no hay saldo registrado para este producto en esta comunidad."
             : <>Saldo calculado actualmente: <strong>{currentBalance}</strong></>}
         </p>
-        <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <form onSubmit={onSubmit} className="kardex-form">
           <div>
-            <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: "bold" }}>
+            <label className="kardex-form-label">
               Saldo real (conteo físico)
             </label>
             <input
@@ -56,7 +56,7 @@ export default function AjusteModal({
             />
           </div>
           <div>
-            <label style={{ display: "block", marginBottom: "0.4rem", fontWeight: "bold" }}>
+            <label className="kardex-form-label">
               Motivo del ajuste
             </label>
             <input
@@ -68,11 +68,10 @@ export default function AjusteModal({
               required
             />
           </div>
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
+          <div className="kardex-form-actions">
             <button
               type="button"
-              className="btn"
-              style={{ border: "2px solid var(--color-border)" }}
+              className="btn btn-outline"
               onClick={onClose}
               disabled={isSubmitting}
             >

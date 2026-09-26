@@ -18,16 +18,15 @@ export default function KardexNavigation({
   onCategoryChange: (category: string) => void;
 }) {
   return (
-    <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-      <div className="card" style={{ flex: 1, minWidth: "300px" }}>
-        <h3 style={{ fontSize: "1.1rem" }}>Navegación</h3>
-        <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", flexWrap: "wrap" }}>
+    <div className="kardex-nav-row">
+      <div className="card kardex-nav-card">
+        <h3 className="kardex-nav-card-title">Navegación</h3>
+        <div className="kardex-week-list">
           {[1, 2, 3, 4, 5].map(week => (
             <button
               key={week}
               onClick={() => onWeekChange(week)}
-              className={`btn ${currentWeek === week ? 'btn-primary' : ''}`}
-              style={{ flex: "1 1 60px", padding: "0.5rem", border: currentWeek !== week ? "1px solid var(--color-border)" : "none" }}
+              className={`btn btn-toggle kardex-week-btn ${currentWeek === week ? 'btn-primary' : ''}`}
             >
               Sem {week}
             </button>
@@ -35,9 +34,9 @@ export default function KardexNavigation({
         </div>
       </div>
 
-      <div className="card" style={{ flex: 1, minWidth: "300px" }}>
-        <h3 style={{ fontSize: "1.1rem" }}>Categorías</h3>
-        <div style={{ marginTop: "1rem" }}>
+      <div className="card kardex-nav-card">
+        <h3 className="kardex-nav-card-title">Categorías</h3>
+        <div className="kardex-category-wrap">
           <CustomSelect
             options={categoryOptions}
             value={activeCategory}

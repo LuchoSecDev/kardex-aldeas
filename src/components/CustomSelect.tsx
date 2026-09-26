@@ -13,9 +13,10 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   style?: React.CSSProperties;
+  className?: string;
 }
 
-export default function CustomSelect({ options, value, onChange, placeholder = "Seleccione...", style }: CustomSelectProps) {
+export default function CustomSelect({ options, value, onChange, placeholder = "Seleccione...", style, className }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +34,7 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
   }, []);
 
   return (
-    <div ref={containerRef} className="custom-select" style={style}>
+    <div ref={containerRef} className={`custom-select ${className || ""}`} style={style}>
       <button
         type="button"
         className="custom-select__trigger"

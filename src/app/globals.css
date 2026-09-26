@@ -110,6 +110,29 @@ html, body {
   color: white;
 }
 
+/* Variante de borde para botones secundarios (Cancelar, Historial, Cerrar...) */
+.btn-outline {
+  border: 2px solid var(--color-border);
+}
+
+/* Botones tipo toggle (semanas, tabs, meses): borde solo cuando no están
+   activos — cuando sí lo están, .btn-primary ya trae su propio fondo. */
+.btn-toggle {
+  border: 1px solid var(--color-border);
+}
+
+.btn-toggle.btn-primary {
+  border: none;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
 .card {
   background-color: var(--color-bg-card);
   border-radius: 12px;
@@ -283,54 +306,6 @@ th {
 
 tbody tr:hover {
   background-color: rgba(0, 163, 224, 0.05); /* very light primary */
-}
-
-/* Tabla del kardex: columna fija (ALIMENTO) y celdas de días.
-   En celulares angostos, la tabla tiene min-width: 1000px, así que la
-   columna fija (20% = 200px) por sí sola ocupa más de la mitad de la
-   pantalla y deja casi nada para las columnas que se recorren con el
-   dedo. Por debajo de 480px se reduce el ancho fijo y el padding de las
-   celdas de día, para que quepan varias columnas a la vez en el espacio
-   que sí se puede desplazar. */
-.kardex-sticky-th,
-.kardex-sticky-td {
-  width: 20%;
-}
-
-.kardex-day-cell {
-  padding: 0.5rem;
-}
-
-.kardex-day-input {
-  padding: 0.5rem;
-  min-width: 60px;
-}
-
-.kardex-entrada-input {
-  min-width: 70px;
-}
-
-@media (max-width: 480px) {
-  .kardex-sticky-th,
-  .kardex-sticky-td {
-    width: 90px;
-    padding: 0.4rem;
-    font-size: 0.85em;
-  }
-
-  .kardex-day-cell {
-    padding: 0.25rem;
-  }
-
-  .kardex-day-input {
-    padding: 0.35rem;
-    min-width: 42px;
-    font-size: 0.9em;
-  }
-
-  .kardex-entrada-input {
-    min-width: 50px;
-  }
 }
 
 /* Accessibility Panel */

@@ -1,5 +1,6 @@
 "use client";
 
+import "@/app/kardex.css";
 import { useState } from "react";
 import { INITIAL_PRODUCTS } from "@/data/products";
 import { AjusteRow, Product } from "@/types/kardex";
@@ -218,7 +219,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   const categoryOptions = categories.map(c => ({ value: c, label: c === "TODAS" ? "Todas las categorías" : c }));
 
   return (
-    <div style={{ padding: "var(--spacing-base)", maxWidth: "1400px", margin: "0 auto" }}>
+    <div className="kardex-page">
 
       <KardexHeader
         community={community}
