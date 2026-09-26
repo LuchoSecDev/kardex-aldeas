@@ -37,6 +37,27 @@ export const finalBalanceOfMonth = (row: { prev_balances: number[]; entries: num
   return (row.prev_balances[w] || 0) + (row.entries[w] || 0) - weekExits;
 };
 
+// Saldo final de la semana actualmente vista, para un producto dado.
+export const calculateBalance = (
+  productId: string,
+  currentWeek: number,
+  exits: Record<string, number[]>,
+  entries: Record<string, number[]>,
+  prevBalances: Record<string, number[]>
+): number => {
+  if (!exits[productId] || !prevBalances[productId] || !entries[productId]) return 0;
+
+  const weekIndex = currentWeek - 1;
+  const startDay = weekIndex * 7;
+  const endDay = startDay + 7;
+
+  const weekExits = (exits[productId] || Array(35).fill(0)).slice(startDay, endDay).reduce((a, b) => a + b, 0);
+  const prevBalance = (prevBalances[productId] || [])[weekIndex] || 0;
+  const entry = (entries[productId] || [])[weekIndex] || 0;
+
+  return prevBalance + entry - weekExits;
+};
+
 // Semáforo de stock
 export const getStockStatus = (balance: number, minStock: number): StockStatus => {
   if (balance < 0) return "rojo";

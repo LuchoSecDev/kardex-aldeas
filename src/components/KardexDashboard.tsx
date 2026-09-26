@@ -1,97 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { INITIAL_PRODUCTS } from "@/data/products";
 import CustomSelect from "@/components/CustomSelect";
-import { supabase } from "@/lib/supabase";
+import { useCalendar } from "@/hooks/useCalendar";
+import { useErrorAlert } from "@/hooks/useErrorAlert";
+import { useKardexData } from "@/hooks/useKardexData";
+import { calculateBalance, getStockStatus, STOCK_STATUS_META, sumRange } from "@/lib/balanceEngine";
+import { kardexService } from "@/lib/kardexService";
 
 const DAYS = ["L", "M", "MC", "J", "V", "S", "D"];
 const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-// Suma un rango de un arreglo de números (usado para sumar las salidas de una semana).
-const sumRange = (arr: number[], start: number, len: number) =>
-  arr.slice(start, start + len).reduce((a, b) => a + b, 0);
-
-// Calcula el saldo anterior de cada una de las 5 semanas, encadenando hacia
-// adelante. `overrides` son ajustes auditados: si la semana w tiene un
-// ajuste, ese valor manda para esa semana (y las siguientes se calculan a
-// partir de él); si no, se calcula desde el saldo final de la semana previa.
-// La semana 0 sin ajuste hereda el saldo final del mes anterior.
-const computeCascade = (
-  inheritedBase: number,
-  overrides: Record<number, number>,
-  entriesArr: number[],
-  exitsArr: number[]
-): number[] => {
-  const result = Array(5).fill(0);
-  for (let w = 0; w < 5; w++) {
-    if (overrides[w] !== undefined) {
-      result[w] = overrides[w];
-    } else if (w === 0) {
-      result[w] = inheritedBase;
-    } else {
-      const prevWeekExits = sumRange(exitsArr, (w - 1) * 7, 7);
-      result[w] = result[w - 1] + (entriesArr[w - 1] || 0) - prevWeekExits;
-    }
-  }
-  return result;
-};
-
-// Saldo con el que un mes termina (semana 5), para heredarlo como saldo
-// anterior de la semana 1 del mes siguiente.
-const finalBalanceOfMonth = (row: { prev_balances: number[]; entries: number[]; exits: number[] }) => {
-  const w = 4;
-  const weekExits = sumRange(row.exits, w * 7, 7);
-  return (row.prev_balances[w] || 0) + (row.entries[w] || 0) - weekExits;
-};
-
-// Beep corto de alerta, sintetizado con Web Audio (no necesita ningún
-// archivo de audio). Se usa para avisar de un error de digitación
-// (saldo negativo) aunque la persona no esté mirando la pantalla.
-const playErrorBeep = () => {
-  try {
-    type WindowWithWebkitAudio = typeof window & { webkitAudioContext?: typeof AudioContext };
-    const AudioContextClass = window.AudioContext || (window as WindowWithWebkitAudio).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-    const oscillator = ctx.createOscillator();
-    const gain = ctx.createGain();
-    oscillator.type = "sine";
-    oscillator.frequency.value = 440;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
-    oscillator.connect(gain);
-    gain.connect(ctx.destination);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.35);
-    oscillator.onended = () => ctx.close();
-  } catch (e) {
-    console.error("No se pudo reproducir el sonido de alerta:", e);
-  }
-};
-
-// Semáforo de stock: rojo si ya se agotó, amarillo si está en o por debajo
-// del umbral mínimo del producto (`minStock`, ver products.ts), verde si
-// hay suficiente.
-//
-// Por ahora solo se muestra el rojo (es la señal de error de digitación que
-// sí se usa, ver notifyDataEntryError más abajo). Amarillo/verde quedan
-// calculados pero ocultos en el render hasta que existan umbrales reales
-// por producto — reactivarlos es solo volver a usar `statusMeta` en el JSX.
-type StockStatus = "rojo" | "amarillo" | "verde";
-
-const getStockStatus = (balance: number, minStock: number): StockStatus => {
-  if (balance < 0) return "rojo";
-  if (balance <= minStock) return "amarillo";
-  return "verde";
-};
-
-const STOCK_STATUS_META: Record<StockStatus, { color: string; emoji: string; label: string }> = {
-  rojo: { color: "var(--color-accent-red)", emoji: "🔴", label: "Sin stock" },
-  amarillo: { color: "var(--color-warning)", emoji: "🟡", label: "Stock bajo" },
-  verde: { color: "var(--color-success)", emoji: "🟢", label: "Stock suficiente" },
-};
 
 type AjusteRow = {
   id: string;
@@ -111,205 +30,54 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   const [selectedMonth, setSelectedMonth] = useState(8); // Septiembre (0-indexado)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Calcular calendario dinámico
-  const getCalendarWeeks = (y: number, m: number) => {
-    const firstDay = new Date(y, m, 1);
-    const lastDay = new Date(y, m + 1, 0);
-    let startDayOfWeek = firstDay.getDay() - 1;
-    if (startDayOfWeek === -1) startDayOfWeek = 6; // Lunes es 0
-    
-    const weeks: (number | null)[][] = [];
-    let currentDay = 1;
-    for (let w = 0; w < 5; w++) {
-      const days: (number | null)[] = [];
-      for (let d = 0; d < 7; d++) {
-        if (w === 0 && d < startDayOfWeek) {
-          days.push(null);
-        } else if (currentDay > lastDay.getDate()) {
-          days.push(null);
-        } else {
-          days.push(currentDay);
-          currentDay++;
-        }
-      }
-      weeks.push(days);
-    }
-    return weeks;
-  };
-
-  const calendarWeeks = getCalendarWeeks(selectedYear, selectedMonth);
-  const currentWeekDates = calendarWeeks[currentWeek - 1];
-
-  // State structured per week (0 to 4)
-  const [isLoading, setIsLoading] = useState(true);
-  const [exits, setExits] = useState<Record<string, number[]>>(
-    INITIAL_PRODUCTS.reduce((acc, p) => ({ ...acc, [p.id]: Array(35).fill(0) }), {})
-  );
-  const [entries, setEntries] = useState<Record<string, number[]>>(
-    INITIAL_PRODUCTS.reduce((acc, p) => ({ ...acc, [p.id]: [0, 0, 0, 0, 0] }), {})
-  );
-  const [prevBalances, setPrevBalances] = useState<Record<string, number[]>>(
-    INITIAL_PRODUCTS.reduce((acc, p) => ({ ...acc, [p.id]: [0, 0, 0, 0, 0] }), {})
-  );
-  // Ajustes auditados vigentes de este mes: productId -> { weekIndex: saldo_nuevo }
-  const [ajustesByProduct, setAjustesByProduct] = useState<Record<string, Record<number, number>>>({});
-  // Saldo con el que cerró el mes anterior, por producto (para heredar en la semana 1)
-  const [inheritedBase, setInheritedBase] = useState<Record<string, number>>({});
-
-  // Cargar datos desde Supabase: el mes actual, el mes anterior (para heredar
-  // el saldo de cierre) y los ajustes auditados vigentes de este mes.
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-
-      let prevMonth = selectedMonth - 1;
-      let prevYear = selectedYear;
-      if (prevMonth < 0) {
-        prevMonth = 11;
-        prevYear -= 1;
-      }
-
-      const [{ data, error }, prevMonthResult, ajustesResult] = await Promise.all([
-        supabase.from("kardex_records").select("*").eq("community", community).eq("year", selectedYear).eq("month", selectedMonth),
-        supabase.from("kardex_records").select("*").eq("community", community).eq("year", prevYear).eq("month", prevMonth),
-        supabase.from("ajustes").select("*").eq("community", community).eq("year", selectedYear).eq("month", selectedMonth).order("created_at", { ascending: true }),
-      ]);
-
-      if (error) console.error("Error cargando datos de Supabase:", error);
-      if (prevMonthResult.error) console.error("Error cargando el mes anterior:", prevMonthResult.error);
-      if (ajustesResult.error) console.error("Error cargando ajustes:", ajustesResult.error);
-
-      const inheritedBaseByProduct: Record<string, number> = {};
-      (prevMonthResult.data || []).forEach(row => {
-        inheritedBaseByProduct[row.product_id] = finalBalanceOfMonth(row);
-      });
-
-      // Ordenados por fecha ascendente: el último ajuste de cada semana
-      // sobreescribe a los anteriores, que quedan igual en el historial.
-      const overridesByProduct: Record<string, Record<number, number>> = {};
-      (ajustesResult.data || []).forEach(row => {
-        if (!overridesByProduct[row.product_id]) overridesByProduct[row.product_id] = {};
-        overridesByProduct[row.product_id][row.week_index] = row.saldo_nuevo;
-      });
-
-      const newExits: Record<string, number[]> = {};
-      const newEntries: Record<string, number[]> = {};
-      const newPrev: Record<string, number[]> = {};
-
-      INITIAL_PRODUCTS.forEach(p => {
-        const row = (data || []).find(r => r.product_id === p.id);
-        const productExits = row ? row.exits : Array(35).fill(0);
-        const productEntries = row ? row.entries : [0, 0, 0, 0, 0];
-        const base = inheritedBaseByProduct[p.id] ?? 0;
-        const overrides = overridesByProduct[p.id] || {};
-
-        newExits[p.id] = productExits;
-        newEntries[p.id] = productEntries;
-        newPrev[p.id] = computeCascade(base, overrides, productEntries, productExits);
-      });
-
-      setExits(newExits);
-      setEntries(newEntries);
-      setPrevBalances(newPrev);
-      setAjustesByProduct(overridesByProduct);
-      setInheritedBase(inheritedBaseByProduct);
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, [community, selectedYear, selectedMonth]);
-
-  // Guardar en Supabase (Upsert)
-  const saveProductData = async (productId: string, prodExits: number[], prodEntries: number[], prodPrev: number[]) => {
-    const { error } = await supabase
-      .from("kardex_records")
-      .upsert({
-        community,
-        year: selectedYear,
-        month: selectedMonth,
-        product_id: productId,
-        exits: prodExits,
-        entries: prodEntries,
-        prev_balances: prodPrev,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'community, year, month, product_id' });
-      
-    if (error) {
-      console.error("Error guardando en Supabase:", error);
-    }
-  };
-
-  // --- Aviso de error de digitación (saldo quedó negativo) ---
-  const [errorToast, setErrorToast] = useState<string | null>(null);
-  const errorCheckTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  useEffect(() => {
-    if (!errorToast) return;
-    const timer = setTimeout(() => setErrorToast(null), 5000);
-    return () => clearTimeout(timer);
-  }, [errorToast]);
-
-  // Espera a que la persona haga una pausa (600ms) antes de avisar, para no
-  // sonar en cada tecla mientras se escribe un número de varias cifras.
-  const scheduleErrorCheck = (productId: string, weekIndex: number, weekBalance: number) => {
-    const key = `${productId}-${weekIndex}`;
-    if (errorCheckTimers.current[key]) clearTimeout(errorCheckTimers.current[key]);
-    errorCheckTimers.current[key] = setTimeout(() => {
-      delete errorCheckTimers.current[key];
-      if (weekBalance < 0) {
-        setErrorToast(`⚠️ ${getProductName(productId)} — el saldo de la Semana ${weekIndex + 1} quedó en ${weekBalance}. Revisa las salidas.`);
-        playErrorBeep();
-      }
-    }, 600);
-  };
+  const { calendarWeeks, currentWeekDates } = useCalendar(selectedYear, selectedMonth, currentWeek);
+  const { errorToast, scheduleErrorCheck } = useErrorAlert();
+  
+  const {
+    isLoading,
+    exits,
+    entries,
+    prevBalances,
+    ajustesByProduct,
+    inheritedBase,
+    saveProductData,
+    updateLocalState,
+    applyAjuste
+  } = useKardexData(community, selectedYear, selectedMonth);
 
   const handleExitChange = (productId: string, dayIndex: number, value: string) => {
     const numValue = value === "" ? 0 : parseFloat(value);
     if (isNaN(numValue) || numValue < 0) return;
 
     const absoluteDayIndex = ((currentWeek - 1) * 7) + dayIndex;
-    const newProductExits = [...exits[productId]];
+    const newProductExits = [...(exits[productId] || [])];
     newProductExits[absoluteDayIndex] = numValue;
 
-    const newProductPrev = computeCascade(
-      inheritedBase[productId] ?? 0,
-      ajustesByProduct[productId] || {},
-      entries[productId],
-      newProductExits
-    );
+    const newProductPrev = updateLocalState(productId, newProductExits, entries[productId] || []);
 
     const weekIndex = currentWeek - 1;
     const weekExits = sumRange(newProductExits, weekIndex * 7, 7);
-    const weekBalance = (newProductPrev[weekIndex] ?? 0) + (entries[productId][weekIndex] ?? 0) - weekExits;
-    scheduleErrorCheck(productId, weekIndex, weekBalance);
+    const weekBalance = (newProductPrev[weekIndex] ?? 0) + ((entries[productId] || [])[weekIndex] ?? 0) - weekExits;
+    scheduleErrorCheck(productId, INITIAL_PRODUCTS.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
 
-    setExits(prev => ({ ...prev, [productId]: newProductExits }));
-    setPrevBalances(prev => ({ ...prev, [productId]: newProductPrev }));
-    saveProductData(productId, newProductExits, entries[productId], newProductPrev);
+    saveProductData(productId, newProductExits, entries[productId] || [], newProductPrev);
   };
 
   const handleEntryChange = (productId: string, value: string) => {
     const numValue = value === "" ? 0 : parseFloat(value);
     if (isNaN(numValue) || numValue < 0) return;
 
-    const newProductEntries = [...entries[productId]];
+    const newProductEntries = [...(entries[productId] || [])];
     newProductEntries[currentWeek - 1] = numValue;
 
-    const newProductPrev = computeCascade(
-      inheritedBase[productId] ?? 0,
-      ajustesByProduct[productId] || {},
-      newProductEntries,
-      exits[productId]
-    );
+    const newProductPrev = updateLocalState(productId, exits[productId] || [], newProductEntries);
 
     const weekIndex = currentWeek - 1;
-    const weekExits = sumRange(exits[productId], weekIndex * 7, 7);
+    const weekExits = sumRange(exits[productId] || [], weekIndex * 7, 7);
     const weekBalance = (newProductPrev[weekIndex] ?? 0) + (newProductEntries[weekIndex] ?? 0) - weekExits;
-    scheduleErrorCheck(productId, weekIndex, weekBalance);
+    scheduleErrorCheck(productId, INITIAL_PRODUCTS.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
 
-    setEntries(prev => ({ ...prev, [productId]: newProductEntries }));
-    setPrevBalances(prev => ({ ...prev, [productId]: newProductPrev }));
-    saveProductData(productId, exits[productId], newProductEntries, newProductPrev);
+    saveProductData(productId, exits[productId] || [], newProductEntries, newProductPrev);
   };
 
   // --- Ajuste auditado: la única forma de corregir un saldo anterior ---
@@ -329,7 +97,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
       ajustesByProduct[product.id]?.[0] === undefined;
 
     setAjusteProduct(product);
-    setAjusteValue(String(prevBalances[product.id][weekIndex] ?? 0));
+    setAjusteValue(String((prevBalances[product.id] || [])[weekIndex] ?? 0));
     setAjusteMotivo(bootstrap ? "Saldo inicial (primer registro)" : "");
     setIsBootstrapAjuste(bootstrap);
   };
@@ -348,11 +116,11 @@ export default function KardexDashboard({ community, onLogout }: { community: st
 
     const productId = ajusteProduct.id;
     const weekIndex = currentWeek - 1;
-    const saldoAnterior = prevBalances[productId][weekIndex] ?? 0;
+    const saldoAnterior = (prevBalances[productId] || [])[weekIndex] ?? 0;
 
     setIsSubmittingAjuste(true);
 
-    const { error } = await supabase.from("ajustes").insert({
+    const { error } = await kardexService.insertAjuste({
       community,
       product_id: productId,
       year: selectedYear,
@@ -369,12 +137,10 @@ export default function KardexDashboard({ community, onLogout }: { community: st
       return;
     }
 
-    const newOverrides = { ...(ajustesByProduct[productId] || {}), [weekIndex]: numValue };
-    setAjustesByProduct(prev => ({ ...prev, [productId]: newOverrides }));
-
-    const newProductPrev = computeCascade(inheritedBase[productId] ?? 0, newOverrides, entries[productId], exits[productId]);
-    setPrevBalances(prev => ({ ...prev, [productId]: newProductPrev }));
-    await saveProductData(productId, exits[productId], entries[productId], newProductPrev);
+    // Actualiza el saldo en pantalla al instante (sin recargar la página):
+    // registra el override localmente y guarda el encadenado recalculado.
+    const newProductPrev = applyAjuste(productId, weekIndex, numValue);
+    await saveProductData(productId, exits[productId] || [], entries[productId] || [], newProductPrev);
 
     setIsSubmittingAjuste(false);
     setAjusteProduct(null);
@@ -393,8 +159,8 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     setIsLoadingHistorial(true);
 
     const [monthsResult, ajustesResult] = await Promise.all([
-      supabase.from("kardex_records").select("year, month").eq("community", community),
-      supabase.from("ajustes").select("*").eq("community", community).order("created_at", { ascending: false }).limit(200),
+      kardexService.loadMonthsWithData(community),
+      kardexService.loadAjustesHistory(community),
     ]);
 
     if (monthsResult.error) console.error("Error cargando meses con historial:", monthsResult.error);
@@ -423,25 +189,11 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   const getProductName = (productId: string) =>
     INITIAL_PRODUCTS.find((p) => p.id === productId)?.name ?? productId;
 
-  const calculateBalance = (product: (typeof INITIAL_PRODUCTS)[number]) => {
-    if (!exits[product.id] || !prevBalances[product.id] || !entries[product.id]) return 0;
-
-    const weekIndex = currentWeek - 1;
-    const startDay = weekIndex * 7;
-    const endDay = startDay + 7;
-    
-    const weekExits = (exits[product.id] || Array(35).fill(0)).slice(startDay, endDay).reduce((a: number, b: number) => a + b, 0);
-    const prevBalance = (prevBalances[product.id] || [])[weekIndex] || 0;
-    const entry = (entries[product.id] || [])[weekIndex] || 0;
-    
-    return prevBalance + entry - weekExits;
-  };
-
   const handleExportExcel = async () => {
     const { default: ExcelJS } = await import("exceljs");
 
     const monthName = MONTH_NAMES[selectedMonth];
-    const allWeeks = getCalendarWeeks(selectedYear, selectedMonth);
+    const allWeeks = calendarWeeks;
 
     // Layout: 3 columnas fijas (ALIMENTO, UNIDAD DE MEDIDA, SALDO ANTERIOR)
     // + 5 semanas de 9 columnas cada una (ENTRADA, L, M, MC, J, V, S, D, SALDO)
@@ -550,7 +302,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
       sheet.getRow(currentRow).height = 22.05;
       setCell(currentRow, 1, product.name, { align: "left" });
       setCell(currentRow, 2, product.unit);
-      setCell(currentRow, 3, prevBalances[product.id][0] || "");
+      setCell(currentRow, 3, (prevBalances[product.id] || [])[0] || "");
 
       for (let w = 0; w < 5; w++) {
         const startCol = FIXED_COLS + 1 + w * WEEK_BLOCK;
@@ -585,7 +337,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     const { default: autoTable } = await import("jspdf-autotable");
 
     const monthName = MONTH_NAMES[selectedMonth];
-    const allWeeks = getCalendarWeeks(selectedYear, selectedMonth);
+    const allWeeks = calendarWeeks;
 
     // 48 columnas no caben en una hoja impresa: una tabla por semana (igual
     // que la vista en pantalla), con salto de página automático si una
@@ -641,7 +393,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
           product.unit,
           prevBalance,
           entry,
-          ...DAYS.map((_, d) => exits[product.id][startDay + d] || ""),
+          ...DAYS.map((_, d) => pExits[startDay + d] || ""),
           finalBalance,
         ]);
       });
@@ -681,7 +433,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
       <div className="card" style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
           <div>
-            <h2 style={{ marginBottom: "0.2rem" }}>Comunidad {community}</h2>
+            <h2 style={{ marginBottom: "0.2rem", overflowWrap: "break-word", wordBreak: "break-word" }}>Comunidad {community}</h2>
             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
               <CustomSelect
                 options={monthOptions}
@@ -761,7 +513,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
           <table style={{ minWidth: "1000px" }}>
             <thead>
               <tr>
-                <th style={{ width: "20%", position: "sticky", left: 0, zIndex: 2, backgroundColor: "var(--color-primary-dark)" }}>ALIMENTO</th>
+                <th className="kardex-sticky-th" style={{ position: "sticky", left: 0, zIndex: 2, backgroundColor: "var(--color-primary-dark)" }}>ALIMENTO</th>
                 <th>UNIDAD</th>
                 <th style={{ textAlign: "center" }}>SALDO ANT.</th>
                 <th style={{ textAlign: "center" }}>ENTRADA</th>
@@ -788,7 +540,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
             </thead>
             <tbody>
               {filteredProducts.map(product => {
-                const balance = calculateBalance(product);
+                const balance = calculateBalance(product.id, currentWeek, exits, entries, prevBalances);
                 const stockStatus = getStockStatus(balance, product.minStock);
                 const statusMeta = STOCK_STATUS_META[stockStatus];
                 const isRowInError = stockStatus === "rojo";
@@ -797,7 +549,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
 
                 return (
                   <tr key={product.id}>
-                    <td style={{ fontWeight: "500", position: "sticky", left: 0, zIndex: 1, backgroundColor: "var(--color-bg-card)", boxShadow: "2px 0 4px rgba(0,0,0,0.06)" }}>{product.name}</td>
+                    <td className="kardex-sticky-td" style={{ fontWeight: "500", position: "sticky", left: 0, zIndex: 1, backgroundColor: "var(--color-bg-card)", boxShadow: "2px 0 4px rgba(0,0,0,0.06)" }}>{product.name}</td>
                     <td style={{ color: "var(--color-text-muted)", fontSize: "0.9em" }}>{product.unit}</td>
                     
                     {/* Saldo Anterior: calculado automáticamente. Solo se corrige
@@ -827,17 +579,15 @@ export default function KardexDashboard({ community, onLogout }: { community: st
                     </td>
 
                     {/* Editable Entrada */}
-                    <td style={{ padding: "0.5rem" }}>
+                    <td className="kardex-day-cell">
                       <input
                         type="number"
                         min="0"
                         step="0.5"
-                        className="input-field"
+                        className="input-field kardex-day-input kardex-entrada-input"
                         style={{
-                          padding: "0.5rem",
                           textAlign: "center",
                           width: "100%",
-                          minWidth: "70px",
                           borderColor: isRowInError ? "var(--color-accent-red)" : undefined,
                           boxShadow: isRowInError ? "0 0 0 2px rgba(230, 51, 69, 0.15)" : undefined,
                         }}
@@ -850,18 +600,16 @@ export default function KardexDashboard({ community, onLogout }: { community: st
                     {DAYS.map((day, idx) => {
                       const isInvalidDay = currentWeekDates[idx] === null;
                       return (
-                        <td key={day} style={{ padding: "0.5rem" }}>
+                        <td key={day} className="kardex-day-cell">
                           <input
                             type="number"
                             min="0"
                             step="0.5"
-                            className="input-field"
+                            className="input-field kardex-day-input"
                             disabled={isInvalidDay}
                             style={{
-                              padding: "0.5rem",
                               textAlign: "center",
                               width: "100%",
-                              minWidth: "60px",
                               backgroundColor: isInvalidDay ? "#E2E8F0" : (((exits[product.id] || [])[absoluteDayStart + idx] || 0) > 0 ? "rgba(16, 185, 129, 0.1)" : "var(--color-bg-card)"),
                               borderColor: isRowInError ? "var(--color-accent-red)" : (((exits[product.id] || [])[absoluteDayStart + idx] || 0) > 0 ? "var(--color-success)" : "var(--color-border)"),
                               boxShadow: isRowInError ? "0 0 0 2px rgba(230, 51, 69, 0.15)" : undefined,
@@ -907,7 +655,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
             <p style={{ marginBottom: "1rem" }}>
               {isBootstrapAjuste
                 ? "Aún no hay saldo registrado para este producto en esta comunidad."
-                : <>Saldo calculado actualmente: <strong>{prevBalances[ajusteProduct.id][currentWeek - 1] ?? 0}</strong></>}
+                : <>Saldo calculado actualmente: <strong>{(prevBalances[ajusteProduct.id] || [])[currentWeek - 1] ?? 0}</strong></>}
             </p>
             <form onSubmit={submitAjuste} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>
@@ -962,7 +710,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
           <div className="card" style={{ maxWidth: "700px", width: "100%", maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
-              <h3 style={{ margin: 0 }}>Historial — Comunidad {community}</h3>
+              <h3 style={{ margin: 0, overflowWrap: "break-word", wordBreak: "break-word" }}>Historial — Comunidad {community}</h3>
               <button
                 type="button"
                 onClick={closeHistorial}

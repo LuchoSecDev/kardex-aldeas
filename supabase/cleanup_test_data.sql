@@ -3,9 +3,9 @@
 -- SQL Editor de Supabase (usa privilegios de administrador, no el anon key,
 -- así que sí puede borrar aunque la app ya no pueda).
 
-delete from kardex_records where community in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4');
-delete from ajustes where community in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4');
-delete from communities where name in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4');
+delete from kardex_records where community in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4', 'ZZZ_TEST_BORRAR5', 'ZZZ_TEST_PROD_VERIFY');
+delete from ajustes where community in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4', 'ZZZ_TEST_BORRAR5', 'ZZZ_TEST_PROD_VERIFY');
+delete from communities where name in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4', 'ZZZ_TEST_BORRAR5', 'ZZZ_TEST_PROD_VERIFY');
 
 -- Quedó de una verificación anterior (antes de este ajuste auditado).
 delete from ajustes where community = '__diagnostic_test__';
