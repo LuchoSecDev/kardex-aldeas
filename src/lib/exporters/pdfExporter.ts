@@ -1,4 +1,4 @@
-import { INITIAL_PRODUCTS } from "@/data/products";
+import { Product } from "@/types/kardex";
 
 const DAYS = ["L", "M", "MC", "J", "V", "S", "D"];
 const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -8,6 +8,7 @@ export async function exportKardexToPDF({
   selectedMonth,
   selectedYear,
   calendarWeeks,
+  products,
   exits,
   entries,
   prevBalances,
@@ -16,6 +17,7 @@ export async function exportKardexToPDF({
   selectedMonth: number;
   selectedYear: number;
   calendarWeeks: (number | null)[][];
+  products: Product[];
   exits: Record<string, number[]>;
   entries: Record<string, number[]>;
   prevBalances: Record<string, number[]>;
@@ -56,7 +58,7 @@ export async function exportKardexToPDF({
     let lastCategory = "";
     const startDay = w * 7;
 
-    INITIAL_PRODUCTS.forEach((product) => {
+    products.forEach((product) => {
       if (product.category !== lastCategory) {
         body.push([{
           content: product.category,

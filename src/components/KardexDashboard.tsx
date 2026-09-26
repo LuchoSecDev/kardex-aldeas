@@ -2,7 +2,6 @@
 
 import "@/app/kardex.css";
 import { useState } from "react";
-import { INITIAL_PRODUCTS } from "@/data/products";
 import { AjusteRow, Product } from "@/types/kardex";
 import KardexHeader from "@/components/KardexHeader";
 import KardexNavigation from "@/components/KardexNavigation";
@@ -13,6 +12,7 @@ import ErrorToast from "@/components/ErrorToast";
 import { useCalendar } from "@/hooks/useCalendar";
 import { useErrorAlert } from "@/hooks/useErrorAlert";
 import { useKardexData } from "@/hooks/useKardexData";
+import { useProducts } from "@/hooks/useProducts";
 import { sumRange } from "@/lib/balanceEngine";
 import { kardexService } from "@/lib/kardexService";
 import { exportKardexToExcel } from "@/lib/exporters/excelExporter";
@@ -28,6 +28,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
 
   const { calendarWeeks, currentWeekDates } = useCalendar(selectedYear, selectedMonth, currentWeek);
   const { errorToast, scheduleErrorCheck } = useErrorAlert();
+  const { products, isLoadingProducts } = useProducts();
 
   const {
     isLoading,
@@ -39,7 +40,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     saveProductData,
     updateLocalState,
     applyAjuste
-  } = useKardexData(community, selectedYear, selectedMonth);
+  } = useKardexData(community, selectedYear, selectedMonth, products);
 
   const handleExitChange = (productId: string, dayIndex: number, value: string) => {
     const numValue = value === "" ? 0 : parseFloat(value);
@@ -54,7 +55,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     const weekIndex = currentWeek - 1;
     const weekExits = sumRange(newProductExits, weekIndex * 7, 7);
     const weekBalance = (newProductPrev[weekIndex] ?? 0) + ((entries[productId] || [])[weekIndex] ?? 0) - weekExits;
-    scheduleErrorCheck(productId, INITIAL_PRODUCTS.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
+    scheduleErrorCheck(productId, products.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
 
     saveProductData(productId, newProductExits, entries[productId] || [], newProductPrev);
   };
@@ -71,7 +72,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     const weekIndex = currentWeek - 1;
     const weekExits = sumRange(exits[productId] || [], weekIndex * 7, 7);
     const weekBalance = (newProductPrev[weekIndex] ?? 0) + (newProductEntries[weekIndex] ?? 0) - weekExits;
-    scheduleErrorCheck(productId, INITIAL_PRODUCTS.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
+    scheduleErrorCheck(productId, products.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
 
     saveProductData(productId, exits[productId] || [], newProductEntries, newProductPrev);
   };
@@ -183,13 +184,14 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   };
 
   const getProductName = (productId: string) =>
-    INITIAL_PRODUCTS.find((p) => p.id === productId)?.name ?? productId;
+    products.find((p) => p.id === productId)?.name ?? productId;
 
   const handleExportExcel = () => exportKardexToExcel({
     community,
     selectedMonth,
     selectedYear,
     calendarWeeks,
+    products,
     exits,
     entries,
     prevBalances,
@@ -200,16 +202,17 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     selectedMonth,
     selectedYear,
     calendarWeeks,
+    products,
     exits,
     entries,
     prevBalances,
   });
 
-  const categories = ["TODAS", ...Array.from(new Set(INITIAL_PRODUCTS.map(p => p.category)))];
+  const categories = ["TODAS", ...Array.from(new Set(products.map(p => p.category)))];
 
   const filteredProducts = activeCategory === "TODAS"
-    ? INITIAL_PRODUCTS
-    : INITIAL_PRODUCTS.filter(p => p.category === activeCategory);
+    ? products
+    : products.filter(p => p.category === activeCategory);
 
   // Options for custom selects
   const monthOptions = MONTH_NAMES.map((m, i) => ({ value: String(i), label: m }));
@@ -244,7 +247,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
       />
 
       <KardexTable
-        isLoading={isLoading}
+        isLoading={isLoading || isLoadingProducts}
         currentWeek={currentWeek}
         currentWeekDates={currentWeekDates}
         filteredProducts={filteredProducts}

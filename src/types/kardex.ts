@@ -5,8 +5,6 @@ export interface Product {
   category: string;
   name: string;
   unit: string;
-  previousBalance: number;
-  initialEntry: number;
   minStock: number;
 }
 

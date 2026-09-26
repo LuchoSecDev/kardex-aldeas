@@ -2,6 +2,14 @@ import { supabase } from "./supabase";
 import { Database } from "@/types/database";
 
 export const kardexService = {
+  async loadProducts() {
+    return supabase
+      .from("products")
+      .select("id,category,name,unit,minStock:min_stock")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+  },
+
   async loadCommunities() {
     return supabase.from("communities").select("name").order("name");
   },

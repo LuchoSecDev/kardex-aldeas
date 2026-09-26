@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { INITIAL_PRODUCTS } from "@/data/products";
 import { kardexService } from "@/lib/kardexService";
 import { computeCascade, finalBalanceOfMonth } from "@/lib/balanceEngine";
+import { Product } from "@/types/kardex";
 
-export function useKardexData(community: string, selectedYear: number, selectedMonth: number) {
+export function useKardexData(community: string, selectedYear: number, selectedMonth: number, products: Product[]) {
   const [isLoading, setIsLoading] = useState(true);
   
   const [exits, setExits] = useState<Record<string, number[]>>({});
@@ -51,7 +51,7 @@ export function useKardexData(community: string, selectedYear: number, selectedM
       const newEntries: Record<string, number[]> = {};
       const newPrev: Record<string, number[]> = {};
 
-      INITIAL_PRODUCTS.forEach(p => {
+      products.forEach(p => {
         const row = (monthDataRes.data || []).find(r => r.product_id === p.id);
         const productExits = row ? row.exits : Array(35).fill(0);
         const productEntries = row ? row.entries : [0, 0, 0, 0, 0];
@@ -72,7 +72,7 @@ export function useKardexData(community: string, selectedYear: number, selectedM
     };
 
     loadData();
-  }, [community, selectedYear, selectedMonth]);
+  }, [community, selectedYear, selectedMonth, products]);
 
   const saveProductData = useCallback(async (productId: string, prodExits: number[], prodEntries: number[], prodPrev: number[]) => {
     const { error } = await kardexService.saveProductData(
