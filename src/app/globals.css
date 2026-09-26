@@ -1,26 +1,314 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors — tomados directo de aldeasinfantiles.org.co (sos.min.css:
+     .bg-sos-blue #00A7E4, .bg-sos-magenta #EA516B, .bg-sos-green #76B856,
+     .bg-sos-orange #EA7204). Se oscurecieron donde el tono oficial exacto no
+     alcanzaba 4.5:1 de contraste con texto blanco (botones, barras de
+     encabezado) — crítico en una app pensada para accesibilidad visual.
+     Se conserva el mismo matiz/familia de color, solo más oscuro. */
+  --color-primary-dark: #007DAB; /* bg-sos-blue oscurecido: 4.64:1 con blanco */
+  --color-primary-light: #008EC2; /* Variante más clara para hover/acentos */
+  --color-accent-red: #C7455B; /* bg-sos-magenta oscurecido: 4.74:1 con blanco */
+
+  /* UI Colors */
+  --color-bg-body: #F3F5F8; /* Fondo gris claro oficial del sitio */
+  --color-bg-card: #FFFFFF;
+  --color-text-main: #5E6468; /* Gris de texto de cuerpo oficial del sitio (6:1 con blanco) */
+  --color-text-muted: #83888C;
+  --color-border: #E2E8F0;
+  --color-success: #53813C; /* bg-sos-green oscurecido: 4.59:1 con blanco */
+  --color-warning: #BB5B03; /* bg-sos-orange oscurecido: 4.55:1 con blanco */
+  
+  /* Base Typography scaling for accessibility */
+  --font-size-base: 16px;
+  --spacing-base: 1rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Accessibility Modes */
+.text-size-normal {
+  --font-size-base: 16px;
+  --spacing-base: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.text-size-large {
+  --font-size-base: 20px;
+  --spacing-base: 1.25rem;
+}
+
+.text-size-xl {
+  --font-size-base: 24px;
+  --spacing-base: 1.5rem;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --color-text-main: #000000;
+  --color-text-muted: #1A1A1A;
+  --color-bg-body: #FFFFFF;
+  --color-border: #000000;
+  --color-primary-light: #004F71; /* Use darker blue for better contrast */
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--color-bg-body);
+  color: var(--color-text-main);
+  font-size: var(--font-size-base);
+  transition: all 0.3s ease;
+  /* Evita que una fila sin flex-wrap "empuje" toda la página hacia los
+     lados en pantallas angostas. El scroll horizontal intencional (la
+     tabla del kardex) vive en su propio contenedor con overflow-x: auto. */
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Texto solo para lectores de pantalla (ej. describir el semáforo de stock
+   sin repetir el emoji visualmente) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Utility Classes */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing-base) * 0.75) calc(var(--spacing-base) * 1.5);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem; /* inherits from --font-size-base */
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-primary-light);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.btn-danger {
+  background-color: var(--color-accent-red);
+  color: white;
+}
+
+.card {
+  background-color: var(--color-bg-card);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: calc(var(--spacing-base) * 1.5);
+  border: 1px solid var(--color-border);
+}
+
+/* Typography */
+h1, h2, h3 {
+  color: var(--color-primary-dark);
+  margin-top: 0;
+}
+
+/* Forms & Tables */
+.input-field {
+  padding: calc(var(--spacing-base) * 0.75);
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  color: var(--color-text-main);
+  background-color: var(--color-bg-card);
+  transition: all 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-primary-light);
+  box-shadow: 0 0 0 3px rgba(0, 133, 202, 0.15);
+}
+
+/* Custom Select Component */
+.custom-select {
+  position: relative;
+  display: inline-block;
+  min-width: 180px;
+}
+
+.custom-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: calc(var(--spacing-base) * 0.65) calc(var(--spacing-base) * 0.9);
+  background-color: var(--color-bg-card);
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 8px;
+}
+
+.custom-select__trigger:hover {
+  border-color: var(--color-primary-light);
+}
+
+.custom-select__trigger:focus {
+  outline: none;
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 0 0 3px rgba(0, 133, 202, 0.15);
+}
+
+.custom-select__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.custom-select__arrow {
+  color: var(--color-primary-dark);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.custom-select__arrow--open {
+  transform: rotate(180deg);
+}
+
+.custom-select__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+  max-height: 260px;
+  overflow-y: auto;
+  animation: selectSlideIn 0.2s ease;
+}
+
+@keyframes selectSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.custom-select__option {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-text-main);
+  transition: background-color 0.15s ease;
+}
+
+.custom-select__option:hover {
+  background-color: rgba(0, 133, 202, 0.08);
+}
+
+.custom-select__option--selected {
+  background-color: rgba(0, 133, 202, 0.12);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.custom-select__menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-select__menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-select__menu::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--color-bg-card);
+}
+
+th, td {
+  padding: var(--spacing-base);
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1rem;
+}
+
+th {
+  background-color: var(--color-primary-dark);
+  color: white;
+  font-weight: 600;
+}
+
+tbody tr:hover {
+  background-color: rgba(0, 163, 224, 0.05); /* very light primary */
+}
+
+/* Accessibility Panel */
+.a11y-panel {
+  background-color: var(--color-primary-dark);
+  color: white;
+  padding: calc(var(--spacing-base) * 0.5) var(--spacing-base);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: calc(var(--spacing-base) * 0.5);
+  row-gap: 6px;
+}
+
+.a11y-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.a11y-btn:hover, .a11y-btn.active {
+  background: white;
+  color: var(--color-primary-dark);
 }
