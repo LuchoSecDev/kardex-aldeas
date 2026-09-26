@@ -1,3 +1,5 @@
+import { Database } from "./database";
+
 export interface Product {
   id: string;
   category: string;
@@ -7,6 +9,8 @@ export interface Product {
   initialEntry: number;
   minStock: number;
 }
+
+export type AjusteRow = Database["public"]["Tables"]["ajustes"]["Row"];
 
 export type StockStatus = "rojo" | "amarillo" | "verde";
 
