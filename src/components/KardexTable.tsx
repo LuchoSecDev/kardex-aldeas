@@ -1,9 +1,11 @@
 "use client";
 
+import { Fragment } from "react";
 import { Product } from "@/types/kardex";
 import { calculateBalance, getStockStatus, STOCK_STATUS_META } from "@/lib/balanceEngine";
 
 const DAYS = ["L", "M", "MC", "J", "V", "S", "D"];
+const TOTAL_COLS = 4 + DAYS.length + 1; // ALIMENTO, UNIDAD, SALDO ANT., ENTRADA + días + SALDO FINAL
 
 export default function KardexTable({
   isLoading,
@@ -63,7 +65,7 @@ export default function KardexTable({
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map(product => {
+            {filteredProducts.map((product, index) => {
               const balance = calculateBalance(product.id, currentWeek, exits, entries, prevBalances);
               const stockStatus = getStockStatus(balance, product.minStock);
               const statusMeta = STOCK_STATUS_META[stockStatus];
@@ -74,8 +76,18 @@ export default function KardexTable({
               const entradaClasses = ["input-field", "kardex-day-input", "kardex-entrada-input", "kardex-input-center"];
               if (isRowInError) entradaClasses.push("kardex-input-error");
 
+              // Fila separadora cada vez que cambia la categoría (o al
+              // principio de la lista), igual que en la exportación a Excel.
+              const showCategoryDivider = index === 0 || filteredProducts[index - 1].category !== product.category;
+
               return (
-                <tr key={product.id}>
+                <Fragment key={product.id}>
+                  {showCategoryDivider && (
+                    <tr className="kardex-category-row">
+                      <td colSpan={TOTAL_COLS}>{product.category}</td>
+                    </tr>
+                  )}
+                  <tr>
                   <td className="kardex-sticky-td">{product.name}</td>
                   <td className="kardex-unit-cell">{product.unit}</td>
 
@@ -142,7 +154,8 @@ export default function KardexTable({
                     {balance}
                     {isRowInError && <span className="sr-only">{` (${statusMeta.label})`}</span>}
                   </td>
-                </tr>
+                  </tr>
+                </Fragment>
               );
             })}
           </tbody>
