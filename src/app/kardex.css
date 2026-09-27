@@ -133,10 +133,21 @@
 
 .kardex-table-scroll {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 280px);
 }
 
 .kardex-table {
   min-width: 1000px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.kardex-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: var(--color-primary-dark);
 }
 
 /* Columna fija (ALIMENTO) y celdas de días. En celulares angostos la tabla
@@ -153,7 +164,8 @@
 }
 
 .kardex-sticky-th {
-  z-index: 2;
+  top: 0;
+  z-index: 3 !important;
   background-color: var(--color-primary-dark);
 }
 
@@ -162,6 +174,7 @@
   font-weight: 500;
   background-color: var(--color-bg-card);
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .kardex-unit-cell {
