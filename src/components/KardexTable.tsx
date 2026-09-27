@@ -7,6 +7,23 @@ import { calculateBalance, getStockStatus, STOCK_STATUS_META } from "@/lib/balan
 const DAYS = ["L", "M", "MC", "J", "V", "S", "D"];
 const TOTAL_COLS = 4 + DAYS.length + 1; // ALIMENTO, UNIDAD, SALDO ANT., ENTRADA + días + SALDO FINAL
 
+const TABLE_COLGROUP = (
+  <colgroup>
+    <col style={{ width: "20%" }} />
+    <col style={{ width: "7.5%" }} />
+    <col style={{ width: "8.5%" }} />
+    <col style={{ width: "8%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "6.5%" }} />
+    <col style={{ width: "10.5%" }} />
+  </colgroup>
+);
+
 export default function KardexTable({
   isLoading,
   currentWeek,
@@ -46,25 +63,35 @@ export default function KardexTable({
       </div>
 
       <div className="kardex-table-scroll">
-        <table className="kardex-table">
-          <thead>
-            <tr>
-              <th className="kardex-sticky-th">ALIMENTO</th>
-              <th>UNIDAD</th>
-              <th className="kardex-col-center">SALDO ANT.</th>
-              <th className="kardex-col-center">ENTRADA</th>
-              {DAYS.map((d, idx) => (
-                <th key={d} className="kardex-day-th">
-                  <div>{d}</div>
-                  <div className="kardex-day-date-badge">
-                    {currentWeekDates[idx] ? currentWeekDates[idx] : "-"}
-                  </div>
-                </th>
-              ))}
-              <th className="kardex-col-center">SALDO FINAL</th>
-            </tr>
-          </thead>
-          <tbody>
+        {/* Encabezado azul fijo: no tiene barra de scroll visible */}
+        <div className="kardex-table-header-container">
+          <table className="kardex-table">
+            {TABLE_COLGROUP}
+            <thead>
+              <tr>
+                <th className="kardex-sticky-th">ALIMENTO</th>
+                <th>UNIDAD</th>
+                <th className="kardex-col-center">SALDO ANT.</th>
+                <th className="kardex-col-center">ENTRADA</th>
+                {DAYS.map((d, idx) => (
+                  <th key={d} className="kardex-day-th">
+                    <div>{d}</div>
+                    <div className="kardex-day-date-badge">
+                      {currentWeekDates[idx] ? currentWeekDates[idx] : "-"}
+                    </div>
+                  </th>
+                ))}
+                <th className="kardex-col-center">SALDO FINAL</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+
+        {/* Cuerpo desplazable: el scroll vertical inicia aquí, estrictamente en las filas */}
+        <div className="kardex-table-body-container">
+          <table className="kardex-table">
+            {TABLE_COLGROUP}
+            <tbody>
             {filteredProducts.map((product, index) => {
               const balance = calculateBalance(product.id, currentWeek, exits, entries, prevBalances);
               const stockStatus = getStockStatus(balance, product.minStock);
@@ -162,5 +189,6 @@ export default function KardexTable({
         </table>
       </div>
     </div>
+  </div>
   );
 }

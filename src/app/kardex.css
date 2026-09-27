@@ -133,39 +133,49 @@
 
 .kardex-table-scroll {
   overflow-x: auto;
+}
+
+.kardex-table-header-container {
+  overflow-y: scroll;
+  scrollbar-color: transparent transparent;
+  background-color: var(--color-primary-dark);
+}
+
+.kardex-table-header-container::-webkit-scrollbar {
+  width: 15px;
+  background: transparent;
+}
+
+.kardex-table-header-container::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.kardex-table-body-container {
   overflow-y: auto;
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 350px);
 }
 
 .kardex-table {
   min-width: 1000px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.kardex-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background-color: var(--color-primary-dark);
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
 }
 
 /* Columna fija (ALIMENTO) y celdas de días. En celulares angostos la tabla
-   tiene min-width: 1000px, así que la columna fija (20% = 200px) por sí
+   tiene min-width: 1000px, así que la columna fija por sí
    sola ocupa más de la mitad de la pantalla y deja casi nada para las
    columnas que se recorren con el dedo. Por debajo de 480px se reduce el
    ancho fijo y el padding de las celdas de día, para que quepan varias
    columnas a la vez en el espacio que sí se puede desplazar. */
 .kardex-sticky-th,
 .kardex-sticky-td {
-  width: 20%;
   position: sticky;
   left: 0;
 }
 
 .kardex-sticky-th {
-  top: 0;
-  z-index: 3 !important;
+  z-index: 2;
   background-color: var(--color-primary-dark);
 }
 
