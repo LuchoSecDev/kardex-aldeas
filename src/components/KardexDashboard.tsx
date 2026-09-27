@@ -23,7 +23,7 @@ const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Jul
 export default function KardexDashboard({ community, onLogout }: { community: string, onLogout: () => void }) {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [activeCategory, setActiveCategory] = useState("TODAS");
-  const [selectedMonth, setSelectedMonth] = useState(8); // Septiembre (0-indexado)
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-indexado
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const { calendarWeeks, currentWeekDates } = useCalendar(selectedYear, selectedMonth, currentWeek);
