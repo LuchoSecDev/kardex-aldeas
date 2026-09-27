@@ -85,6 +85,8 @@ export interface Database {
       communities: {
         Row: {
           name: string
+          created_at: string
+          has_pin: boolean
         }
         Insert: {
           name: string
