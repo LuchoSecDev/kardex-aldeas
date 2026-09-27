@@ -92,6 +92,5 @@ grant execute on function create_community_with_pin(text, text) to anon;
 grant execute on function verify_community_pin(text, text) to anon;
 grant execute on function claim_pin_for_existing_community(text, text) to anon;
 
--- Si alguna comunidad olvida su PIN, resetearlo manualmente así (reemplaza
--- 'nuevopin' y el nombre):
--- update communities set pin_hash = crypt('nuevopin', gen_salt('bf')) where name = '...';
+-- Si alguna comunidad olvida su PIN, resetearlo manualmente, reemplazando '-----' por el nombre de la comunidad:
+-- update communities set pin_hash = null where name = '-----';
