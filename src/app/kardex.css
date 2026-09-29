@@ -131,28 +131,22 @@
   color: white;
 }
 
+/* Scroll horizontal (siempre) + vertical acotado a una fracción de la
+   pantalla — no a "100vh menos el resto de tarjetas": en un celular
+   angosto el header + la navegación ya ocupan por sí solos más de una
+   pantalla completa (probado: 484px + 334px en un iPhone/Android típico
+   de 740px de alto), así que restar su altura daba 0 o negativo y
+   recortaba la tabla entera. En vez de eso la página se desplaza
+   normalmente hasta la tabla, y esta tiene su propio scroll interno con
+   el encabezado pegado arriba (position: sticky solo funciona dentro de
+   un contenedor con scroll real acotado — comprobado en navegador).
+   dvh en vez de vh: se recalcula bien al rotar el celular o cuando
+   aparece/desaparece la barra de direcciones (vh no lo hacía). */
 .kardex-table-scroll {
   overflow-x: auto;
-}
-
-.kardex-table-header-container {
-  overflow-y: scroll;
-  scrollbar-color: transparent transparent;
-  background-color: var(--color-primary-dark);
-}
-
-.kardex-table-header-container::-webkit-scrollbar {
-  width: 15px;
-  background: transparent;
-}
-
-.kardex-table-header-container::-webkit-scrollbar-thumb {
-  background: transparent;
-}
-
-.kardex-table-body-container {
   overflow-y: auto;
-  max-height: calc(100vh - 350px);
+  max-height: 70vh;
+  max-height: 70dvh;
 }
 
 .kardex-table {
@@ -185,6 +179,21 @@
   background-color: var(--color-bg-card);
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.06);
   border-bottom: 1px solid var(--color-border);
+}
+
+/* Encabezado pegado arriba al hacer scroll de la página (mismo mecanismo
+   que kardex-sticky-th/td ya usan para pegarse a la izquierda). La celda
+   ALIMENTO combina las dos (kardex-sticky-th + kardex-sticky-corner) y
+   queda por encima de las demás con un z-index más alto para la esquina. */
+.kardex-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.kardex-sticky-corner {
+  top: 0;
+  z-index: 3;
 }
 
 .kardex-unit-cell {

@@ -62,36 +62,34 @@ export default function KardexTable({
         <h3>SEMANA {currentWeek} - Registro Diario</h3>
       </div>
 
+      {/* Un solo contenedor de scroll: horizontal siempre, vertical acotado
+          a 70dvh (ver kardex-table-scroll en kardex.css — no se puede
+          quitar ese tope: position:sticky no se pega al scroll de la
+          página completa cuando el contenedor también scrollea en
+          horizontal). El encabezado se pega arriba con position: sticky
+          dentro de ese scroll acotado — mismo mecanismo que ya usa la
+          columna ALIMENTO para pegarse a la izquierda. */}
       <div className="kardex-table-scroll">
-        {/* Encabezado azul fijo: no tiene barra de scroll visible */}
-        <div className="kardex-table-header-container">
-          <table className="kardex-table">
-            {TABLE_COLGROUP}
-            <thead>
-              <tr>
-                <th className="kardex-sticky-th">ALIMENTO</th>
-                <th>UNIDAD</th>
-                <th className="kardex-col-center">SALDO ANT.</th>
-                <th className="kardex-col-center">ENTRADA</th>
-                {DAYS.map((d, idx) => (
-                  <th key={d} className="kardex-day-th">
-                    <div>{d}</div>
-                    <div className="kardex-day-date-badge">
-                      {currentWeekDates[idx] ? currentWeekDates[idx] : "-"}
-                    </div>
-                  </th>
-                ))}
-                <th className="kardex-col-center">SALDO FINAL</th>
-              </tr>
-            </thead>
-          </table>
-        </div>
-
-        {/* Cuerpo desplazable: el scroll vertical inicia aquí, estrictamente en las filas */}
-        <div className="kardex-table-body-container">
-          <table className="kardex-table">
-            {TABLE_COLGROUP}
-            <tbody>
+        <table className="kardex-table">
+          {TABLE_COLGROUP}
+          <thead>
+            <tr>
+              <th className="kardex-sticky-th kardex-sticky-corner">ALIMENTO</th>
+              <th className="kardex-sticky-top">UNIDAD</th>
+              <th className="kardex-col-center kardex-sticky-top">SALDO ANT.</th>
+              <th className="kardex-col-center kardex-sticky-top">ENTRADA</th>
+              {DAYS.map((d, idx) => (
+                <th key={d} className="kardex-day-th kardex-sticky-top">
+                  <div>{d}</div>
+                  <div className="kardex-day-date-badge">
+                    {currentWeekDates[idx] ? currentWeekDates[idx] : "-"}
+                  </div>
+                </th>
+              ))}
+              <th className="kardex-col-center kardex-sticky-top">SALDO FINAL</th>
+            </tr>
+          </thead>
+          <tbody>
             {filteredProducts.map((product, index) => {
               const balance = calculateBalance(product.id, currentWeek, exits, entries, prevBalances);
               const stockStatus = getStockStatus(balance, product.minStock);
@@ -189,6 +187,5 @@ export default function KardexTable({
         </table>
       </div>
     </div>
-  </div>
   );
 }
