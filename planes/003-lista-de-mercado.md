@@ -106,7 +106,7 @@ Funciones:
 |---|---|---|---|
 | A | `market_catalog(token)` | comunidad | Ítems activos por tipo, **sin precios** |
 | A | `market_list_load(token, week_start)` | comunidad | Borrador/enviadas de esa semana + último número de participantes |
-| A | `market_list_save(token, week_start, kind, participants, quantities)` | comunidad | Guarda borrador (valida ítems, ≥ 0, semana = lunes) |
+| A | `market_list_save(token, week_start, kind, quantities)` | comunidad | Guarda borrador (valida ítems, ≥ 0, semana = lunes); `market_set_participants(token, n)` cambia el número fijo de la comunidad |
 | A | `market_list_submit(token, week_start)` | comunidad | Envía las 4 (rechaza si todas vacías: `LISTA_VACIA`) |
 | C | `admin_market_overview(token, week_start)` | admin | Comunidades × tipos: estado, tarde, total $ |
 | C | `admin_market_list(token, community, week_start)` | admin | Líneas con precio, IVA y totales |
