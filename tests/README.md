@@ -36,6 +36,16 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 - `integration/admin-security.test.ts` — la cuenta de la nutricionista: tokens falsos o de comunidad rechazados, funciones internas y tablas cerradas. **Sin riesgo** para la cuenta real (nunca intenta contraseñas).
 - `integration/admin-lifecycle.test.ts` — **opt-in**: ciclo completo de la cuenta (contraseña temporal obligatoria de cambiar, código de recuperación de un solo uso, cambio voluntario, bloqueo). Ver abajo.
 
+## Prueba opt-in con la cuenta de administradora YA entregada (sin modificarla)
+
+`integration/admin-weekly-summary.test.ts` solo **inicia sesión** (no cambia la contraseña ni la bloquea) y prueba `admin_weekly_totals` con datos de dos comunidades de prueba. Se corre con la contraseña **vigente** de la cuenta:
+
+```powershell
+$env:ADMIN_LOGIN_PASSWORD = "<contraseña actual de la cuenta>"; npm run test:integration
+```
+
+Una contraseña equivocada suma un intento fallido (5 bloquean la cuenta 15 minutos), por eso la prueba inicia sesión una sola vez y se detiene con un mensaje claro si falla. Si la cuenta aún tiene la contraseña temporal, también se detiene y pide cambiarla desde `/admin`. Sin `ADMIN_LOGIN_PASSWORD`, sus pruebas aparecen como «skipped».
+
 ## Prueba opt-in del ciclo de la cuenta de administradora
 
 `admin-lifecycle.test.ts` **cambia la contraseña real de la cuenta** y termina bloqueándola 15 minutos, por eso no corre sola. Úsala solo **antes de entregar** la cuenta a la nutricionista (o para verificar un cambio en `admin_auth.sql`):

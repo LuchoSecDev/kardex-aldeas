@@ -151,6 +151,7 @@ describe("enviar semana a la nutricionista", () => {
       supabase.rpc("admin_week_statuses", { p_token: token, p_year: YEAR, p_month: MONTH }),
       supabase.rpc("admin_notifications", { p_token: token }),
       supabase.rpc("admin_mark_reviewed", { p_token: token, p_id: "00000000-0000-0000-0000-000000000000" }),
+      supabase.rpc("admin_weekly_totals", { p_token: token, p_year: YEAR, p_month: MONTH, p_week_index: 0, p_only_sent: true }),
     ];
     for (const result of await Promise.all(calls)) {
       expect(result.error?.message).toContain("SESION_ADMIN_INVALIDA");

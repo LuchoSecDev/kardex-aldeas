@@ -4,6 +4,7 @@ import "@/app/kardex.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import AdminBell from "@/components/admin/AdminBell";
+import AdminWeeklySummary from "@/components/admin/AdminWeeklySummary";
 import CustomSelect from "@/components/CustomSelect";
 import KardexDashboard from "@/components/KardexDashboard";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
@@ -35,6 +36,8 @@ export default function AdminPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  // Sección visible: la tabla de comunidades o el resumen semanal (plan 002).
+  const [view, setView] = useState<"comunidades" | "resumen">("comunidades");
 
   // Kardex abierto en solo lectura (desde la tabla o desde la campanita).
   const [selected, setSelected] = useState<{ community: string; week?: number } | null>(null);
@@ -190,6 +193,27 @@ export default function AdminPanel({
         </div>
       </div>
 
+      <div className="admin-tabs" role="tablist" aria-label="Secciones del panel">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "comunidades"}
+          className={`btn btn-toggle ${view === "comunidades" ? "btn-primary" : ""}`}
+          onClick={() => setView("comunidades")}
+        >
+          Comunidades
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "resumen"}
+          className={`btn btn-toggle ${view === "resumen" ? "btn-primary" : ""}`}
+          onClick={() => setView("resumen")}
+        >
+          Resumen semanal
+        </button>
+      </div>
+
       <div className="card admin-toolbar">
         <div className="admin-toolbar-selects">
           <CustomSelect options={monthOptions} value={String(month)} onChange={(v) => setMonth(parseInt(v))} className="kardex-select-month" />
@@ -207,6 +231,16 @@ export default function AdminPanel({
 
       {exportError && <p role="alert" className="admin-error admin-panel-error">{exportError}</p>}
 
+      {view === "resumen" ? (
+        <AdminWeeklySummary
+          year={year}
+          month={month}
+          communities={communities}
+          statuses={statuses}
+          products={products}
+          isLoadingProducts={isLoadingProducts}
+        />
+      ) : (
       <div className="card admin-table-card">
         {loadFailed ? (
           <p role="alert" className="admin-error admin-panel-error">
@@ -285,6 +319,7 @@ export default function AdminPanel({
           </>
         )}
       </div>
+      )}
     </div>
   );
 }

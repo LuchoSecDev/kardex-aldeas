@@ -44,6 +44,17 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] En un teléfono real: el menú de la campanita cabe en pantalla y la tabla se desplaza dentro de su marco.
 - [ ] En el teléfono, al deslizar la tabla de comunidades hasta el final, **la página no se desliza** más allá de la tabla (solo se mueve el marco de la tabla). Mismo control en "Ver kardex".
 
+## Resumen semanal (panel de la nutricionista, pestaña «Resumen semanal»)
+- [ ] Por defecto muestra la semana de hoy con su rango de fechas; los botones Sem 1–5 cambian de semana.
+- [ ] Con «Solo las comunidades que ya enviaron esta semana» activado, incluye únicamente las que enviaron, y la línea de arriba nombra cuáles entran y cuáles **faltan**.
+- [ ] Desactivar el interruptor incluye a todas las comunidades con datos y avisa que pueden estar incompletas.
+- [ ] Los totales cuadran con la suma a mano de 2 o 3 productos (saldo anterior + entradas − salidas = saldo final); el saldo negativo sale en rojo.
+- [ ] «Ver (n)» despliega el detalle por comunidad y «Ocultar» lo cierra.
+- [ ] El buscador y el filtro de categoría reducen la lista; sin coincidencias avisa.
+- [ ] Una semana sin envíos muestra el mensaje y el botón «Ver también las comunidades que no han enviado».
+- [ ] «Descargar Excel» baja `Resumen_SemanaN_Mes_Año.xlsx` con dos hojas (Resumen y Detalle por comunidad) y las comunidades incluidas en el encabezado.
+- [ ] En el celular, la página no se desliza más allá de la tabla y el detalle desplegable se lee bien.
+
 ## Exportar
 - [ ] Excel: descarga, 5 hojas por categoría, saldos correctos.
 - [ ] PDF: descarga y se lee bien.

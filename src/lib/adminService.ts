@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 import { adminSession } from "./adminSession";
 import type { AjusteRowData, KardexDataSource, KardexRecordRow, RpcResult } from "./kardexDataSource";
 import type { AdminNotification, AdminWeekStatus } from "@/types/submissions";
+import type { WeeklyRow } from "./weeklySummary";
 
 export type AdminLoginResult = { token: string; must_change: boolean };
 export type PasswordResult = { ok: boolean; recovery_code: string | null };
@@ -38,6 +39,17 @@ export type CommunityOverview = {
 };
 
 export const adminService = {
+  // Resumen semanal: una fila por (comunidad, producto) de UNA semana. Con
+  // onlySent = true, solo las comunidades que ya enviaron esa semana.
+  async weeklyTotals(year: number, month: number, weekIndex: number, onlySent: boolean) {
+    return adminRpc<WeeklyRow[]>("admin_weekly_totals", {
+      p_year: year,
+      p_month: month,
+      p_week_index: weekIndex,
+      p_only_sent: onlySent,
+    });
+  },
+
   // Estado de las semanas enviadas de todas las comunidades en un mes.
   async listWeekStatuses(year: number, month: number) {
     return adminRpc<AdminWeekStatus[]>("admin_week_statuses", { p_year: year, p_month: month });
