@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import KardexDashboard from "@/components/KardexDashboard";
 import CommunityCombobox from "@/components/CommunityCombobox";
@@ -207,6 +208,17 @@ export default function Home() {
               {isLoadingCommunities ? "Cargando comunidades..." : "Continuar"}
             </button>
           </form>
+
+          {/* Acceso de la nutricionista: discreto y aparte del formulario de las
+              comunidades (ver planes/001). */}
+          <div style={{ marginTop: "2rem", paddingTop: "1rem", borderTop: "1px solid var(--color-border)" }}>
+            <Link
+              href="/admin"
+              style={{ color: "var(--color-text-muted)", fontSize: "0.9rem", textDecoration: "underline" }}
+            >
+              Acceso administrativo
+            </Link>
+          </div>
 
         </div>
       )}

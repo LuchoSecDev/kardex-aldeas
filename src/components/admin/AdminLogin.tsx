@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function AdminLogin({
@@ -52,6 +53,9 @@ export default function AdminLogin({
         <button type="button" className="admin-link" onClick={onForgot} disabled={isSubmitting}>
           Olvidé mi contraseña
         </button>
+
+        {/* Quien llegó por error (una comunidad) puede volver a su pantalla de entrada. */}
+        <Link href="/" className="admin-link">← Volver al inicio</Link>
       </form>
     </div>
   );
