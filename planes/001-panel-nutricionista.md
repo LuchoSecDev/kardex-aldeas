@@ -92,7 +92,8 @@ Funciones (todas validan token y, en las de administradora, el rol):
 
 ## Fases
 
-- [ ] **Fase A — Acceso de administradora.** SQL `supabase/admin_auth.sql`; ruta `/admin` con login,
+- [x] **Fase A — Acceso de administradora.** *(Verificada en navegador: ingreso temporal, cambio obligatorio, código de recuperación, cambio voluntario, recuperación con código. Bug hallado y corregido: `DELETE` sin `WHERE` rechazado por Supabase. Pendiente: correr el ciclo automatizado opt-in.)*
+  SQL `supabase/admin_auth.sql` (+ `admin_reset_password.sql`); ruta `/admin` con login,
   cambio obligatorio, código de recuperación y cambio voluntario.
   *Aceptación:* la contraseña temporal entra y obliga a cambiar; la nueva funciona; el código restablece;
   5 fallos bloquean 15 min; un token de comunidad no sirve en `admin_*`.

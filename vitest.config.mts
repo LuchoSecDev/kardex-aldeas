@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
   },
   test: {
     include: ["tests/**/*.test.ts"],
-    env: loadEnv(mode, process.cwd(), "NEXT_PUBLIC_"),
+    env: loadEnv(mode, process.cwd(), ["NEXT_PUBLIC_", "ADMIN_TEST_"]),
     testTimeout: 30_000,
   },
 }));

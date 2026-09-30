@@ -33,6 +33,19 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 - `integration/sessions.test.ts` — PIN, login/logout, tokens inválidos, funciones internas no expuestas, nombres y PIN inválidos.
 - `integration/lockout.test.ts` — 5 fallos bloquean 15 min (incluso con el PIN correcto); un acierto reinicia el contador.
 - `integration/data-access.test.ts` — tablas cerradas al acceso directo, guardar/leer sin perder decimales, aislamiento entre comunidades, validaciones del servidor, ajustes de solo inserción.
+- `integration/admin-security.test.ts` — la cuenta de la nutricionista: tokens falsos o de comunidad rechazados, funciones internas y tablas cerradas. **Sin riesgo** para la cuenta real (nunca intenta contraseñas).
+- `integration/admin-lifecycle.test.ts` — **opt-in**: ciclo completo de la cuenta (contraseña temporal obligatoria de cambiar, código de recuperación de un solo uso, cambio voluntario, bloqueo). Ver abajo.
+
+## Prueba opt-in del ciclo de la cuenta de administradora
+
+`admin-lifecycle.test.ts` **cambia la contraseña real de la cuenta** y termina bloqueándola 15 minutos, por eso no corre sola. Úsala solo **antes de entregar** la cuenta a la nutricionista (o para verificar un cambio en `admin_auth.sql`):
+
+1. En `.env.local` define `ADMIN_TEST_PASSWORD=<una contraseña temporal de prueba>` (nunca en git).
+2. Corre `supabase/admin_reset_password.sql` en Supabase con esa misma contraseña (edita el texto de reemplazo y **no** guardes la real en el archivo).
+3. `$env:RUN_ADMIN_LIFECYCLE=1; npm run test:integration` (en PowerShell).
+4. **Antes de entregar la cuenta**, vuelve a correr `admin_reset_password.sql` con la contraseña temporal que le darás a la nutricionista.
+
+Sin `RUN_ADMIN_LIFECYCLE=1` esas pruebas se saltan y aparecen como "skipped".
 
 ## Cómo agregar pruebas
 
