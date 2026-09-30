@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import KardexDashboard from "@/components/KardexDashboard";
+import CommunityShell from "@/components/CommunityShell";
 import CommunityCombobox from "@/components/CommunityCombobox";
 import PinGate, { PinGateMode } from "@/components/PinGate";
 import { kardexService } from "@/lib/kardexService";
@@ -148,7 +148,7 @@ export default function Home() {
   };
 
   if (selectedCommunity) {
-    return <KardexDashboard community={selectedCommunity} onLogout={handleLogout} />;
+    return <CommunityShell community={selectedCommunity} onLogout={handleLogout} />;
   }
 
   return (

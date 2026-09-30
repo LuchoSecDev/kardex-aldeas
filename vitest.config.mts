@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     alias: { "@": path.resolve(import.meta.dirname, "src") },
   },
   test: {
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.test.{ts,tsx}"],
     env: loadEnv(mode, process.cwd(), ["NEXT_PUBLIC_", "ADMIN_TEST_"]),
     testTimeout: 30_000,
   },

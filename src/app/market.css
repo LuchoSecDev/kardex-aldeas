@@ -1,0 +1,256 @@
+/* Lista de mercado (plan 003): selector Kardex | Lista y pantalla de la lista.
+   Reutiliza las tarjetas, botones y colores de globals.css / kardex.css. */
+
+/* --- Selector Kardex | Lista de mercado --- */
+.market-switch-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-base) var(--spacing-base) 0;
+}
+
+.market-switch {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* --- Semana --- */
+.market-week {
+  margin-bottom: 1.5rem;
+}
+
+.market-week-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.market-week-label {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.market-week-title {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.market-week-sub {
+  margin: 0.4rem 0 0;
+}
+
+.market-week-due,
+.market-week-deadline {
+  margin: 0.4rem 0 0;
+}
+
+.market-week-due {
+  margin-top: 1rem;
+}
+
+.market-week-arrow {
+  flex: 0 0 auto;
+  min-width: 3rem;
+}
+
+.market-week-upcoming {
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.market-week-deadline {
+  font-weight: 600;
+}
+
+.market-week-deadline--late {
+  color: var(--color-accent-red);
+}
+
+/* --- Participantes --- */
+.market-participants {
+  margin-bottom: 1.5rem;
+}
+
+.market-participants-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.market-participants-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.market-participants-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.market-participants-input {
+  width: 7rem;
+}
+
+.market-participants-value {
+  margin: 0;
+}
+
+.market-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* --- Pestañas y productos --- */
+.market-items {
+  margin-bottom: 1.5rem;
+}
+
+.market-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.market-tab {
+  flex: 1 1 130px;
+  gap: 0.4rem;
+  text-align: center;
+}
+
+/* En celular las 4 pestañas van en 2 columnas para que no se partan en tres líneas. */
+@media (max-width: 600px) {
+  .market-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .market-tab {
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+  }
+}
+
+.market-tab-count {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-success);
+  color: #fff;
+  font-size: 0.8em;
+  line-height: 1.5rem;
+  text-align: center;
+}
+
+.market-tab-off {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.market-due {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+
+.market-due--yes {
+  color: var(--color-success);
+}
+
+.market-due--no {
+  color: var(--color-text-muted);
+}
+
+.market-search {
+  width: 100%;
+  margin-bottom: 0.75rem;
+}
+
+.market-empty {
+  margin: 1rem 0;
+  color: var(--color-text-muted);
+}
+
+.market-item-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.market-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.market-item--ordered {
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.market-item-label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  cursor: pointer;
+}
+
+.market-item-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.market-item-tag {
+  margin-left: 0.5rem;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  background: var(--color-warning);
+  color: #fff;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+
+.market-item-unit {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+}
+
+.market-item-input {
+  flex: 0 0 6rem;
+  width: 6rem;
+  text-align: center;
+}
+
+/* --- Enviar --- */
+.market-submit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.market-submit-info {
+  flex: 1 1 320px;
+  line-height: 1.5;
+}
+
+.market-submit-info p {
+  margin: 0 0 0.35rem;
+}
+
+.market-submit-kinds {
+  font-size: 0.9em;
+  color: var(--color-text-muted);
+}

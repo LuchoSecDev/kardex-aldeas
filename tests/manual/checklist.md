@@ -32,6 +32,19 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Al editar esa semana después, aparece "⚠ … cambió después" (aviso y botón de semana); "Volver a enviar" lo limpia.
 - [ ] El botón se bloquea mientras hay un guardado en curso.
 
+## Lista de mercado (comunidad)
+- [ ] Arriba aparece el selector **Kardex | Lista de mercado**; cambiar de uno a otro no pierde el mes/semana del kardex.
+- [ ] La lista abre en la **semana del próximo pedido** (p. ej. entre semana: la del lunes que viene) con su rótulo («Semana 2 de octubre · 5 oct – 11 oct»), el viernes de pedido y el plazo (5:00 p. m.).
+- [ ] Los botones ← → cambian de semana; «Ir a la semana del próximo pedido» solo aparece cuando estás en otra.
+- [ ] Una comunidad sin participantes los pide (y no deja enviar sin ellos); con participantes, «Cambiar (llegó o se fue alguien)» permite editarlos.
+- [ ] Cada pestaña (Fruver y lácteos, Carnes, Abarrotes, Aseo) muestra sus productos; dice si ese viernes **sí o no toca** ese tipo; el contador verde cuenta lo pedido.
+- [ ] Escribir una cantidad (con coma, p. ej. 2,5): «Guardando…» y luego «✓ Todos los cambios guardados»; al recargar y volver a entrar, sigue ahí.
+- [ ] No deja escribir letras; el buscador encuentra sin importar tildes (p. ej. «limon» → LIMÓN).
+- [ ] Sin internet: tras unos segundos aparece el aviso rojo con **Reintentar**, y el botón de enviar queda bloqueado hasta que se guarde.
+- [ ] «Enviar lista de la semana» pide confirmación con el resumen por tipo y muestra «✓ Enviada el … (a tiempo)». Un envío después del plazo dice «(después del plazo)».
+- [ ] Editar después de enviar muestra «⚠ … cambiaste algo después» y el botón pasa a «Volver a enviar la lista».
+- [ ] En un teléfono real (360 px): la página no se desliza hacia los lados, las 4 pestañas caben en 2 columnas y el teclado de las cantidades es numérico con coma.
+
 ## Panel de la nutricionista (`/admin`)
 - [ ] Desde el inicio, el enlace pequeño "Acceso administrativo" abre el login; "← Volver al inicio" regresa.
 - [ ] Contraseña temporal → obliga a crear una propia → muestra el código de recuperación una sola vez.

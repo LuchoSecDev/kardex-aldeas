@@ -130,7 +130,7 @@ Funciones:
   (desde `anexos/cronograma-pedidos-2026.md`) + columna `communities.participants` + funciones de comunidad.
   *Aceptación:* un token de comunidad lee el catálogo, guarda borrador y envía; un token falso o de administradora se
   rechaza; las tablas están cerradas a `anon`; el envío marca tardía/a tiempo según el plazo.
-- [ ] **Fase B — Formulario de la colaboradora.** Selector Kardex | Lista, pestañas, buscador, guardado automático,
+- [x] **Fase B — Formulario de la colaboradora.** *(Hecha el 2026-09-30: `CommunityShell` con selector Kardex | Lista de mercado, `useMarketList`, `components/market/*`, `market.css`, cola de guardado genérica `lib/saveQueue.ts`. Verificada con 30 pruebas de pantalla (jsdom) y en un navegador real contra un Supabase simulado, en escritorio y celular de 360 px: guardado con decimales, participantes, envío, aviso de cambios tras enviar, sin scroll horizontal ni errores de consola. **Pendiente:** probarla en un celular real con la base real y correr `npm run test:integration`.)* Selector Kardex | Lista, pestañas, buscador, guardado automático,
   envío, avisos (toca/no toca, plazo), participantes. *Aceptación:* se llena y envía desde un celular de 360 px; al
   recargar el borrador sigue; sin red, avisa y reintenta como el kardex.
 - [ ] **Fase C — Panel de la nutricionista.** Pestaña nueva, detalle, a tiempo/tarde/falta, marcar revisada,
