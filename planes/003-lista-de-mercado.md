@@ -1,6 +1,6 @@
 # 003 — Lista de mercado (pedido semanal de cada comunidad)
 
-**Estado:** 📝 Propuesta (plan aprobado en lo general por Lucho el 2026-09-30; faltan las decisiones de "Pendientes por confirmar" antes de programar)
+**Estado:** 📝 Propuesta (aprobada en lo general por Lucho el 2026-09-30; respondió las dudas del plan y aportó el cronograma de pedidos 2026; quedan 5 detalles menores en "Pendientes por confirmar")
 **Rama:** `feature/lista-mercado`  **Fecha:** 2026-09-30
 
 ## Objetivo
@@ -53,23 +53,35 @@ Cada hoja lleva arriba: **Casa** (lista desplegable), **Semana** (1–15), **Mes
 - La lista del viernes 25–26 de septiembre se rotuló "Semana 1 de octubre": la **semana es la de la entrega**
   (lunes 28 sep – domingo 4 oct), aunque el lunes–miércoles caigan en septiembre.
 
+## Cronograma de pedidos 2026 (foto de Lucho)
+
+La organización tiene un calendario impreso que dice **qué se pide cada viernes** (códigos F/L/C/A/AS). Está
+transcrito en [`anexos/cronograma-pedidos-2026.md`](anexos/cronograma-pedidos-2026.md). Lo importante:
+
+- **Fruver, Lácteos y Carnes (F/L/C): todos los viernes.**
+- **Abarrotes (A): cada 14 días desde el viernes 9 de enero de 2026** (2 de octubre, 16 de octubre, 30 de octubre…).
+- **Aseo (AS): el viernes que cae entre el 13 y el 19 de cada mes** (16 de octubre, 13 de noviembre, 18 de diciembre).
+- Por eso la lista del 25 de septiembre iba con Abarrotes y Aseo en 0: ese viernes solo tocaba F/L/C.
+- Hay viernes festivos con pedido (3 abr, 1 may, 7 ago, 25 dic).
+
 ## Decisiones
+
 
 | Tema | Decisión | Por qué |
 |---|---|---|
 | Formulario o Excel | **Formulario en la app.** Importar el Excel queda como mejora futura. | Respuesta de Lucho (preg. 1). |
-| Precios | **Solo la nutricionista los ve.** Las colaboradoras nunca los reciben (la función que usa la comunidad no los devuelve). Totales en pesos solo en el panel. | Hoy ya están ocultos para ellas (preg. 2). |
+| Precios | (Lucho: "no lo tengas en cuenta" sobre quién los mantiene y los precios faltantes → se siguen cargando del Excel y se editan por SQL; sin pantalla de precios por ahora.) **Solo la nutricionista los ve.** Las colaboradoras nunca los reciben (la función que usa la comunidad no los devuelve). Totales en pesos solo en el panel. | Hoy ya están ocultos para ellas (preg. 2). |
 | Hoja RESUMEN (presupuesto) | **Entra ahora**, solo en el panel de la nutricionista (fase E). | Preg. 3. |
 | Aseo | Se incluye. | Preg. 5. |
-| Panadería | **No se incluye** en la lista (se sigue controlando solo en el kardex). | No se envía, es compra inmediata. |
+| Panadería | **No se incluye** en la lista ni **en el marco presupuestal** (confirmado). Se sigue controlando solo en el kardex. | No se envía, es compra directa a la panadería con convenio. |
 | Catálogo | Tabla **propia** `market_items`, no se reutiliza `products` del kardex. | Los nombres y unidades difieren (Excel: "Porcion"; kardex: "PAQUETE"), hay ítems que solo existen en uno (envueltos, arepas, recorte de charcutería) y el Excel trae IVA. Un vínculo opcional al producto del kardex queda para la mejora de "saldo al lado". |
 | Precios en BD | Tabla aparte `market_item_prices` (sin acceso `anon`, solo la leen funciones `admin_*`), con `unit_price` **sin IVA** y `iva_rate` (0 o 0.19). | Que un error de permisos en el catálogo no filtre precios. |
 | Clave de la lista | **Lunes de la semana de entrega** (`week_start date`), no (mes, semana 0–4). | Evita la ambigüedad de las 5 semanas (la misma semana es "5 de septiembre" y "1 de octubre") y **no depende de H1**. La pantalla la rotula "Semana 1 de octubre · 28 sep – 4 oct". |
 | Semana por defecto | La **semana siguiente** (el lunes que viene): el viernes se pide para la semana que sigue. Se puede cambiar. | Así funciona el ritual de los viernes. |
-| Envío | **Un solo botón "Enviar lista de la semana"** que envía las 4 listas juntas (las vacías van como "no pedí"), como el libro de Excel. Reenviar se permite (sube contador, vuelve a "sin revisar"). | Mismo hábito actual: un envío, todo el libro. |
-| Qué toca cada semana | Fruver y Carnes: siempre. Abarrotes: quincenal. Aseo: primera semana del mes. La app **marca** "Esta semana toca / no toca" pero **no bloquea** (se puede pedir igual). | Las reglas reales tienen excepciones (eventos); bloquear sería un estorbo. |
-| Hora límite | Aviso visible "Envía a más tardar el viernes a las 5:00 pm". La nutricionista ve si una lista llegó **tarde** (después del viernes 5 pm, hora de Bogotá). No bloquea. | Informativo. |
-| Participantes | Campo por lista, **se precarga con el último valor** y se puede editar cada semana. | Varía (en el archivo: 11, 11, vacío y 9). *Por confirmar.* |
+| Envío | **Un solo botón "Enviar lista de la semana"** que envía las 4 listas juntas (las vacías van como "no pedí"), como el libro de Excel. Reenviar se permite (sube contador, vuelve a "sin revisar"). **Reemplaza el correo** (confirmado por Lucho). | Mismo hábito actual: un envío, todo el libro. |
+| Qué toca cada viernes | Tabla **`market_calendar`** (fecha del viernes → tipos que se piden), **sembrada con el cronograma 2026 de la foto**. Para años siguientes hay una regla de respaldo (A cada 14 días desde el 9 ene 2026; AS el viernes entre el 13 y el 19) que genera la tabla de 2027. La app **marca** "Este viernes toca / no toca" por tipo pero **no bloquea** (se puede pedir igual). | El cronograma es oficial y tiene excepciones (festivos, eventos); una tabla es más fiel que una fórmula y se corrige por SQL. Bloquear sería un estorbo. |
+| Hora límite y tardías | **Confirmado por Lucho: sí se marcan.** Aviso visible "Envía a más tardar el viernes a las 5:00 pm". La nutricionista ve cada lista como **a tiempo / tarde / sin enviar**; se juzga por el **primer envío** (reenviar después no convierte una lista a tiempo en tardía, pero se anota "modificada después del plazo"). No bloquea nada. A las 5 pm la tabla resalta quién **falta por enviar**. | Informativo: que la nutricionista sepa a quién llamar antes de pedir. |
+| Participantes | **Fijos por comunidad** (respuesta de Lucho): un solo número guardado por comunidad (`communities.participants`), que la colaboradora cambia solo cuando llega o se va alguien. Cada lista envía **copia del número vigente** (así un cambio posterior no altera el histórico ni el presupuesto de semanas pasadas). | En el archivo aparece 11, 11, vacío y 9 porque se escribía a mano en cada hoja. |
 | Borrador | Se guarda solo mientras se digita (igual que el kardex), para retomar desde otro celular. | Son ~285 ítems; perderlos sería costoso. |
 | Campanita | Las listas enviadas y sin revisar suman a la campanita junto con las semanas del kardex (con etiqueta "Lista de mercado"). | Un solo aviso para la nutricionista. |
 | Seguridad | Mismo patrón del proyecto: tablas con RLS y `revoke all` a `anon`; funciones `security definer` que validan token; las de comunidad usan el token de comunidad y las de nutricionista el de administradora, sin cruzarse. | Ver plan 001. |
@@ -82,8 +94,10 @@ Cada hoja lleva arriba: **Casa** (lista desplegable), **Semana** (1–15), **Mes
   `sort_order`, `is_active`. Lectura `anon` solo de activos (mismo patrón que `products`), sin precios.
 - `market_item_prices` — `item_id`, `unit_price`, `iva_rate`, `updated_at`. Sin acceso `anon`.
 - `market_lists` — una fila por (`community`, `week_start`, `kind`): `quantities jsonb` (`{item_id: cantidad}` solo
-  no ceros), `participants int`, `status` (`borrador` | `enviada`), `submitted_at`, `submit_count`, `reviewed_at`.
+  no ceros), `participants int` (copia del vigente al enviar), `first_submitted_at`, `late bool`, `status` (`borrador` | `enviada`), `submitted_at`, `submit_count`, `reviewed_at`.
   Único por (comunidad, semana, tipo). Cantidades ≥ 0 con decimales (hay 0.25, 0.5…).
+- `market_calendar` — `friday date primary key`, `kinds text[]` (p. ej. `{fruver,carnes,abarrotes,aseo}`); fruver, lácteos y carnes viajan juntos. Sembrada con 2026; lectura `anon` (no tiene datos sensibles).
+- `communities.participants int` — número fijo de participantes (nuevo; lo edita la comunidad con una función `market_set_participants`).
 - `market_settings` — fila única: `food_per_person` (327 600), `aseo_per_person` (23 600). Editable solo por funciones `admin_*`.
 
 Funciones:
@@ -118,7 +132,8 @@ Los precios se cargan con un SQL de semilla **que no se sube a git** (ver Pendie
 ## Fases
 
 - [ ] **Fase A — Catálogo y base de datos.** `market_lists.sql` + semilla del catálogo (desde `anexos/lista-mercado-catalogo.json`)
-  + precios (semilla privada) + funciones de comunidad. *Aceptación:* un token de comunidad lee el catálogo sin
+  + `market_calendar` (desde `anexos/cronograma-pedidos-2026.md`) + columna `communities.participants`
+  + precios (semilla; el repo es privado) + funciones de comunidad. *Aceptación:* un token de comunidad lee el catálogo sin
   precios, guarda borrador y envía; un token falso o de administradora se rechaza; las tablas están cerradas a `anon`.
 - [ ] **Fase B — Formulario de la colaboradora.** Selector Kardex | Lista, pestañas, buscador, guardado automático,
   envío, avisos (toca/no toca, 5 pm). *Aceptación:* se llena y envía desde un celular de 360 px; al recargar el
@@ -147,19 +162,25 @@ Los precios se cargan con un SQL de semilla **que no se sube a git** (ver Pendie
 2. Merge a `main` y push con visto bueno de Lucho.
 3. `npm run test:integration` y checklist manual; limpiar datos de prueba (ampliar `cleanup_test_data.sql`).
 
-## Pendientes por confirmar con la organización
+## Respuestas de Lucho (2026-09-30)
 
-1. **Participantes:** ¿se escribe cada semana (con el último valor precargado), o es fijo por comunidad?
-2. **Abarrotes quincenal:** ¿en qué semanas del mes (1.ª y 3.ª, 2.ª y 4.ª…)? El archivo trae "Semana 3" como la última.
-3. **Precios:** ¿quién los mantiene? Fruver y Abarrotes están en 0 en el archivo: ¿la nutricionista los tiene?
-   ¿Se actualizan por SQL (Lucho) o se construye una pantalla (fase futura)?
-4. **Visibilidad del repositorio:** los precios de Carnes y Aseo son datos comerciales; antes de commitear una
-   semilla con precios confirmar que el repo es privado, o cargarlos solo por SQL Editor sin guardarlos en git.
-5. **Presupuesto:** ¿los 327 600 y 23 600 son **por participante por mes**, iguales para todas las comunidades?
-   ¿Cómo se promedian los participantes del mes? ¿La panadería cuenta dentro del marco?
-6. **El correo:** ¿el envío en la app **reemplaza** el correo de los viernes, o la colaboradora sigue mandando el
-   Excel? (Si hay que seguir enviándolo, la fase D lo genera con un clic.)
-7. **Hora límite:** confirmar que es el viernes a las 5 pm (Bogotá) y si importa marcar las tardías.
+| # | Pregunta | Respuesta |
+|---|---|---|
+| 1 | Participantes | Fijos por comunidad; solo cambian si llega o se va alguien. |
+| 2 | Semanas de abarrotes | Resuelto con el cronograma de la foto (cada 14 días desde el 9 ene 2026). |
+| 3 | Quién mantiene los precios | "No lo tengas en cuenta" → sin pantalla de precios; se cargan por SQL. |
+| 4 | ¿Repo privado? | **Sí, es privado** → la semilla de precios sí puede ir en git. |
+| 5 | Presupuesto (constantes, participantes) | "No lo tengas en cuenta": se dejan 327 600 y 23 600 por participante como **configurables** (`market_settings`), iguales para todas. La panadería **no** entra al marco. |
+| 6 | ¿Reemplaza el correo? | Sí. |
+| 7 | Hora límite / tardías | Viernes 5 pm; sí se marcan (ver decisión). |
+
+## Pendientes por confirmar (menores; no bloquean la Fase A)
+
+1. **Aseo:** se pide a mitad de mes (viernes 13–19) pero la leyenda dice entrega "1.ª semana del mes": ¿es la del mes siguiente?
+2. **Viernes festivos** con pedido (3 abr, 1 may, 7 ago, 25 dic): ¿el plazo de las 5 pm sigue siendo ese viernes o se adelanta al jueves?
+3. **Colores** pintados a mano en el cronograma: ¿qué significan? (no se usan en la app).
+4. **Panadería:** la hoja dice "según negociación" y Lucho la describe como inmediata: ¿hay algo que la app deba registrar? (por ahora no).
+5. **Presupuesto:** confirmar que los 327 600 / 23 600 son por participante **por mes** cuando la nutricionista los vaya a usar (fase E).
 
 ## Riesgos
 

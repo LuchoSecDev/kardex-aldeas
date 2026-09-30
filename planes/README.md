@@ -13,7 +13,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 |---|---|---|---|
 | 001 | [Panel de la nutricionista](001-panel-nutricionista.md) | ✅ **Desplegado en producción el 2026-09-30** (merge a `main` + push, `b3e60df`). Falta: entregar la cuenta a la nutricionista (reset con la contraseña temporal real) y limpiar datos de prueba | `cfc3d80` (A) · `fc6934c` (B) · `53e474d` (C) · `5b3eaa7` acceso administrativo · `dee3ef1` campanita · `8e49fd2`/`b3e60df` ajustes de scroll |
 | 002 | [Resumen semanal para el pedido a proveedores](002-resumen-semanal.md) | ✅ Desplegado en producción el 2026-09-30. Pendiente de diseño: cantidad sugerida a pedir (falta la regla de la organización) | ver `git log` (rama `feature/resumen-semanal`) |
-| 003 | [Lista de mercado](003-lista-de-mercado.md) | 📝 Propuesta (plan listo; faltan 7 decisiones de la organización, ver el plan) | — |
+| 003 | [Lista de mercado](003-lista-de-mercado.md) | 📝 Propuesta (plan listo; dudas respondidas y cronograma 2026 incorporado; quedan 5 detalles menores, ver el plan) | — |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)
