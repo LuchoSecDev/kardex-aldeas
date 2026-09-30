@@ -55,6 +55,55 @@
   flex-wrap: wrap;
 }
 
+/* --- SaveStatus --- */
+.kardex-save-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.kardex-save-status--saved {
+  color: var(--color-success);
+}
+
+.kardex-save-status--error {
+  color: var(--color-accent-red);
+}
+
+.kardex-save-banner {
+  position: fixed;
+  top: 3.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  padding: 0.8rem 1.2rem;
+  border-radius: 10px;
+  background-color: var(--color-accent-red);
+  color: white;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.kardex-save-banner-btn {
+  flex-shrink: 0;
+  background-color: white;
+  color: var(--color-accent-red);
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .kardex-save-banner {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+}
+
 .kardex-btn-icon {
   width: 20px;
   height: 20px;

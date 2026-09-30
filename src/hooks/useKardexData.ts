@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { kardexService } from "@/lib/kardexService";
 import { computeCascade, finalBalanceOfMonth } from "@/lib/balanceEngine";
 import { Product } from "@/types/kardex";
+import { useSaveQueue } from "@/hooks/useSaveQueue";
 
 // `community` solo dispara la recarga al cambiar de comunidad: el servidor
 // deduce la comunidad real del token de sesión (ver lib/session.ts).
@@ -76,19 +77,18 @@ export function useKardexData(community: string, selectedYear: number, selectedM
     loadData();
   }, [community, selectedYear, selectedMonth, products]);
 
-  const saveProductData = useCallback(async (productId: string, prodExits: number[], prodEntries: number[], prodPrev: number[]) => {
-    const { error } = await kardexService.saveProductData(
-      selectedYear,
-      selectedMonth,
+  const { status: saveStatus, enqueue, retryFailed: retrySave } = useSaveQueue();
+
+  const saveProductData = useCallback((productId: string, prodExits: number[], prodEntries: number[], prodPrev: number[]) => {
+    return enqueue({
+      year: selectedYear,
+      month: selectedMonth,
       productId,
-      prodExits,
-      prodEntries,
-      prodPrev
-    );
-    if (error) {
-      console.error("Error guardando en Supabase:", error);
-    }
-  }, [selectedYear, selectedMonth]);
+      exits: prodExits,
+      entries: prodEntries,
+      prevBalances: prodPrev,
+    });
+  }, [enqueue, selectedYear, selectedMonth]);
 
   const updateLocalState = useCallback((
     productId: string,
@@ -126,6 +126,8 @@ export function useKardexData(community: string, selectedYear: number, selectedM
     prevBalances,
     ajustesByProduct,
     inheritedBase,
+    saveStatus,
+    retrySave,
     saveProductData,
     updateLocalState,
     applyAjuste

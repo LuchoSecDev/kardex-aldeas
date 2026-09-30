@@ -1,6 +1,8 @@
 "use client";
 
 import CustomSelect from "@/components/CustomSelect";
+import SaveStatus from "@/components/SaveStatus";
+import type { SaveStatus as SaveStatusValue } from "@/hooks/useSaveQueue";
 
 type Option = { value: string; label: string };
 
@@ -16,6 +18,8 @@ export default function KardexHeader({
   onExportPDF,
   onOpenHistorial,
   onLogout,
+  saveStatus,
+  onRetrySave,
 }: {
   community: string;
   selectedMonth: number;
@@ -28,6 +32,8 @@ export default function KardexHeader({
   onExportPDF: () => void;
   onOpenHistorial: () => void;
   onLogout: () => void;
+  saveStatus: SaveStatusValue;
+  onRetrySave: () => void;
 }) {
   return (
     <div className="card kardex-header-card">
@@ -48,6 +54,7 @@ export default function KardexHeader({
               className="kardex-select-year"
             />
           </div>
+          <SaveStatus status={saveStatus} onRetry={onRetrySave} />
         </div>
       </div>
       <div className="kardex-header-actions">

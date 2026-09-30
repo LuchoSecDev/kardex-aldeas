@@ -1,7 +1,7 @@
 "use client";
 
 import "@/app/kardex.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AjusteRow, Product } from "@/types/kardex";
 import KardexHeader from "@/components/KardexHeader";
 import KardexNavigation from "@/components/KardexNavigation";
@@ -37,10 +37,27 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     prevBalances,
     ajustesByProduct,
     inheritedBase,
+    saveStatus,
+    retrySave,
     saveProductData,
     updateLocalState,
     applyAjuste
   } = useKardexData(community, selectedYear, selectedMonth, products);
+
+  // Con cambios sin guardar (guardando o con error), el navegador pregunta
+  // antes de cerrar o recargar la página.
+  const hasUnsavedChanges = saveStatus === "saving" || saveStatus === "error";
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [hasUnsavedChanges]);
+
+  const handleLogout = () => {
+    if (hasUnsavedChanges && !window.confirm("Hay cambios que todavía no se han guardado. Si sales ahora se perderán. ¿Salir de todos modos?")) return;
+    onLogout();
+  };
 
   const handleExitChange = (productId: string, dayIndex: number, value: string) => {
     const numValue = value === "" ? 0 : parseFloat(value);
@@ -234,7 +251,9 @@ export default function KardexDashboard({ community, onLogout }: { community: st
         onExportExcel={handleExportExcel}
         onExportPDF={handleExportPDF}
         onOpenHistorial={openHistorial}
-        onLogout={onLogout}
+        onLogout={handleLogout}
+        saveStatus={saveStatus}
+        onRetrySave={retrySave}
       />
 
       <KardexNavigation
