@@ -3,6 +3,8 @@ import { kardexService } from "@/lib/kardexService";
 import { computeCascade, finalBalanceOfMonth } from "@/lib/balanceEngine";
 import { Product } from "@/types/kardex";
 
+// `community` solo dispara la recarga al cambiar de comunidad: el servidor
+// deduce la comunidad real del token de sesión (ver lib/session.ts).
 export function useKardexData(community: string, selectedYear: number, selectedMonth: number, products: Product[]) {
   const [isLoading, setIsLoading] = useState(true);
   
@@ -27,9 +29,9 @@ export function useKardexData(community: string, selectedYear: number, selectedM
       }
 
       const [monthDataRes, prevMonthRes, ajustesRes] = await Promise.all([
-        kardexService.loadKardexMonth(community, selectedYear, selectedMonth),
-        kardexService.loadKardexMonth(community, prevYear, prevMonth),
-        kardexService.loadAjustes(community, selectedYear, selectedMonth),
+        kardexService.loadKardexMonth(selectedYear, selectedMonth),
+        kardexService.loadKardexMonth(prevYear, prevMonth),
+        kardexService.loadAjustes(selectedYear, selectedMonth),
       ]);
 
       if (monthDataRes.error) console.error("Error cargando datos:", monthDataRes.error);
@@ -76,7 +78,6 @@ export function useKardexData(community: string, selectedYear: number, selectedM
 
   const saveProductData = useCallback(async (productId: string, prodExits: number[], prodEntries: number[], prodPrev: number[]) => {
     const { error } = await kardexService.saveProductData(
-      community,
       selectedYear,
       selectedMonth,
       productId,
@@ -87,7 +88,7 @@ export function useKardexData(community: string, selectedYear: number, selectedM
     if (error) {
       console.error("Error guardando en Supabase:", error);
     }
-  }, [community, selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth]);
 
   const updateLocalState = useCallback((
     productId: string,

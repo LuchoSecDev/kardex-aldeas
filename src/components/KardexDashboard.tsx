@@ -118,7 +118,6 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     setIsSubmittingAjuste(true);
 
     const { error } = await kardexService.insertAjuste({
-      community,
       product_id: productId,
       year: selectedYear,
       month: selectedMonth,
@@ -156,8 +155,8 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     setIsLoadingHistorial(true);
 
     const [monthsResult, ajustesResult] = await Promise.all([
-      kardexService.loadMonthsWithData(community),
-      kardexService.loadAjustesHistory(community),
+      kardexService.loadMonthsWithData(),
+      kardexService.loadAjustesHistory(),
     ]);
 
     if (monthsResult.error) console.error("Error cargando meses con historial:", monthsResult.error);

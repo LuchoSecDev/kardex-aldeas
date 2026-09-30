@@ -5,6 +5,7 @@ import KardexDashboard from "@/components/KardexDashboard";
 import CommunityCombobox from "@/components/CommunityCombobox";
 import PinGate, { PinGateMode } from "@/components/PinGate";
 import { kardexService } from "@/lib/kardexService";
+import { session } from "@/lib/session";
 
 type CommunityInfo = { name: string; has_pin: boolean };
 
@@ -21,6 +22,7 @@ export default function Home() {
   const [pinCommunity, setPinCommunity] = useState("");
   const [isSubmittingPin, setIsSubmittingPin] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
+  const [sessionNotice, setSessionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCommunities = async () => {
@@ -33,6 +35,17 @@ export default function Home() {
       setIsLoadingCommunities(false);
     };
     loadCommunities();
+  }, []);
+
+  // Si el servidor rechaza el token (sesión vencida), se vuelve a la pantalla
+  // de entrada con un aviso en vez de fallar en silencio al guardar.
+  useEffect(() => {
+    return session.onExpired(() => {
+      setSelectedCommunity(null);
+      setPinMode(null);
+      setTempSelection("");
+      setSessionNotice("Tu sesión venció. Vuelve a entrar con el PIN de tu comunidad.");
+    });
   }, []);
 
   const handleEnter = (e: React.FormEvent) => {
@@ -50,61 +63,74 @@ export default function Home() {
     setPinMode(!existing ? "create" : existing.has_pin ? "verify" : "claim");
   };
 
+  // Pide el token de sesión al servidor y, si lo obtiene, entra al kardex.
+  // Devuelve false (con el mensaje ya mostrado) si no se pudo entrar.
+  const enterWithSession = async (pin?: string): Promise<boolean> => {
+    const { data: token, error } = await kardexService.loginCommunity(pinCommunity, pin);
+    if (error) {
+      console.error("Error iniciando sesión:", error);
+      setPinError(
+        error.message?.includes("PIN_BLOQUEADO")
+          ? "Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo."
+          : "No se pudo verificar el PIN. Intenta de nuevo."
+      );
+      return false;
+    }
+    if (!token) {
+      setPinError("PIN incorrecto.");
+      return false;
+    }
+    session.set(token);
+    setSessionNotice(null);
+    setSelectedCommunity(pinCommunity);
+    return true;
+  };
+
   const handleSubmitPin = async (pin: string) => {
     setIsSubmittingPin(true);
     setPinError(null);
 
-    if (pinMode === "verify") {
-      const { data, error } = await kardexService.verifyCommunityPin(pinCommunity, pin);
-      setIsSubmittingPin(false);
-      if (error) {
-        console.error("Error verificando el PIN:", error);
-        setPinError(
-          error.message?.includes("PIN_BLOQUEADO")
-            ? "Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo."
-            : "No se pudo verificar el PIN. Intenta de nuevo."
-        );
-        return;
-      }
-      if (!data) {
-        setPinError("PIN incorrecto.");
-        return;
-      }
-      setSelectedCommunity(pinCommunity);
-      return;
-    }
-
     if (pinMode === "create") {
       const { data, error } = await kardexService.createCommunityWithPin(pinCommunity, pin);
-      setIsSubmittingPin(false);
       if (error || !data) {
         console.error("Error creando la comunidad:", error);
+        setIsSubmittingPin(false);
         setPinError("No se pudo crear la comunidad. Intenta de nuevo.");
         return;
       }
       // Actualiza la lista en memoria: si no, al salir y volver a entrar a
       // esta misma comunidad se trataría otra vez como si fuera nueva.
       setCommunities((prev) => [...prev, { name: pinCommunity, has_pin: true }]);
-      setSelectedCommunity(pinCommunity);
-      return;
-    }
-
-    if (pinMode === "claim") {
+    } else if (pinMode === "claim") {
       const { data, error } = await kardexService.claimPinForExistingCommunity(pinCommunity, pin);
-      setIsSubmittingPin(false);
       if (error || !data) {
         console.error("Error asignando el PIN:", error);
+        setIsSubmittingPin(false);
         setPinError("No se pudo asignar el PIN. Intenta de nuevo.");
         return;
       }
       setCommunities((prev) => prev.map((c) => c.name === pinCommunity ? { ...c, has_pin: true } : c));
-      setSelectedCommunity(pinCommunity);
-      return;
     }
+
+    const entered = await enterWithSession(pin);
+    setIsSubmittingPin(false);
+    // La comunidad/PIN ya quedaron creados: si el inicio de sesión falla, un
+    // reintento debe pasar por la verificación normal, no volver a crear.
+    if (!entered && pinMode !== "verify") setPinMode("verify");
   };
 
-  const handleSkipClaim = () => {
-    setSelectedCommunity(pinCommunity);
+  const handleSkipClaim = async () => {
+    setIsSubmittingPin(true);
+    setPinError(null);
+    const entered = await enterWithSession();
+    setIsSubmittingPin(false);
+    // Si mientras tanto alguien le puso PIN a la comunidad, ya no se puede
+    // entrar sin él: se pasa a pedirlo.
+    if (!entered) {
+      setCommunities((prev) => prev.map((c) => c.name === pinCommunity ? { ...c, has_pin: true } : c));
+      setPinMode("verify");
+      setPinError("Esta comunidad ya tiene PIN. Ingrésalo para entrar.");
+    }
   };
 
   const handleCancelPin = () => {
@@ -115,6 +141,7 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    kardexService.logoutCommunity();
     setSelectedCommunity(null);
     setPinMode(null);
   };
@@ -152,6 +179,12 @@ export default function Home() {
           <p style={{ marginBottom: "2rem", fontSize: "1.2rem" }}>
             Bienvenido. Escriba el nombre de su comunidad (o selecciónela si ya existe) para comenzar el registro diario de alimentos.
           </p>
+
+          {sessionNotice && (
+            <p role="alert" style={{ marginBottom: "1.5rem", color: "var(--color-accent-red)", fontWeight: 600 }}>
+              {sessionNotice}
+            </p>
+          )}
 
           <form onSubmit={handleEnter} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
             <div style={{ textAlign: "left" }}>
