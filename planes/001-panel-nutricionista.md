@@ -1,6 +1,6 @@
 # 001 — Panel de la nutricionista
 
-**Estado:** 🚧 En curso
+**Estado:** ✅ Desplegado en producción (2026-09-30, `b3e60df`). Pendiente operativo: entregar la cuenta (reset con la contraseña temporal real) y correr `cleanup_test_data.sql`. Pendiente de diseño: hallazgo H1 (ver `planes/README.md`).
 **Rama:** `feature/panel-admin`  **Fecha:** 2026-09-30
 
 ## Objetivo
