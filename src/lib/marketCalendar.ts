@@ -3,7 +3,7 @@
 // sobre fechas "AAAA-MM-DD" (sin zona horaria) para que se pueda probar sin red.
 //
 // El calendario oficial de 2026 está en planes/anexos/cronograma-pedidos-2026.md
-// y se siembra en Supabase (supabase/market_seed.sql). Las reglas de aquí
+// y se siembra en Supabase (supabase/market_seed_N.sql). Las reglas de aquí
 // reproducen ese cronograma y sirven de respaldo para años que aún no se siembran.
 
 export const MARKET_KINDS = ["fruver", "carnes", "abarrotes", "aseo"] as const;
@@ -145,7 +145,7 @@ export const weekRange = (weekStart: string) => `${shortDate(weekStart)} – ${s
 export const weekLabel = (weekStart: string) => `${weekName(weekStart)} · ${weekRange(weekStart)}`;
 
 // ---------------------------------------------------------------------------
-// Siembra del calendario (supabase/market_seed.sql)
+// Siembra del calendario (supabase/market_seed_N.sql)
 // ---------------------------------------------------------------------------
 
 export interface CalendarSeedRow {

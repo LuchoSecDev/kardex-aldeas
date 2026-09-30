@@ -1,7 +1,15 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { MARKET_KINDS } from "@/lib/marketCalendar";
-import { SEED_PATH, readCatalog, renderItemsSql, renderMarketSeed } from "../../scripts/generate-market-seed.ts";
+import {
+  SEED_DIR,
+  SEED_FILE,
+  readCatalog,
+  renderItemsSql,
+  renderMarketSeedFiles,
+  seedFileName,
+} from "../../scripts/generate-market-seed.ts";
 
 describe("catálogo de la lista de mercado", () => {
   const catalog = readCatalog();
@@ -29,7 +37,7 @@ describe("catálogo de la lista de mercado", () => {
   });
 
   it("el SQL escapa las comillas simples", () => {
-    const sql = renderItemsSql({
+    const [sql] = renderItemsSql({
       kinds: {
         fruver: { items: [{ id: "x1", name: "Dulce d'leche", unit: "KG", isEvent: false }] },
         carnes: { items: [] },
@@ -41,21 +49,41 @@ describe("catálogo de la lista de mercado", () => {
   });
 });
 
-describe("supabase/market_seed.sql", () => {
-  it("coincide con lo que genera scripts/generate-market-seed.ts (si falla: npm run seed:market)", () => {
-    expect(readFileSync(SEED_PATH, "utf8")).toBe(renderMarketSeed(readCatalog()));
+describe("supabase/market_seed_N.sql", () => {
+  const files = readdirSync(SEED_DIR)
+    .filter((f) => SEED_FILE.test(f))
+    .sort((a, b) => Number(a.match(/\d+/)![0]) - Number(b.match(/\d+/)![0]));
+  const read = (name: string) => readFileSync(path.join(SEED_DIR, name), "utf8");
+
+  it("coinciden con lo que genera scripts/generate-market-seed.ts (si falla: npm run seed:market)", () => {
+    const expected = renderMarketSeedFiles(readCatalog());
+    expect(files).toEqual(expected.map((_, i) => seedFileName(i)));
+    files.forEach((name, i) => expect(read(name), name).toBe(expected[i]));
   });
 
-  it("no lleva comentarios: si se pierden los saltos de línea al pegarlo, no queda todo comentado", () => {
-    const sql = readFileSync(SEED_PATH, "utf8");
-    expect(sql).not.toMatch(/--|\/\*/);
-    expect(sql.trimStart()).toMatch(/^insert into market_items/);
-    expect(sql.trimEnd()).toMatch(/;$/);
+  it("cada archivo es corto (el SQL Editor de Supabase no deja pegar más de ~100 líneas)", () => {
+    for (const name of files) {
+      expect(read(name).split("\n").length, name).toBeLessThanOrEqual(70);
+      expect(read(name).length, name).toBeLessThan(6000);
+    }
   });
 
-  it("siembra 285 ítems y 52 viernes", () => {
-    const sql = readFileSync(SEED_PATH, "utf8");
-    expect(sql.match(/^  \('m[cfas]\d+',/gm)).toHaveLength(285);
-    expect(sql.match(/^  \('2026-\d\d-\d\d', array/gm)).toHaveLength(52);
+  it("no llevan comentarios: si se pierden los saltos de línea al pegarlos, no queda todo comentado", () => {
+    for (const name of files) {
+      const sql = read(name);
+      expect(sql, name).not.toMatch(/--|\/\*/);
+      expect(sql.trimStart(), name).toMatch(/^insert into market_(items|calendar)/);
+      expect(sql.trimEnd(), name).toMatch(/;$/);
+    }
+  });
+
+  it("cada archivo es UNA sola instrucción (se pueden correr en cualquier orden)", () => {
+    for (const name of files) expect(read(name).match(/;/g), name).toHaveLength(1);
+  });
+
+  it("entre todos siembran 285 ítems y 52 viernes", () => {
+    const all = files.map(read).join("\n");
+    expect(all.match(/^  \('m[cfas]\d+',/gm)).toHaveLength(285);
+    expect(all.match(/^  \('2026-\d\d-\d\d', array/gm)).toHaveLength(52);
   });
 });

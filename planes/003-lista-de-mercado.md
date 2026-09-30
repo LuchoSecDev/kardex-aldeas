@@ -126,7 +126,7 @@ Funciones:
 
 ## Fases
 
-- [x] **Fase A — Catálogo y base de datos.** *(Hecha: `supabase/market_lists.sql`, `market_seed.sql` (generado), `src/lib/marketCalendar.ts`, `marketList.ts`, `marketService.ts`, tipos y 3 niveles de pruebas. Verificada en un Postgres local con todos los .sql del repo y con pruebas de mutación. **Pendiente:** correr `market_lists.sql` y `market_seed.sql` en Supabase y luego `npm run test:integration`.)* `market_lists.sql` + semilla del catálogo + `market_calendar`
+- [x] **Fase A — Catálogo y base de datos.** *(Hecha: `supabase/market_lists.sql`, `market_seed_1.sql` … `_7.sql` (generados, en archivos chicos), `src/lib/marketCalendar.ts`, `marketList.ts`, `marketService.ts`, tipos y 3 niveles de pruebas. Verificada en un Postgres local con todos los .sql del repo y con pruebas de mutación. **Pendiente:** correr `market_lists.sql` y los 7 `market_seed_N.sql` en Supabase y luego `npm run test:integration`.)* `market_lists.sql` + semilla del catálogo + `market_calendar`
   (desde `anexos/cronograma-pedidos-2026.md`) + columna `communities.participants` + funciones de comunidad.
   *Aceptación:* un token de comunidad lee el catálogo, guarda borrador y envía; un token falso o de administradora se
   rechaza; las tablas están cerradas a `anon`; el envío marca tardía/a tiempo según el plazo.

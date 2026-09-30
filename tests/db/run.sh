@@ -25,9 +25,11 @@ run tests/db/bootstrap.sql
 for f in communities community_pin pin_rate_limit products ajustes session_access \
          lock_down_direct_access lock_down_kardex_records_delete \
          admin_auth admin_read week_submissions admin_weekly_summary \
-         market_lists market_seed; do
+         market_lists; do
   run "supabase/$f.sql"
 done
+
+for f in supabase/market_seed_*.sql; do run "$f"; done
 
 echo "Corriendo pruebas…"
 status=0

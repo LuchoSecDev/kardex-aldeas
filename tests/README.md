@@ -31,10 +31,10 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 ## Qué cubre cada archivo
 
 - `unit/marketCalendar.test.ts` — calendario de la lista de mercado: reproduce los 52 viernes del cronograma 2026, plazo de las 5 pm (con festivos adelantados), semana por defecto y rótulos.
-- `unit/marketSeed.test.ts` — el catálogo (285 ítems, sin precios) y que `supabase/market_seed.sql` coincida con lo que genera `npm run seed:market`.
+- `unit/marketSeed.test.ts` — el catálogo (285 ítems, sin precios) y que los `supabase/market_seed_N.sql` coincidan con lo que genera `npm run seed:market` (y sean cortos, sin comentarios).
 - `unit/marketList.test.ts` — estado de una lista y limpieza de cantidades.
 - `db/market_lists.test.sql` — lista de mercado contra Postgres local (ver arriba).
-- `integration/market-lists.test.ts` — lista de mercado contra Supabase: acceso, catálogo, guardar, enviar, tardías, aislamiento. **Necesita haber corrido `market_lists.sql` y `market_seed.sql`.**
+- `integration/market-lists.test.ts` — lista de mercado contra Supabase: acceso, catálogo, guardar, enviar, tardías, aislamiento. **Necesita haber corrido `market_lists.sql` y los `market_seed_N.sql`.**
 - `unit/balanceEngine.test.ts` — cálculo de saldos (encadenado, ajustes, decimales, negativos), saldo heredado entre meses, semáforo.
 - `integration/sessions.test.ts` — PIN, login/logout, tokens inválidos, funciones internas no expuestas, nombres y PIN inválidos.
 - `integration/lockout.test.ts` — 5 fallos bloquean 15 min (incluso con el PIN correcto); un acierto reinicia el contador.
@@ -86,4 +86,4 @@ Sin `RUN_ADMIN_LIFECYCLE=1` esas pruebas se saltan y aparecen como "skipped".
 
 ## Regenerar el catálogo de la lista de mercado
 
-`supabase/market_seed.sql` se genera con `npm run seed:market` a partir de `planes/anexos/lista-mercado-catalogo.json` y las reglas de `src/lib/marketCalendar.ts`. No se edita a mano: `tests/unit/marketSeed.test.ts` falla si deja de coincidir.
+`supabase/market_seed_1.sql` … `market_seed_7.sql` se generan con `npm run seed:market` a partir de `planes/anexos/lista-mercado-catalogo.json` y las reglas de `src/lib/marketCalendar.ts`. Van en varios archivos chicos porque el SQL Editor de Supabase no deja pegar scripts largos (corta hacia las 100 líneas). No se editan a mano: `tests/unit/marketSeed.test.ts` falla si dejan de coincidir.

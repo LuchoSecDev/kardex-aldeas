@@ -1,6 +1,7 @@
 -- Lista de mercado (pedido semanal de cada comunidad): Fase A del plan 003.
 -- Ejecutar una sola vez en el SQL Editor de Supabase, después de
--- week_submissions.sql, y luego correr market_seed.sql (catálogo y calendario).
+-- week_submissions.sql, y luego correr market_seed_1.sql … market_seed_7.sql (catálogo
+-- y calendario; van en archivos chicos porque el SQL Editor no deja pegar scripts largos).
 -- Es aditivo: no toca nada existente salvo agregar una columna a communities.
 --
 -- Qué guarda

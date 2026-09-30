@@ -1,0 +1,25 @@
+insert into market_calendar (friday, kinds, deadline_at) values
+  ('2026-07-31', array['fruver', 'carnes'], '2026-07-31 17:00:00-05:00'),
+  ('2026-08-07', array['fruver', 'carnes', 'abarrotes'], '2026-08-06 17:00:00-05:00'),
+  ('2026-08-14', array['fruver', 'carnes', 'aseo'], '2026-08-14 17:00:00-05:00'),
+  ('2026-08-21', array['fruver', 'carnes', 'abarrotes'], '2026-08-21 17:00:00-05:00'),
+  ('2026-08-28', array['fruver', 'carnes'], '2026-08-28 17:00:00-05:00'),
+  ('2026-09-04', array['fruver', 'carnes', 'abarrotes'], '2026-09-04 17:00:00-05:00'),
+  ('2026-09-11', array['fruver', 'carnes'], '2026-09-11 17:00:00-05:00'),
+  ('2026-09-18', array['fruver', 'carnes', 'abarrotes', 'aseo'], '2026-09-18 17:00:00-05:00'),
+  ('2026-09-25', array['fruver', 'carnes'], '2026-09-25 17:00:00-05:00'),
+  ('2026-10-02', array['fruver', 'carnes', 'abarrotes'], '2026-10-02 17:00:00-05:00'),
+  ('2026-10-09', array['fruver', 'carnes'], '2026-10-09 17:00:00-05:00'),
+  ('2026-10-16', array['fruver', 'carnes', 'abarrotes', 'aseo'], '2026-10-16 17:00:00-05:00'),
+  ('2026-10-23', array['fruver', 'carnes'], '2026-10-23 17:00:00-05:00'),
+  ('2026-10-30', array['fruver', 'carnes', 'abarrotes'], '2026-10-30 17:00:00-05:00'),
+  ('2026-11-06', array['fruver', 'carnes'], '2026-11-06 17:00:00-05:00'),
+  ('2026-11-13', array['fruver', 'carnes', 'abarrotes', 'aseo'], '2026-11-13 17:00:00-05:00'),
+  ('2026-11-20', array['fruver', 'carnes'], '2026-11-20 17:00:00-05:00'),
+  ('2026-11-27', array['fruver', 'carnes', 'abarrotes'], '2026-11-27 17:00:00-05:00'),
+  ('2026-12-04', array['fruver', 'carnes'], '2026-12-04 17:00:00-05:00'),
+  ('2026-12-11', array['fruver', 'carnes', 'abarrotes'], '2026-12-11 17:00:00-05:00'),
+  ('2026-12-18', array['fruver', 'carnes', 'aseo'], '2026-12-18 17:00:00-05:00'),
+  ('2026-12-25', array['fruver', 'carnes', 'abarrotes'], '2026-12-24 17:00:00-05:00')
+on conflict (friday) do update
+  set kinds = excluded.kinds, deadline_at = excluded.deadline_at;

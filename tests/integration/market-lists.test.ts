@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createTestCommunity, supabase } from "./helpers";
 
 // Lista de mercado (plan 003, Fase A) contra la base real. Requiere haber
-// corrido supabase/market_lists.sql y market_seed.sql. Escribe solo en
+// corrido supabase/market_lists.sql y los market_seed_N.sql. Escribe solo en
 // comunidades ZZZ_TEST_BORRAR_AUTO_*. Las semanas usadas son del futuro lejano
 // (sin calendario sembrado), así que el plazo por defecto nunca está vencido.
 //
