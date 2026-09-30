@@ -2,7 +2,7 @@ import { authedRpc } from "./authedRpc";
 import type { MarketItem, MarketQuantities, MarketSubmitResult, MarketWeek } from "@/types/market";
 import type { MarketKind } from "./marketCalendar";
 
-// Acceso a la lista de mercado (ver supabase/market_lists.sql). Como en el
+// Acceso a la lista de mercado (ver supabase/market_lists_N.sql). Como en el
 // kardex, la comunidad nunca se envía: el servidor la deduce del token.
 export const marketService = {
   loadCatalog() {

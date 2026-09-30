@@ -1,4 +1,4 @@
-// Lista de mercado (ver supabase/market_lists.sql y planes/003).
+// Lista de mercado (ver supabase/market_lists_N.sql y planes/003).
 import type { MarketKind } from "@/lib/marketCalendar";
 
 export type { MarketKind };

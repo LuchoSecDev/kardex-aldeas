@@ -87,3 +87,29 @@ describe("supabase/market_seed_N.sql", () => {
     expect(all.match(/^  \('2026-\d\d-\d\d', array/gm)).toHaveLength(52);
   });
 });
+
+describe("scripts SQL de la lista de mercado: cabe en el SQL Editor de Supabase", () => {
+  // El editor corta lo que se pega hacia las 100 líneas (se comprobó con
+  // market_lists.sql y market_seed.sql: solo entraron las primeras 100), y lo
+  // cortado puede ejecutarse a medias sin avisar. Por eso van en archivos chicos.
+  const files = readdirSync(SEED_DIR).filter((f) => /^market_(lists|seed)_\d+\.sql$/.test(f));
+
+  it("hay 5 archivos de estructura y 7 de siembra", () => {
+    expect(files.filter((f) => f.startsWith("market_lists_"))).toHaveLength(5);
+    expect(files.filter((f) => f.startsWith("market_seed_"))).toHaveLength(7);
+  });
+
+  it("ninguno pasa de 95 líneas", () => {
+    for (const name of files) {
+      const lines = readFileSync(path.join(SEED_DIR, name), "utf8").trimEnd().split("\n").length;
+      expect(lines, name).toBeLessThanOrEqual(95);
+    }
+  });
+
+  it("todos los archivos están en la lista de tests/db/run.sh (así se prueban juntos)", () => {
+    const runner = readFileSync("tests/db/run.sh", "utf8");
+    for (const name of files.filter((f) => f.startsWith("market_lists_"))) {
+      expect(runner, name).toContain(name.replace(".sql", ""));
+    }
+  });
+});

@@ -1,4 +1,4 @@
--- Pruebas de supabase/market_lists.sql y los market_seed_N.sql (plan 003, Fase A)
+-- Pruebas de supabase/market_lists_1..5.sql y los market_seed_N.sql (plan 003, Fase A)
 -- contra un Postgres local. Cada prueba que falla aborta con "FALLÓ: ...".
 -- Las llamadas se hacen como el rol `anon`, igual que la app con la anon key.
 

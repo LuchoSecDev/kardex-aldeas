@@ -85,7 +85,7 @@ marzo es F/L/C y que los tachones y colores de la foto son solo para guiarse; no
 
 ## Diseño
 
-### Base de datos (SQL aditivo; archivo nuevo `supabase/market_lists.sql`)
+### Base de datos (SQL aditivo; archivo nuevo `supabase/market_lists_N.sql`)
 
 - `market_items` — `id`, `kind` (`fruver` | `carnes` | `abarrotes` | `aseo`), `name`, `unit`, `is_event`,
   `sort_order`, `is_active`. **Sin acceso `anon`**: se lee con `market_catalog(token)`. Semilla desde
@@ -126,7 +126,7 @@ Funciones:
 
 ## Fases
 
-- [x] **Fase A — Catálogo y base de datos.** *(Hecha: `supabase/market_lists.sql`, `market_seed_1.sql` … `_7.sql` (generados, en archivos chicos), `src/lib/marketCalendar.ts`, `marketList.ts`, `marketService.ts`, tipos y 3 niveles de pruebas. Verificada en un Postgres local con todos los .sql del repo y con pruebas de mutación. **Pendiente:** correr `market_lists.sql` y los 7 `market_seed_N.sql` en Supabase y luego `npm run test:integration`.)* `market_lists.sql` + semilla del catálogo + `market_calendar`
+- [x] **Fase A — Catálogo y base de datos.** *(Hecha: `supabase/market_lists_N.sql`, `market_seed_1.sql` … `_7.sql` (generados, en archivos chicos), `src/lib/marketCalendar.ts`, `marketList.ts`, `marketService.ts`, tipos y 3 niveles de pruebas. Verificada en un Postgres local con todos los .sql del repo y con pruebas de mutación. **Pendiente:** correr `market_lists_1..5.sql` y los 7 `market_seed_N.sql` en Supabase y luego `npm run test:integration`.)* los `market_lists_1..5.sql` + semilla del catálogo + `market_calendar`
   (desde `anexos/cronograma-pedidos-2026.md`) + columna `communities.participants` + funciones de comunidad.
   *Aceptación:* un token de comunidad lee el catálogo, guarda borrador y envía; un token falso o de administradora se
   rechaza; las tablas están cerradas a `anon`; el envío marca tardía/a tiempo según el plazo.
@@ -154,7 +154,7 @@ Funciones:
 
 ## Despliegue
 
-1. Correr `supabase/market_lists.sql` y la semilla (aditivo: no afecta a la app actual).
+1. Correr `supabase/market_lists_1.sql` … `market_lists_5.sql` (en orden) y luego `market_seed_1.sql` … `_7.sql` (aditivo: no afecta a la app actual).
 2. Merge a `main` y push con visto bueno de Lucho.
 3. `npm run test:integration` y checklist manual; limpiar datos de prueba (ampliar `cleanup_test_data.sql`).
 

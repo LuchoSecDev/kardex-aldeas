@@ -4,7 +4,7 @@
 //
 // Son VARIOS archivos chicos a propósito: el SQL Editor de Supabase no deja pegar
 // scripts largos (corta hacia las 100 líneas). Cada archivo es una sola instrucción
-// independiente: se corren en cualquier orden, después de market_lists.sql.
+// independiente: se corren en cualquier orden, después de los market_lists_N.sql.
 //
 //   npm run seed:market
 //
