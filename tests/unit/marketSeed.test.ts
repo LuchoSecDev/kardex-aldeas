@@ -46,6 +46,13 @@ describe("supabase/market_seed.sql", () => {
     expect(readFileSync(SEED_PATH, "utf8")).toBe(renderMarketSeed(readCatalog()));
   });
 
+  it("no lleva comentarios: si se pierden los saltos de línea al pegarlo, no queda todo comentado", () => {
+    const sql = readFileSync(SEED_PATH, "utf8");
+    expect(sql).not.toMatch(/--|\/\*/);
+    expect(sql.trimStart()).toMatch(/^insert into market_items/);
+    expect(sql.trimEnd()).toMatch(/;$/);
+  });
+
   it("siembra 285 ítems y 52 viernes", () => {
     const sql = readFileSync(SEED_PATH, "utf8");
     expect(sql.match(/^  \('m[cfas]\d+',/gm)).toHaveLength(285);

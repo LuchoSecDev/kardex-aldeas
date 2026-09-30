@@ -4,6 +4,7 @@
 //
 //   npm run seed:market
 //
+// Correr en el SQL Editor de Supabase DESPUÉS de market_lists.sql (se puede repetir sin problema).
 // El archivo generado se commitea; tests/unit/marketSeed.test.ts falla si deja de
 // coincidir con lo que produciría este script (así el SQL y las reglas no se separan).
 
@@ -45,14 +46,12 @@ export function renderItemsSql(catalog: Catalog): string {
   );
 }
 
+// El archivo NO lleva comentarios a propósito: si al pegarlo en el SQL Editor se
+// pierden los saltos de línea, un comentario inicial (`--`) dejaría TODO el script
+// comentado y Supabase respondería "syntax error at end of input". Sin comentarios,
+// aunque quedara en una sola línea seguiría siendo SQL válido.
 export function renderMarketSeed(catalog: Catalog): string {
-  return (
-    `-- GENERADO por scripts/generate-market-seed.ts (npm run seed:market). No editar a mano.\n` +
-    `-- Catálogo de la lista de mercado y calendario de pedidos ${SEED_YEAR} (plan 003).\n` +
-    `-- Correr en el SQL Editor de Supabase DESPUÉS de market_lists.sql. Se puede repetir sin problema.\n\n` +
-    `${renderItemsSql(catalog)}\n\n` +
-    `${renderCalendarSeedSql(buildCalendarSeed(SEED_YEAR))}\n`
-  );
+  return `${renderItemsSql(catalog)}\n\n${renderCalendarSeedSql(buildCalendarSeed(SEED_YEAR))}\n`;
 }
 
 export const readCatalog = (): Catalog => JSON.parse(readFileSync(CATALOG_PATH, "utf8"));

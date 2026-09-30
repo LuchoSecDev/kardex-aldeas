@@ -1,7 +1,3 @@
--- GENERADO por scripts/generate-market-seed.ts (npm run seed:market). No editar a mano.
--- Catálogo de la lista de mercado y calendario de pedidos 2026 (plan 003).
--- Correr en el SQL Editor de Supabase DESPUÉS de market_lists.sql. Se puede repetir sin problema.
-
 insert into market_items (id, kind, name, unit, is_event, sort_order) values
   ('mf1', 'fruver', 'ACELGA', 'KG', false, 1),
   ('mf2', 'fruver', 'AGUACATE JAZZ', 'KG', false, 2),
