@@ -32,6 +32,9 @@ export function A11yProvider({ children }: { children: React.ReactNode }) {
   return (
     <A11yContext.Provider value={{ textSize, setTextSize, highContrast, setHighContrast }}>
       <div className="a11y-panel">
+        {/* Espacio a la izquierda de la barra: el panel de la nutricionista coloca
+            aquí su campanita de notificaciones (portal). Vacío no ocupa lugar. */}
+        <div id="a11y-bar-slot" className="a11y-bar-slot" />
         <span style={{ fontSize: "0.875rem", marginRight: "8px" }}>Accesibilidad visual:</span>
         <button 
           className={`a11y-btn ${textSize === 'normal' ? 'active' : ''}`} 

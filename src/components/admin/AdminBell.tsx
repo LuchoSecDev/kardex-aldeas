@@ -45,7 +45,7 @@ export default function AdminBell({
     <div className="admin-bell" ref={containerRef}>
       <button
         type="button"
-        className="btn btn-outline admin-bell-btn"
+        className="admin-bell-btn"
         onClick={() => setIsOpen((v) => !v)}
         aria-expanded={isOpen}
         aria-label={count === 0 ? "Notificaciones: no hay envíos pendientes" : `Notificaciones: ${count} envío${count === 1 ? "" : "s"} por revisar`}

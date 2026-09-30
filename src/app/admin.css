@@ -242,11 +242,26 @@
   position: relative;
 }
 
+/* La campanita vive en la barra azul de arriba (junto a "Accesibilidad
+   visual"), así que copia el estilo de sus botones: borde y letra blancas. */
 .admin-bell-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.admin-bell-btn:hover,
+.admin-bell-btn[aria-expanded="true"] {
+  background: #fff;
+  color: var(--color-primary-dark);
 }
 
 .admin-bell-badge {
@@ -261,15 +276,19 @@
   text-align: center;
 }
 
-/* Fijo respecto a la ventana (no al botón): así nunca se sale de la pantalla,
-   sin importar en qué parte del encabezado quede la campanita. */
+/* Se despliega justo debajo de la campanita, alineado a su borde izquierdo (la
+   campanita está en la esquina izquierda de la barra). El ancho nunca supera
+   la pantalla menos 2rem, así que cabe también en el celular. */
 .admin-bell-menu {
-  position: fixed;
-  top: 4.5rem;
-  right: 1rem;
-  z-index: 50;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 3000;
+  /* Dentro de la barra azul se hereda letra blanca: se fija la del cuerpo. */
+  color: var(--color-text-main);
+  font-weight: normal;
   width: min(460px, calc(100vw - 2rem));
-  max-height: calc(100vh - 6rem);
+  max-height: calc(100vh - 5rem);
   overflow-y: auto;
   text-align: left;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);

@@ -332,6 +332,18 @@ tbody tr:hover {
   row-gap: 6px;
 }
 
+/* Lugar de la campanita del panel de la nutricionista: pegado a la esquina
+   izquierda de la barra (el resto de la barra va a la derecha). */
+.a11y-bar-slot {
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+}
+
+.a11y-bar-slot:empty {
+  display: none;
+}
+
 .a11y-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.3);

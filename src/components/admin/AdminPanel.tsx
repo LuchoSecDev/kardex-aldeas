@@ -2,6 +2,7 @@
 
 import "@/app/kardex.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import AdminBell from "@/components/admin/AdminBell";
 import CustomSelect from "@/components/CustomSelect";
 import KardexDashboard from "@/components/KardexDashboard";
@@ -126,23 +127,45 @@ export default function AdminPanel({
     }
   }, [products, year, month]);
 
+  // La campanita vive en la barra azul de arriba (junto a "Accesibilidad
+  // visual"), a la izquierda, y se ve tanto en la tabla como dentro del kardex
+  // de una comunidad. Este componente solo se muestra en el navegador, después
+  // de iniciar sesión, así que `document` existe.
+  const bellSlot = typeof document === "undefined" ? null : document.getElementById("a11y-bar-slot");
+  const bellPortal = bellSlot
+    ? createPortal(
+        <AdminBell
+          notifications={bell.notifications}
+          loadFailed={bell.loadFailed}
+          reviewingId={bell.reviewingId}
+          reviewError={bell.reviewError}
+          onOpen={openFromNotification}
+          onReview={bell.markReviewed}
+        />,
+        bellSlot
+      )
+    : null;
+
   if (selected && detailDataSource) {
     return (
-      <KardexDashboard
-        community={selected.community}
-        dataSource={detailDataSource}
-        readOnly
-        logoutLabel="← Volver al panel"
-        initialYear={year}
-        initialMonth={month}
-        initialWeek={selected.week}
-        onLogout={() => {
-          setSelected(null);
-          // Al volver, la campanita y la tabla se actualizan (pudo cambiar algo).
-          void bell.refresh();
-          setReloadKey((k) => k + 1);
-        }}
-      />
+      <>
+        {bellPortal}
+        <KardexDashboard
+          community={selected.community}
+          dataSource={detailDataSource}
+          readOnly
+          logoutLabel="← Volver al panel"
+          initialYear={year}
+          initialMonth={month}
+          initialWeek={selected.week}
+          onLogout={() => {
+            setSelected(null);
+            // Al volver, la campanita y la tabla se actualizan (pudo cambiar algo).
+            void bell.refresh();
+            setReloadKey((k) => k + 1);
+          }}
+        />
+      </>
     );
   }
 
@@ -152,6 +175,7 @@ export default function AdminPanel({
 
   return (
     <div className="admin-panel">
+      {bellPortal}
       <div className="card admin-panel-header">
         <div>
           <h1 className="admin-title" style={{ textAlign: "left" }}>Panel de la nutricionista</h1>
@@ -161,14 +185,6 @@ export default function AdminPanel({
           </p>
         </div>
         <div className="admin-actions">
-          <AdminBell
-            notifications={bell.notifications}
-            loadFailed={bell.loadFailed}
-            reviewingId={bell.reviewingId}
-            reviewError={bell.reviewError}
-            onOpen={openFromNotification}
-            onReview={bell.markReviewed}
-          />
           <button type="button" className="btn btn-outline" onClick={onChangePassword}>Cambiar contraseña</button>
           <button type="button" className="btn btn-primary" onClick={onLogout}>Cerrar sesión</button>
         </div>
