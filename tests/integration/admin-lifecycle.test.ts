@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { supabase } from "./helpers";
+import { anyProductId, createTestCommunity, supabase } from "./helpers";
 
 // CICLO COMPLETO de la cuenta de administradora. OPT-IN porque CAMBIA la
 // contraseña de la cuenta real y termina bloqueándola 15 minutos:
@@ -48,9 +48,12 @@ describe.skipIf(!enabled)("ciclo de vida de la cuenta de administradora", () => 
     state.pendingToken = data!.token;
   });
 
-  it("mientras es temporal, solo se puede cambiar la contraseña", async () => {
-    const { error } = await supabase.rpc("admin_ping", { p_token: state.pendingToken });
-    expect(error?.message).toContain("DEBE_CAMBIAR_CLAVE");
+  it("mientras es temporal, solo se puede cambiar la contraseña (ni ping ni lecturas)", async () => {
+    const ping = await supabase.rpc("admin_ping", { p_token: state.pendingToken });
+    expect(ping.error?.message).toContain("DEBE_CAMBIAR_CLAVE");
+
+    const overview = await supabase.rpc("admin_communities_overview", { p_token: state.pendingToken, p_year: 2026, p_month: 8 });
+    expect(overview.error?.message).toContain("DEBE_CAMBIAR_CLAVE");
   });
 
   it("cambiar con la contraseña actual equivocada devuelve ok=false", async () => {
@@ -124,6 +127,116 @@ describe.skipIf(!enabled)("ciclo de vida de la cuenta de administradora", () => 
     expect(old.error?.message).toContain("SESION_ADMIN_INVALIDA");
     const current = await supabase.rpc("admin_ping", { p_token: state.tokenB });
     expect(current.error).toBeNull();
+  });
+
+  // --- Fase B: lecturas de administradora (con la sesión ya válida, tokenB) ---
+  describe("lecturas de administradora (solo lectura)", () => {
+    const admin = { name: "", token: "", productId: "" };
+    const YEAR = 2026;
+    const MONTH = 8;
+
+    it("prepara una comunidad de prueba con datos solo en la semana 1 y un ajuste", async () => {
+      const community = await createTestCommunity("adminread");
+      admin.name = community.name;
+      admin.token = community.token;
+      admin.productId = await anyProductId();
+
+      const exits = Array(35).fill(0);
+      exits[1] = 1.5;
+      const saved = await supabase.rpc("kardex_save_product", {
+        p_token: admin.token,
+        p_year: YEAR,
+        p_month: MONTH,
+        p_product_id: admin.productId,
+        p_exits: exits,
+        p_entries: [3, 0, 0, 0, 0],
+        p_prev_balances: [0, 1.5, 1.5, 1.5, 1.5],
+      });
+      expect(saved.error).toBeNull();
+
+      const ajuste = await supabase.rpc("kardex_insert_ajuste", {
+        p_token: admin.token,
+        p_product_id: admin.productId,
+        p_year: YEAR,
+        p_month: MONTH,
+        p_week_index: 0,
+        p_saldo_anterior: 0,
+        p_saldo_nuevo: 0,
+        p_motivo: "prueba de lectura de administradora",
+      });
+      expect(ajuste.error).toBeNull();
+    });
+
+    it("el resumen incluye la comunidad con sus semanas con registros (solo la 1)", async () => {
+      const { data, error } = await supabase.rpc("admin_communities_overview", {
+        p_token: state.tokenB,
+        p_year: YEAR,
+        p_month: MONTH,
+      });
+      expect(error).toBeNull();
+      const row = data.find((c: { name: string }) => c.name === admin.name);
+      expect(row).toBeDefined();
+      expect(row.products_count).toBe(1);
+      expect(row.weeks_active).toEqual([true, false, false, false, false]);
+      expect(row.last_update).not.toBeNull();
+      expect(row).not.toHaveProperty("pin_hash");
+    });
+
+    it("el resumen de otro mes muestra esa comunidad sin registros", async () => {
+      const { data } = await supabase.rpc("admin_communities_overview", { p_token: state.tokenB, p_year: YEAR, p_month: 0 });
+      const row = data.find((c: { name: string }) => c.name === admin.name);
+      expect(row.products_count).toBe(0);
+      expect(row.weeks_active).toEqual([false, false, false, false, false]);
+    });
+
+    it("lee el kardex, los ajustes y los meses de cualquier comunidad", async () => {
+      const month = await supabase.rpc("admin_load_month", { p_token: state.tokenB, p_community: admin.name, p_year: YEAR, p_month: MONTH });
+      expect(month.error).toBeNull();
+      expect(month.data).toHaveLength(1);
+      expect(month.data[0].entries).toEqual([3, 0, 0, 0, 0]);
+      expect(month.data[0].exits[1]).toBe(1.5);
+
+      const ajustes = await supabase.rpc("admin_load_ajustes", { p_token: state.tokenB, p_community: admin.name, p_year: YEAR, p_month: MONTH });
+      expect(ajustes.data).toHaveLength(1);
+
+      const history = await supabase.rpc("admin_load_ajustes_history", { p_token: state.tokenB, p_community: admin.name });
+      expect(history.data).toHaveLength(1);
+
+      const months = await supabase.rpc("admin_months_with_data", { p_token: state.tokenB, p_community: admin.name });
+      expect(months.data).toEqual([{ year: YEAR, month: MONTH }]);
+    });
+
+    it("una comunidad inexistente devuelve listas vacías, no errores", async () => {
+      const month = await supabase.rpc("admin_load_month", { p_token: state.tokenB, p_community: "ZZZ_TEST_no_existe", p_year: YEAR, p_month: MONTH });
+      expect(month.error).toBeNull();
+      expect(month.data).toEqual([]);
+    });
+
+    it("las funciones de lectura rechazan tokens falsos y tokens de comunidad", async () => {
+      for (const token of ["token-falso", admin.token]) {
+        for (const call of [
+          supabase.rpc("admin_communities_overview", { p_token: token, p_year: YEAR, p_month: MONTH }),
+          supabase.rpc("admin_load_month", { p_token: token, p_community: admin.name, p_year: YEAR, p_month: MONTH }),
+          supabase.rpc("admin_months_with_data", { p_token: token, p_community: admin.name }),
+        ]) {
+          const { error } = await call;
+          expect(error?.message).toContain("SESION_ADMIN_INVALIDA");
+        }
+      }
+    });
+
+    it("la administradora no puede escribir: no existe ninguna función de escritura con su token", async () => {
+      const { error } = await supabase.rpc("kardex_save_product", {
+        p_token: state.tokenB,
+        p_year: YEAR,
+        p_month: MONTH,
+        p_product_id: admin.productId,
+        p_exits: Array(35).fill(0),
+        p_entries: [0, 0, 0, 0, 0],
+        p_prev_balances: [0, 0, 0, 0, 0],
+      });
+      expect(error?.message).toContain("SESION_INVALIDA");
+    });
   });
 
   it("recuperar con un código equivocado devuelve ok=false", async () => {

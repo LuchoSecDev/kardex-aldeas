@@ -97,7 +97,8 @@ Funciones (todas validan token y, en las de administradora, el rol):
   cambio obligatorio, código de recuperación y cambio voluntario.
   *Aceptación:* la contraseña temporal entra y obliga a cambiar; la nueva funciona; el código restablece;
   5 fallos bloquean 15 min; un token de comunidad no sirve en `admin_*`.
-- [ ] **Fase B — Consulta en solo lectura.** Tabla de comunidades, detalle en `readOnly`, Excel/PDF y meses anteriores.
+- [ ] **Fase B — Consulta en solo lectura.** *(Código escrito y probado por tipos/unitarias; falta correr `supabase/admin_read.sql` y verificar en navegador. Incluye además: si la carga de un mes falla, la tabla se bloquea y se avisa, para no sobrescribir datos ni exportar ceros; hallazgo H1 en `planes/README.md`.)*
+  Tabla de comunidades, detalle en `readOnly`, Excel/PDF y meses anteriores.
   *Aceptación:* ve todas las comunidades; el Excel coincide con el que descarga la comunidad; no hay forma de editar.
 - [ ] **Fase C — Envío de semana y campanita.** Botón en comunidades, estados, snapshot, campanita, "marcar revisada".
   *Aceptación:* enviar suma 1 a la campanita; editar esa semana la marca "modificada"; editar otra semana no;

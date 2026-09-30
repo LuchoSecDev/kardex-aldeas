@@ -35,7 +35,9 @@ export default function KardexTable({
   onExitChange,
   onEntryChange,
   onOpenAjuste,
+  readOnly = false,
 }: {
+  readOnly?: boolean;
   isLoading: boolean;
   currentWeek: number;
   currentWeekDates: (number | null)[];
@@ -122,15 +124,17 @@ export default function KardexTable({
                   <td className="kardex-balance-cell">
                     <div className="kardex-balance-edit-row">
                       <span className="kardex-balance-value">{(prevBalances[product.id] || [])[weekIndex] ?? 0}</span>
-                      <button
-                        type="button"
-                        onClick={() => onOpenAjuste(product)}
-                        title="Corregir saldo (ajuste auditado)"
-                        aria-label={`Corregir saldo anterior de ${product.name}`}
-                        className="kardex-edit-btn"
-                      >
-                        ✏️
-                      </button>
+                      {!readOnly && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenAjuste(product)}
+                          title="Corregir saldo (ajuste auditado)"
+                          aria-label={`Corregir saldo anterior de ${product.name}`}
+                          className="kardex-edit-btn"
+                        >
+                          ✏️
+                        </button>
+                      )}
                     </div>
                   </td>
 
@@ -141,6 +145,7 @@ export default function KardexTable({
                       min="0"
                       step="0.5"
                       className={entradaClasses.join(" ")}
+                      readOnly={readOnly}
                       value={(entries[product.id] || [])[weekIndex] || ""}
                       onChange={(e) => onEntryChange(product.id, e.target.value)}
                     />
@@ -164,6 +169,7 @@ export default function KardexTable({
                           step="0.5"
                           className={dayClasses.join(" ")}
                           disabled={isInvalidDay}
+                          readOnly={readOnly}
                           value={(exits[product.id] || [])[absoluteDayStart + idx] || ""}
                           onChange={(e) => onExitChange(product.id, idx, e.target.value)}
                           title={isInvalidDay ? "Día fuera del mes" : ""}

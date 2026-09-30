@@ -27,6 +27,24 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 
 La propuesta original del proyecto está en `../propuesta_kardex.md` (fuera del repositorio).
 
+## Hallazgos abiertos
+
+Problemas encontrados que todavía no se corrigen (con su prueba marcada como falla conocida):
+
+| # | Hallazgo | Estado | Prueba |
+|---|---|---|---|
+| H1 | **Meses que no caben en 5 semanas** | ⚠️ **PENDIENTE DE REVISIÓN (importante)** — decisión de Lucho/organización | `tests/unit/calendar.test.ts` (`it.fails`) |
+
+**H1 — detalle.** El kardex tiene 5 semanas (lunes a domingo). Un mes de 30/31 días que empieza en sábado o domingo pierde sus últimos 1–2 días: **no se pueden registrar**. En 2026: 30 y 31 de marzo, 31 de agosto y 30 de noviembre; en 2027: 31 de mayo y 30–31 de agosto.
+
+**Propuesta (sin 6.ª semana): "semana compartida entre meses".** La semana lunes–domingo que contiene el fin de mes también contiene el inicio del mes siguiente, y la primera semana del mes siguiente **ya tiene celdas vacías** justo en esos días. Los días que no caben (siempre los últimos 1–2) se registran en esas celdas, en la semana 1 del mes siguiente, rotulados con su fecha real (ej. «30 mar»).
+- Sin cambios de base de datos: las mismas 35 posiciones (las celdas iniciales de la semana 1 hoy quedan siempre vacías).
+- El saldo sigue coherente: la semana 1 del mes siguiente hereda el saldo de cierre del anterior y suma esas salidas, como una semana física normal; encaja con el envío semanal a la nutricionista.
+- Solo se habilitan las celdas de los días que de verdad no caben en el mes anterior (no las que ya están registradas allí).
+- Contras: los totales *mensuales* de marzo no incluirían el 30–31 (quedan en abril) → se avisa en pantalla y Excel/PDF; cambia el cálculo del calendario, la pantalla, el Excel y el PDF.
+- Alternativas descartadas: columnas extra en la semana 5 (tabla irregular), bloques fijos por día del mes 1–7, 8–14… (rompe la semana lunes–domingo y el ritmo de envío semanal), sexta semana (cambia base de datos y validaciones).
+- **Antes de decidir:** preguntar cómo maneja hoy el kardex de papel esos días.
+
 ## Cómo se usa esta carpeta
 
 1. **Antes de programar**, crear `NNN-nombre.md` con la plantilla de abajo y agregarlo al índice.

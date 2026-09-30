@@ -1,8 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { adminSession } from "./adminSession";
-
-type RpcResult<T> = { data: T | null; error: PostgrestError | null };
+import type { AjusteRowData, KardexDataSource, KardexRecordRow, RpcResult } from "./kardexDataSource";
 
 export type AdminLoginResult = { token: string; must_change: boolean };
 export type PasswordResult = { ok: boolean; recovery_code: string | null };
@@ -27,7 +26,37 @@ export function adminErrorMessage(error: PostgrestError): string {
   return "No se pudo completar la acción. Revisa tu conexión e inténtalo de nuevo.";
 }
 
+// Una fila del resumen de comunidades (ver supabase/admin_read.sql).
+export type CommunityOverview = {
+  name: string;
+  has_pin: boolean;
+  last_update: string | null;
+  products_count: number;
+  // weeks_active[i]: la semana i (0..4) tiene alguna entrada o salida.
+  weeks_active: boolean[];
+};
+
 export const adminService = {
+  async listCommunities(year: number, month: number) {
+    return adminRpc<CommunityOverview[]>("admin_communities_overview", { p_year: year, p_month: month });
+  },
+
+  // Fuente de datos de UNA comunidad para la pantalla del kardex en solo
+  // lectura. Devuelve un objeto nuevo cada vez: quien la use en un componente
+  // debe memorizarla (useMemo) para no recargar en cada render.
+  dataSourceFor(community: string): KardexDataSource {
+    return {
+      loadKardexMonth: (year, month) =>
+        adminRpc<KardexRecordRow[]>("admin_load_month", { p_community: community, p_year: year, p_month: month }),
+      loadAjustes: (year, month) =>
+        adminRpc<AjusteRowData[]>("admin_load_ajustes", { p_community: community, p_year: year, p_month: month }),
+      loadAjustesHistory: (limit = 200) =>
+        adminRpc<AjusteRowData[]>("admin_load_ajustes_history", { p_community: community, p_limit: limit }),
+      loadMonthsWithData: () =>
+        adminRpc<{ year: number; month: number }[]>("admin_months_with_data", { p_community: community }),
+    };
+  },
+
   async login(password: string): Promise<RpcResult<AdminLoginResult>> {
     const { data, error } = await supabase.rpc("admin_login", { p_password: password });
     return { data: (data as AdminLoginResult | null) ?? null, error };

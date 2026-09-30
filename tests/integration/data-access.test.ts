@@ -135,6 +135,13 @@ describe("guardar y leer el kardex", () => {
 });
 
 describe("validaciones del servidor al guardar", () => {
+  // Las validaciones fallidas no guardan nada, así que comparten una sola
+  // comunidad de prueba (menos basura que limpiar en Supabase).
+  let sharedToken: string;
+  beforeAll(async () => {
+    sharedToken = (await createTestCommunity("valid")).token;
+  });
+
   it.each([
     ["menos de 35 salidas", { p_exits: zeros(34) }, "Datos incompletos"],
     ["más de 35 salidas", { p_exits: zeros(36) }, "Datos incompletos"],
@@ -148,12 +155,12 @@ describe("validaciones del servidor al guardar", () => {
     ["el mes 12 (los meses van de 0 a 11)", { p_month: 12 }, "Fecha inválida"],
     ["un año absurdo", { p_year: 1900 }, "Fecha inválida"],
   ])("rechaza %s", async (_label, override, message) => {
-    const { token } = await createTestCommunity("valid");
-    const { error } = await save(token, override);
+    const { error } = await save(sharedToken, override);
     expect(error?.message).toContain(message);
   });
 
   it("no guarda nada cuando la validación falla", async () => {
+    // Comunidad propia: hay que ver que NO quedó ninguna fila.
     const { token } = await createTestCommunity("noreplace");
     await save(token, { p_exits: zeros(34) });
     const { data } = await supabase.rpc("kardex_load_month", { p_token: token, p_year: 2026, p_month: 8 });
@@ -183,6 +190,11 @@ describe("ajustes auditados", () => {
     expect(data.map((a: { motivo: string }) => a.motivo)).toEqual(["segundo", "primero"]);
   });
 
+  let sharedAjusteToken: string;
+  beforeAll(async () => {
+    sharedAjusteToken = (await createTestCommunity("ajvalid")).token;
+  });
+
   it.each([
     ["un motivo vacío", { p_motivo: "   " }, "Motivo inválido"],
     ["un motivo de más de 500 caracteres", { p_motivo: "x".repeat(501) }, "Motivo inválido"],
@@ -190,8 +202,7 @@ describe("ajustes auditados", () => {
     ["una semana fuera de rango", { p_week_index: 5 }, "Fecha inválida"],
     ["un producto inexistente", { p_product_id: "producto-que-no-existe" }, "Producto inválido"],
   ])("rechaza %s", async (_label, override, message) => {
-    const { token } = await createTestCommunity("ajvalid");
-    const { error } = await saveAjuste(token, override);
+    const { error } = await saveAjuste(sharedAjusteToken, override);
     expect(error?.message).toContain(message);
   });
 

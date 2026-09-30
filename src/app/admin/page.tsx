@@ -3,6 +3,7 @@
 import "@/app/admin.css";
 import { useEffect, useState } from "react";
 import AdminLogin from "@/components/admin/AdminLogin";
+import AdminPanel from "@/components/admin/AdminPanel";
 import AdminPasswordForm from "@/components/admin/AdminPasswordForm";
 import AdminRecoveryCode from "@/components/admin/AdminRecoveryCode";
 import AdminRecover from "@/components/admin/AdminRecover";
@@ -132,6 +133,17 @@ export default function AdminPage() {
     goTo("login");
   };
 
+  // El panel usa todo el ancho (no la tarjeta centrada de las demás pantallas).
+  if (screen === "panel") {
+    return (
+      <AdminPanel
+        notice={notice}
+        onChangePassword={() => { setNotice(null); goTo("change"); }}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   return (
     <div className="admin-page">
       {screen === "login" && (
@@ -180,23 +192,6 @@ export default function AdminPage() {
         />
       )}
 
-      {screen === "panel" && (
-        <div className="card admin-card">
-          <h1 className="admin-title">Panel de la nutricionista</h1>
-          {notice && <p role="status" className="admin-notice">{notice}</p>}
-          <p className="admin-lead">
-            Sesión iniciada. Las herramientas de consulta (comunidades, Excel y campanita) llegan en las siguientes fases.
-          </p>
-          <div className="admin-actions">
-            <button type="button" className="btn btn-outline" onClick={() => { setNotice(null); goTo("change"); }}>
-              Cambiar contraseña
-            </button>
-            <button type="button" className="btn btn-primary" onClick={handleLogout}>
-              Cerrar sesión
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

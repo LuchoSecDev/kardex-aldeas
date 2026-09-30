@@ -104,3 +104,100 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
+/* --- Panel (Fase B) --- */
+.admin-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-base);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-panel-header,
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-toolbar-selects {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-panel-error {
+  padding: 0.5rem 0;
+}
+
+.admin-panel-empty {
+  padding: 2rem 0;
+  margin: 0;
+  text-align: center;
+}
+
+.admin-table-scroll {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.75rem 0.6rem;
+  border-bottom: 1px solid var(--color-border, #e3e6e8);
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* El encabezado conserva el azul con letra blanca de globals.css (igual que la
+   tabla del kardex); solo las celdas de nombre (th de fila) se aclaran. */
+.admin-table thead th {
+  font-size: 0.85rem;
+}
+
+.admin-table tbody th.admin-cell-name {
+  background-color: transparent;
+  color: inherit;
+  font-weight: 700;
+}
+
+.admin-col-center {
+  text-align: center !important;
+}
+
+.admin-weeks {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.admin-week-chip {
+  min-width: 2.2rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  background: #eceeef;
+  color: var(--color-text-muted);
+}
+
+.admin-week-chip--on {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.admin-row-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}

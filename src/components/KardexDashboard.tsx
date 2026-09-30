@@ -15,16 +15,35 @@ import { useKardexData } from "@/hooks/useKardexData";
 import { useProducts } from "@/hooks/useProducts";
 import { sumRange } from "@/lib/balanceEngine";
 import { kardexService } from "@/lib/kardexService";
+import type { KardexDataSource } from "@/lib/kardexDataSource";
 import { exportKardexToExcel } from "@/lib/exporters/excelExporter";
 import { exportKardexToPDF } from "@/lib/exporters/pdfExporter";
 
 const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-export default function KardexDashboard({ community, onLogout }: { community: string, onLogout: () => void }) {
+export default function KardexDashboard({
+  community,
+  onLogout,
+  dataSource = kardexService,
+  readOnly = false,
+  logoutLabel,
+  initialYear,
+  initialMonth,
+}: {
+  community: string;
+  onLogout: () => void;
+  // De dónde se leen los datos (por defecto, los de la propia comunidad).
+  dataSource?: KardexDataSource;
+  // Solo lectura: sin edición, sin ajustes y sin guardado (panel de la nutricionista).
+  readOnly?: boolean;
+  logoutLabel?: string;
+  initialYear?: number;
+  initialMonth?: number;
+}) {
   const [currentWeek, setCurrentWeek] = useState(1);
   const [activeCategory, setActiveCategory] = useState("TODAS");
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-indexado
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth ?? new Date().getMonth()); // 0-indexado
+  const [selectedYear, setSelectedYear] = useState(initialYear ?? new Date().getFullYear());
 
   const { calendarWeeks, currentWeekDates } = useCalendar(selectedYear, selectedMonth, currentWeek);
   const { errorToast, scheduleErrorCheck } = useErrorAlert();
@@ -32,6 +51,8 @@ export default function KardexDashboard({ community, onLogout }: { community: st
 
   const {
     isLoading,
+    loadError,
+    reload,
     exits,
     entries,
     prevBalances,
@@ -42,7 +63,11 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     saveProductData,
     updateLocalState,
     applyAjuste
-  } = useKardexData(community, selectedYear, selectedMonth, products);
+  } = useKardexData(community, selectedYear, selectedMonth, products, dataSource);
+
+  // Bloqueado para editar: modo solo lectura, o la carga de datos falló (lo
+  // que se vería en pantalla no serían los datos reales).
+  const locked = readOnly || loadError;
 
   // Con cambios sin guardar (guardando o con error), el navegador pregunta
   // antes de cerrar o recargar la página.
@@ -60,6 +85,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   };
 
   const handleExitChange = (productId: string, dayIndex: number, value: string) => {
+    if (locked) return;
     const numValue = value === "" ? 0 : parseFloat(value);
     if (isNaN(numValue) || numValue < 0) return;
 
@@ -78,6 +104,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   };
 
   const handleEntryChange = (productId: string, value: string) => {
+    if (locked) return;
     const numValue = value === "" ? 0 : parseFloat(value);
     if (isNaN(numValue) || numValue < 0) return;
 
@@ -104,6 +131,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
   const [isBootstrapAjuste, setIsBootstrapAjuste] = useState(false);
 
   const openAjuste = (product: Product) => {
+    if (locked) return;
     const weekIndex = currentWeek - 1;
     const bootstrap =
       weekIndex === 0 &&
@@ -172,8 +200,8 @@ export default function KardexDashboard({ community, onLogout }: { community: st
     setIsLoadingHistorial(true);
 
     const [monthsResult, ajustesResult] = await Promise.all([
-      kardexService.loadMonthsWithData(),
-      kardexService.loadAjustesHistory(),
+      dataSource.loadMonthsWithData(),
+      dataSource.loadAjustesHistory(),
     ]);
 
     if (monthsResult.error) console.error("Error cargando meses con historial:", monthsResult.error);
@@ -254,6 +282,8 @@ export default function KardexDashboard({ community, onLogout }: { community: st
         onLogout={handleLogout}
         saveStatus={saveStatus}
         onRetrySave={retrySave}
+        readOnly={readOnly}
+        logoutLabel={logoutLabel}
       />
 
       <KardexNavigation
@@ -275,6 +305,7 @@ export default function KardexDashboard({ community, onLogout }: { community: st
         onExitChange={handleExitChange}
         onEntryChange={handleEntryChange}
         onOpenAjuste={openAjuste}
+        readOnly={locked}
       />
 
       {ajusteProduct && (
@@ -307,6 +338,18 @@ export default function KardexDashboard({ community, onLogout }: { community: st
           onJumpToMonth={jumpToMonth}
           getProductName={getProductName}
         />
+      )}
+
+      {loadError && !isLoading && (
+        <div role="alert" className="kardex-save-banner">
+          <span>
+            <strong>No se pudieron cargar los datos de este mes.</strong>{" "}
+            La tabla queda bloqueada para no sobrescribir nada. Revisa tu conexión.
+          </span>
+          <button type="button" className="btn kardex-save-banner-btn" onClick={reload}>
+            Reintentar
+          </button>
+        </div>
       )}
 
       <ErrorToast message={errorToast} />

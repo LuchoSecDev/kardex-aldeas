@@ -20,7 +20,11 @@ export default function KardexHeader({
   onLogout,
   saveStatus,
   onRetrySave,
+  readOnly = false,
+  logoutLabel = "Cambiar Comunidad",
 }: {
+  readOnly?: boolean;
+  logoutLabel?: string;
   community: string;
   selectedMonth: number;
   selectedYear: number;
@@ -54,7 +58,11 @@ export default function KardexHeader({
               className="kardex-select-year"
             />
           </div>
-          <SaveStatus status={saveStatus} onRetry={onRetrySave} />
+          {readOnly ? (
+            <p className="kardex-save-status">Solo lectura: no se puede modificar el kardex desde este panel.</p>
+          ) : (
+            <SaveStatus status={saveStatus} onRetry={onRetrySave} />
+          )}
         </div>
       </div>
       <div className="kardex-header-actions">
@@ -67,7 +75,7 @@ export default function KardexHeader({
           Descargar PDF
         </button>
         <button className="btn btn-outline" onClick={onOpenHistorial}>Historial</button>
-        <button className="btn btn-outline" onClick={onLogout}>Cambiar Comunidad</button>
+        <button className="btn btn-outline" onClick={onLogout}>{logoutLabel}</button>
       </div>
     </div>
   );

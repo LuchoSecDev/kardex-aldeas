@@ -1,14 +1,9 @@
-import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { session } from "./session";
 import { Database } from "@/types/database";
+import type { AjusteRowData as AjusteRow, KardexRecordRow, RpcResult } from "./kardexDataSource";
 
-type Tables = Database["public"]["Tables"];
-type KardexRecordRow = Tables["kardex_records"]["Row"];
-type AjusteRow = Tables["ajustes"]["Row"];
-type AjusteInsert = Omit<Tables["ajustes"]["Insert"], "community">;
-
-type RpcResult<T> = { data: T | null; error: PostgrestError | null };
+type AjusteInsert = Omit<Database["public"]["Tables"]["ajustes"]["Insert"], "community">;
 
 // Llama a una función de datos de Supabase adjuntando el token de sesión. La
 // comunidad NO se envía: el servidor la deduce del token, así una sesión
@@ -20,6 +15,8 @@ async function authedRpc<T>(fn: string, args: Record<string, unknown> = {}): Pro
 }
 
 export const kardexService = {
+  // (Las lecturas de datos de abajo cumplen KardexDataSource: la pantalla del
+  // kardex las recibe como fuente de datos.)
   async loadProducts() {
     return supabase
       .from("products")
