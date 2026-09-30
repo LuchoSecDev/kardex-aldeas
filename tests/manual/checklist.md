@@ -42,6 +42,7 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Campanita (esquina izquierda de la barra azul, junto a "Accesibilidad visual"): el contador y el título de la pestaña coinciden con los envíos sin revisar; se ve también dentro del kardex de una comunidad; el menú se abre justo debajo de ella; "Ver kardex" abre esa semana; "Marcar revisada" lo saca de la lista.
 - [ ] Si la comunidad cambia una semana ya revisada, vuelve a la campanita como modificada.
 - [ ] En un teléfono real: el menú de la campanita cabe en pantalla y la tabla se desplaza dentro de su marco.
+- [ ] En el teléfono, al deslizar la tabla de comunidades hasta el final, **la página no se desliza** más allá de la tabla (solo se mueve el marco de la tabla). Mismo control en "Ver kardex".
 
 ## Exportar
 - [ ] Excel: descarga, 5 hojas por categoría, saldos correctos.

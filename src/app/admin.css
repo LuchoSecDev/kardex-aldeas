@@ -140,7 +140,12 @@
   text-align: center;
 }
 
+/* position: relative es imprescindible: los textos .sr-only (position: absolute)
+   de las semanas se posicionan respecto al ancestro posicionado más cercano; si
+   este marco no lo es, quedan "sueltos" en la página y la ensanchan (el celular
+   dejaba deslizar toda la página a la derecha, más allá de la tabla). */
 .admin-table-scroll {
+  position: relative;
   overflow-x: auto;
 }
 
