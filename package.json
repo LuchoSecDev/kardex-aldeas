@@ -9,7 +9,9 @@
     "lint": "eslint",
     "test": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "test:all": "vitest run"
+    "test:all": "vitest run",
+    "test:db": "bash tests/db/run.sh",
+    "seed:market": "node scripts/generate-market-seed.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",

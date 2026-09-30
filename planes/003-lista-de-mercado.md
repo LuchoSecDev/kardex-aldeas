@@ -1,6 +1,6 @@
 # 003 — Lista de mercado (pedido semanal de cada comunidad)
 
-**Estado:** 📝 Propuesta lista para programar (Lucho respondió todas las dudas el 2026-09-30; **sin precios ni presupuesto**, ver decisiones)
+**Estado:** 🚧 En curso — **Fase A programada y probada en local (2026-09-30)**; falta correr el SQL en Supabase. Sin precios ni presupuesto (ver decisiones).
 **Rama:** `feature/lista-mercado`  **Fecha:** 2026-09-30
 
 ## Objetivo
@@ -88,14 +88,14 @@ marzo es F/L/C y que los tachones y colores de la foto son solo para guiarse; no
 ### Base de datos (SQL aditivo; archivo nuevo `supabase/market_lists.sql`)
 
 - `market_items` — `id`, `kind` (`fruver` | `carnes` | `abarrotes` | `aseo`), `name`, `unit`, `is_event`,
-  `sort_order`, `is_active`. Lectura `anon` solo de activos (mismo patrón que `products`). Semilla desde
-  `anexos/lista-mercado-catalogo.json`.
+  `sort_order`, `is_active`. **Sin acceso `anon`**: se lee con `market_catalog(token)`. Semilla desde
+  `anexos/lista-mercado-catalogo.json` (`npm run seed:market`).
 - `market_lists` — una fila por (`community`, `week_start`, `kind`): `quantities jsonb` (`{item_id: cantidad}` solo no
   ceros), `participants int` (copia del vigente al enviar), `status` (`borrador` | `enviada`), `first_submitted_at`,
   `submitted_at`, `submit_count`, `late bool`, `changed_after_deadline bool`, `reviewed_at`. Único por
   (comunidad, semana, tipo). Cantidades ≥ 0 con decimales (hay 0.25, 0.5…).
 - `market_calendar` — `friday date primary key`, `kinds text[]` (p. ej. `{fruver,carnes,abarrotes}`; fruver y lácteos
-  van en la misma lista), `deadline_at timestamptz`. Sembrada con 2026; lectura `anon` (sin datos sensibles).
+  van en la misma lista), `deadline_at timestamptz`. Sembrada con 2026. **Sin acceso `anon`**: la comunidad la recibe dentro de `market_list_load`.
 - `communities.participants int` — número fijo de participantes (nuevo).
 
 Funciones:
@@ -126,7 +126,7 @@ Funciones:
 
 ## Fases
 
-- [ ] **Fase A — Catálogo y base de datos.** `market_lists.sql` + semilla del catálogo + `market_calendar`
+- [x] **Fase A — Catálogo y base de datos.** *(Hecha: `supabase/market_lists.sql`, `market_seed.sql` (generado), `src/lib/marketCalendar.ts`, `marketList.ts`, `marketService.ts`, tipos y 3 niveles de pruebas. Verificada en un Postgres local con todos los .sql del repo y con pruebas de mutación. **Pendiente:** correr `market_lists.sql` y `market_seed.sql` en Supabase y luego `npm run test:integration`.)* `market_lists.sql` + semilla del catálogo + `market_calendar`
   (desde `anexos/cronograma-pedidos-2026.md`) + columna `communities.participants` + funciones de comunidad.
   *Aceptación:* un token de comunidad lee el catálogo, guarda borrador y envía; un token falso o de administradora se
   rechaza; las tablas están cerradas a `anon`; el envío marca tardía/a tiempo según el plazo.
@@ -143,6 +143,7 @@ Funciones:
 
 ## Pruebas
 
+- SQL local (`tests/db/market_lists.test.sql`, `npm run test:db`): permisos de tablas y funciones, sesión, catálogo, calendario sembrado, cargar/guardar/enviar, participantes, tardías, aislamiento. Corre contra un Postgres desechable, **no toca Supabase**.
 - Unitarias (`tests/unit/`): "toca / no toca" (quincenal desde el 9 ene, aseo entre el 13 y el 19) contra las 52
   fechas del cronograma 2026; lunes de entrega = viernes + 3; semana por defecto; plazo (5 pm Bogotá y festivos
   adelantados); a tiempo / tarde / modificada después del plazo.

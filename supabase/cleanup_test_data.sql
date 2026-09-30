@@ -5,8 +5,8 @@
 --
 -- Borra cualquier comunidad cuyo nombre empiece por ZZZ_TEST_ (el prefijo
 -- obligatorio para toda comunidad de prueba), así ya no hay que agregar cada
--- nombre nuevo a mano. Las sesiones, intentos de PIN y envíos de semana de
--- esas comunidades se borran solos (on delete cascade).
+-- nombre nuevo a mano. Las sesiones, intentos de PIN, envíos de semana y listas de
+-- mercado (market_lists) de esas comunidades se borran solos (on delete cascade).
 --
 -- CUIDADO: ninguna comunidad real debe llamarse ZZZ_TEST_...
 

@@ -1,5 +1,5 @@
 {
- "nota": "Catálogo de las listas de mercado extraído de \"Lista de mercado 26 septiembre 2026 casa Maná.xlsx\". SIN precios (los precios son solo de la nutricionista y no se guardan en el repositorio). Los ids son propuestos y estables.",
+ "nota": "Catálogo de las listas de mercado extraído de \"Lista de mercado 26 septiembre 2026 casa Maná.xlsx\". Solo nombre y unidad: la app no maneja precios (plan 003). Los ids son estables.",
  "kinds": {
   "carnes": {
    "sheet": "CARNES",

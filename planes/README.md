@@ -13,7 +13,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 |---|---|---|---|
 | 001 | [Panel de la nutricionista](001-panel-nutricionista.md) | ✅ **Desplegado en producción el 2026-09-30** (merge a `main` + push, `b3e60df`). Falta: entregar la cuenta a la nutricionista (reset con la contraseña temporal real) y limpiar datos de prueba | `cfc3d80` (A) · `fc6934c` (B) · `53e474d` (C) · `5b3eaa7` acceso administrativo · `dee3ef1` campanita · `8e49fd2`/`b3e60df` ajustes de scroll |
 | 002 | [Resumen semanal para el pedido a proveedores](002-resumen-semanal.md) | ✅ Desplegado en producción el 2026-09-30. Pendiente de diseño: cantidad sugerida a pedir (falta la regla de la organización) | ver `git log` (rama `feature/resumen-semanal`) |
-| 003 | [Lista de mercado](003-lista-de-mercado.md) | 📝 Propuesta lista para programar (dudas respondidas, cronograma 2026 incorporado; **sin precios ni presupuesto**) | — |
+| 003 | [Lista de mercado](003-lista-de-mercado.md) | 🚧 En curso: Fase A lista en código y probada en local (falta correr el SQL en Supabase); **sin precios ni presupuesto** | — |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)

@@ -1,11 +1,12 @@
 # Pruebas del Kardex Digital
 
 Objetivo: saber en minutos si algo se rompió y **dónde**, para repararlo rápido.
-Hay tres niveles, del más rápido al más completo:
+Hay cuatro niveles, del más rápido al más completo:
 
 | Nivel | Qué prueba | Cómo se corre | Tarda |
 |---|---|---|---|
 | **Unitarias** (`unit/`) | La lógica pura: saldos encadenados, semáforo. No usan red. | `npm test` | < 1 s |
+| **SQL local** (`db/`) | Los scripts `supabase/*.sql` completos (permisos, funciones, validaciones) contra un **Postgres local desechable**, sin tocar Supabase. Sirve para verificar un `.sql` nuevo **antes** de correrlo en producción. | `npm run test:db` (necesita PostgreSQL 14+ instalado) | ~5 s |
 | **Integración** (`integration/`) | Las funciones de Supabase de verdad: PIN, sesiones, aislamiento entre comunidades, validaciones, bloqueo de tablas. | `npm run test:integration` | ~20 s |
 | **Manuales** (`manual/checklist.md`) | Lo que solo se ve en pantalla: diseño móvil, Excel/PDF, avisos. | A mano, antes de cada release | ~10 min |
 
@@ -29,6 +30,11 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 
 ## Qué cubre cada archivo
 
+- `unit/marketCalendar.test.ts` — calendario de la lista de mercado: reproduce los 52 viernes del cronograma 2026, plazo de las 5 pm (con festivos adelantados), semana por defecto y rótulos.
+- `unit/marketSeed.test.ts` — el catálogo (285 ítems, sin precios) y que `supabase/market_seed.sql` coincida con lo que genera `npm run seed:market`.
+- `unit/marketList.test.ts` — estado de una lista y limpieza de cantidades.
+- `db/market_lists.test.sql` — lista de mercado contra Postgres local (ver arriba).
+- `integration/market-lists.test.ts` — lista de mercado contra Supabase: acceso, catálogo, guardar, enviar, tardías, aislamiento. **Necesita haber corrido `market_lists.sql` y `market_seed.sql`.**
 - `unit/balanceEngine.test.ts` — cálculo de saldos (encadenado, ajustes, decimales, negativos), saldo heredado entre meses, semáforo.
 - `integration/sessions.test.ts` — PIN, login/logout, tokens inválidos, funciones internas no expuestas, nombres y PIN inválidos.
 - `integration/lockout.test.ts` — 5 fallos bloquean 15 min (incluso con el PIN correcto); un acierto reinicia el contador.
@@ -68,3 +74,16 @@ Sin `RUN_ADMIN_LIFECYCLE=1` esas pruebas se saltan y aparecen como "skipped".
 
 - Pruebas de la cola de guardado (`useSaveQueue`): hoy se verificó a mano (orden, reintentos). Conviene extraer su lógica a una función pura para poder probarla aquí.
 - Pruebas end-to-end en navegador (Playwright) para reemplazar parte del checklist manual.
+
+## Pruebas de SQL en un Postgres local (`tests/db/`)
+
+`npm run test:db` (o `bash tests/db/run.sh`) crea la base desechable `kardex_sqltest`, carga **todos los `supabase/*.sql` en el orden de producción** sobre un mínimo de Supabase (`tests/db/bootstrap.sql`: roles `anon`/`authenticated`, `pgcrypto`, permisos por defecto amplios) y corre cada `tests/db/*.test.sql`. Las pruebas llaman a las funciones como el rol `anon`, igual que la app.
+
+- Úsalo **antes de correr un `.sql` nuevo en Supabase**: detecta errores de sintaxis, `revoke` olvidados y reglas mal escritas sin tocar datos reales.
+- Cada prueba falla con `FALLÓ: <qué>`. Se verificó mutando el SQL (quitar un `revoke`, relajar una validación…) y confirmando que la prueba lo detecta.
+- Hay que agregar el `.sql` nuevo a la lista de `run.sh`, en su lugar del orden.
+- Necesita PostgreSQL 14+ y poder entrar con `psql` (si no, define `PGUSER`/`PGHOST`/`PGPORT`). No reemplaza a `test:integration`: esa prueba la base **real** (permisos de Supabase de verdad).
+
+## Regenerar el catálogo de la lista de mercado
+
+`supabase/market_seed.sql` se genera con `npm run seed:market` a partir de `planes/anexos/lista-mercado-catalogo.json` y las reglas de `src/lib/marketCalendar.ts`. No se edita a mano: `tests/unit/marketSeed.test.ts` falla si deja de coincidir.
