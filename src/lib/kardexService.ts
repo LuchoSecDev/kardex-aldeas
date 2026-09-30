@@ -2,6 +2,7 @@ import { supabase } from "./supabase";
 import { session } from "./session";
 import { Database } from "@/types/database";
 import type { AjusteRowData as AjusteRow, KardexRecordRow, RpcResult } from "./kardexDataSource";
+import type { WeekSubmission } from "@/types/submissions";
 
 type AjusteInsert = Omit<Database["public"]["Tables"]["ajustes"]["Insert"], "community">;
 
@@ -81,6 +82,20 @@ export const kardexService = {
       p_exits: exits,
       p_entries: entries,
       p_prev_balances: prevBalances,
+    });
+  },
+
+  // Semanas de un mes que la comunidad ya envió a la nutricionista.
+  async loadWeekSubmissions(year: number, month: number) {
+    return authedRpc<WeekSubmission[]>("kardex_week_submissions", { p_year: year, p_month: month });
+  },
+
+  // Envía (o reenvía) una semana. Responde SEMANA_VACIA si no tiene movimientos.
+  async submitWeek(year: number, month: number, weekIndex: number) {
+    return authedRpc<{ submitted_at: string; submit_count: number }>("kardex_submit_week", {
+      p_year: year,
+      p_month: month,
+      p_week_index: weekIndex,
     });
   },
 

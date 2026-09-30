@@ -29,6 +29,9 @@ const login = async (password: string) => {
 
 // (Las pruebas de un mismo bloque corren en orden; el estado se comparte entre ellas.)
 describe.skipIf(!enabled)("ciclo de vida de la cuenta de administradora", () => {
+  // Comunidad de prueba compartida entre los bloques de lecturas y de envíos.
+  const testCommunity = { name: "", token: "", productId: "" };
+
   const state: { pendingToken: string; tokenB: string; recoveryCode: string; newCode: string } = {
     pendingToken: "",
     tokenB: "",
@@ -131,7 +134,7 @@ describe.skipIf(!enabled)("ciclo de vida de la cuenta de administradora", () => 
 
   // --- Fase B: lecturas de administradora (con la sesión ya válida, tokenB) ---
   describe("lecturas de administradora (solo lectura)", () => {
-    const admin = { name: "", token: "", productId: "" };
+    const admin = testCommunity;
     const YEAR = 2026;
     const MONTH = 8;
 
@@ -236,6 +239,114 @@ describe.skipIf(!enabled)("ciclo de vida de la cuenta de administradora", () => 
         p_prev_balances: [0, 0, 0, 0, 0],
       });
       expect(error?.message).toContain("SESION_INVALIDA");
+    });
+  });
+
+  // --- Fase C: envíos de semana, campanita y revisión (tokenB sigue válido) ---
+  describe("envíos de semana, campanita y revisión", () => {
+    const YEAR = 2026;
+    const MONTH = 8;
+    let submissionId = "";
+
+    // Se reutiliza la comunidad de prueba (con datos en la semana 1) creada en el bloque de lecturas.
+    const adminState = () => testCommunity;
+
+    it("prepara: la comunidad de prueba envía su semana 1", async () => {
+      expect(testCommunity.name).not.toBe("");
+      const { error } = await supabase.rpc("kardex_submit_week", {
+        p_token: adminState().token,
+        p_year: YEAR,
+        p_month: MONTH,
+        p_week_index: 0,
+      });
+      expect(error).toBeNull();
+    });
+
+    it("el estado de las semanas muestra el envío sin revisar ni modificar", async () => {
+      const { data, error } = await supabase.rpc("admin_week_statuses", { p_token: state.tokenB, p_year: YEAR, p_month: MONTH });
+      expect(error).toBeNull();
+      const row = data.find((s: { community: string }) => s.community === adminState().name);
+      expect(row).toMatchObject({ week_index: 0, submit_count: 1, reviewed_at: null, modified: false });
+    });
+
+    it("la campanita incluye el envío", async () => {
+      const { data, error } = await supabase.rpc("admin_notifications", { p_token: state.tokenB });
+      expect(error).toBeNull();
+      const row = data.find((n: { community: string }) => n.community === adminState().name);
+      expect(row).toMatchObject({ year: YEAR, month: MONTH, week_index: 0, modified: false });
+      submissionId = row.id;
+    });
+
+    it("marcar como revisada la saca de la campanita", async () => {
+      const reviewed = await supabase.rpc("admin_mark_reviewed", { p_token: state.tokenB, p_id: submissionId });
+      expect(reviewed.error).toBeNull();
+
+      const { data } = await supabase.rpc("admin_notifications", { p_token: state.tokenB });
+      expect(data.some((n: { id: string }) => n.id === submissionId)).toBe(false);
+
+      const statuses = await supabase.rpc("admin_week_statuses", { p_token: state.tokenB, p_year: YEAR, p_month: MONTH });
+      const row = statuses.data.find((s: { community: string }) => s.community === adminState().name);
+      expect(row.reviewed_at).not.toBeNull();
+      expect(row.modified).toBe(false);
+    });
+
+    it("si la comunidad cambia la semana después de revisada, vuelve a la campanita como modificada", async () => {
+      const exits = Array(35).fill(0);
+      exits[1] = 1.5;
+      const saved = await supabase.rpc("kardex_save_product", {
+        p_token: adminState().token,
+        p_year: YEAR,
+        p_month: MONTH,
+        p_product_id: adminState().productId,
+        p_exits: exits,
+        p_entries: [9, 0, 0, 0, 0], // antes eran 3
+        p_prev_balances: [0, 7.5, 7.5, 7.5, 7.5],
+      });
+      expect(saved.error).toBeNull();
+
+      const { data } = await supabase.rpc("admin_notifications", { p_token: state.tokenB });
+      const row = data.find((n: { id: string }) => n.id === submissionId);
+      expect(row).toBeDefined();
+      expect(row.modified).toBe(true);
+    });
+
+    it("revisarla de nuevo acepta los cambios: deja de estar modificada", async () => {
+      await supabase.rpc("admin_mark_reviewed", { p_token: state.tokenB, p_id: submissionId });
+      const { data } = await supabase.rpc("admin_notifications", { p_token: state.tokenB });
+      expect(data.some((n: { id: string }) => n.id === submissionId)).toBe(false);
+    });
+
+    it("reenviar la semana la devuelve a la campanita, sin revisar", async () => {
+      const { error } = await supabase.rpc("kardex_submit_week", {
+        p_token: adminState().token,
+        p_year: YEAR,
+        p_month: MONTH,
+        p_week_index: 0,
+      });
+      expect(error).toBeNull();
+
+      const { data } = await supabase.rpc("admin_notifications", { p_token: state.tokenB });
+      const row = data.find((n: { id: string }) => n.id === submissionId);
+      expect(row).toMatchObject({ submit_count: 2, modified: false });
+    });
+
+    it("marcar un envío inexistente da error claro", async () => {
+      const { error } = await supabase.rpc("admin_mark_reviewed", {
+        p_token: state.tokenB,
+        p_id: "00000000-0000-0000-0000-000000000000",
+      });
+      expect(error?.message).toContain("Envío no encontrado");
+    });
+
+    it("las funciones nuevas rechazan tokens falsos", async () => {
+      for (const call of [
+        supabase.rpc("admin_week_statuses", { p_token: "token-falso", p_year: YEAR, p_month: MONTH }),
+        supabase.rpc("admin_notifications", { p_token: "token-falso" }),
+        supabase.rpc("admin_mark_reviewed", { p_token: "token-falso", p_id: submissionId }),
+      ]) {
+        const { error } = await call;
+        expect(error?.message).toContain("SESION_ADMIN_INVALIDA");
+      }
     });
   });
 

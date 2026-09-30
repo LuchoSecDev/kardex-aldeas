@@ -97,10 +97,11 @@ Funciones (todas validan token y, en las de administradora, el rol):
   cambio obligatorio, código de recuperación y cambio voluntario.
   *Aceptación:* la contraseña temporal entra y obliga a cambiar; la nueva funciona; el código restablece;
   5 fallos bloquean 15 min; un token de comunidad no sirve en `admin_*`.
-- [ ] **Fase B — Consulta en solo lectura.** *(Código escrito y probado por tipos/unitarias; falta correr `supabase/admin_read.sql` y verificar en navegador. Incluye además: si la carga de un mes falla, la tabla se bloquea y se avisa, para no sobrescribir datos ni exportar ceros; hallazgo H1 en `planes/README.md`.)*
+- [x] **Fase B — Consulta en solo lectura.** *(Verificada en navegador: lista de comunidades, ver kardex en solo lectura, historial de ajustes, Excel por comunidad (descarga real y bloqueo si la lectura falla), móvil. Pendiente: correr las lecturas del ciclo automatizado opt-in, que necesitan reset de la cuenta. Incluye además: si la carga de un mes falla, la tabla se bloquea y se avisa, para no sobrescribir datos ni exportar ceros; hallazgo H1 en `planes/README.md`.)*
   Tabla de comunidades, detalle en `readOnly`, Excel/PDF y meses anteriores.
   *Aceptación:* ve todas las comunidades; el Excel coincide con el que descarga la comunidad; no hay forma de editar.
-- [ ] **Fase C — Envío de semana y campanita.** Botón en comunidades, estados, snapshot, campanita, "marcar revisada".
+- [x] **Fase C — Envío de semana y campanita.** *(Verificada: 33/33 del ciclo de administradora + 9 de comunidad, y en navegador: semana vacía rechazada, envío, modificada tras cambiar, reenvío; campanita con contador y título de pestaña, "Ver kardex" abre la semana, "Marcar revisada" baja el contador y pinta la semana. Limitación de la verificación: la emulación móvil del navegador no cambia el ancho real del diseño para elementos fijos, así que el menú de la campanita en móvil se validó por CSS (ancho ≤ 100vw − 2rem, anclado a 1rem del borde), no en un teléfono real.)* Botón en comunidades, estados, snapshot, campanita, "marcar revisada".
+  Detalles que quedaron distintos/afinados: una semana sin entradas ni salidas no se puede enviar (`SEMANA_VACIA`); el botón se bloquea mientras hay guardados pendientes (si no, la foto saldría desactualizada); "marcar revisada" también actualiza la foto (revisar = "vi los datos como están ahora"); la campanita mira solo los últimos 90 días de envíos ya revisados.
   *Aceptación:* enviar suma 1 a la campanita; editar esa semana la marca "modificada"; editar otra semana no;
   revisar la quita; reenviar la vuelve a sumar.
 

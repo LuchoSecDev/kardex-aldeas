@@ -16,6 +16,9 @@ import { useProducts } from "@/hooks/useProducts";
 import { sumRange } from "@/lib/balanceEngine";
 import { kardexService } from "@/lib/kardexService";
 import type { KardexDataSource } from "@/lib/kardexDataSource";
+import WeekSubmitBar from "@/components/WeekSubmitBar";
+import { useWeekSubmissions } from "@/hooks/useWeekSubmissions";
+import { getWeekState } from "@/lib/weekStatus";
 import { exportKardexToExcel } from "@/lib/exporters/excelExporter";
 import { exportKardexToPDF } from "@/lib/exporters/pdfExporter";
 
@@ -29,7 +32,9 @@ export default function KardexDashboard({
   logoutLabel,
   initialYear,
   initialMonth,
+  initialWeek,
 }: {
+  initialWeek?: number;
   community: string;
   onLogout: () => void;
   // De dónde se leen los datos (por defecto, los de la propia comunidad).
@@ -40,7 +45,7 @@ export default function KardexDashboard({
   initialYear?: number;
   initialMonth?: number;
 }) {
-  const [currentWeek, setCurrentWeek] = useState(1);
+  const [currentWeek, setCurrentWeek] = useState(initialWeek ?? 1);
   const [activeCategory, setActiveCategory] = useState("TODAS");
   const [selectedMonth, setSelectedMonth] = useState(initialMonth ?? new Date().getMonth()); // 0-indexado
   const [selectedYear, setSelectedYear] = useState(initialYear ?? new Date().getFullYear());
@@ -64,6 +69,10 @@ export default function KardexDashboard({
     updateLocalState,
     applyAjuste
   } = useKardexData(community, selectedYear, selectedMonth, products, dataSource);
+
+  // Envío de semana a la nutricionista (solo en el modo de la comunidad).
+  const weekSubmissions = useWeekSubmissions(selectedYear, selectedMonth, saveStatus, !readOnly);
+  const weekStates = [0, 1, 2, 3, 4].map((i) => getWeekState(weekSubmissions.submissions.find((s) => s.week_index === i)));
 
   // Bloqueado para editar: modo solo lectura, o la carga de datos falló (lo
   // que se vería en pantalla no serían los datos reales).
@@ -292,7 +301,19 @@ export default function KardexDashboard({
         categoryOptions={categoryOptions}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
+        weekStates={readOnly ? undefined : weekStates}
       />
+
+      {!readOnly && (
+        <WeekSubmitBar
+          currentWeek={currentWeek}
+          submission={weekSubmissions.submissions.find((s) => s.week_index === currentWeek - 1)}
+          saveStatus={saveStatus}
+          isSubmitting={weekSubmissions.isSubmitting}
+          message={weekSubmissions.message}
+          onSubmit={() => weekSubmissions.submit(currentWeek - 1)}
+        />
+      )}
 
       <KardexTable
         isLoading={isLoading || isLoadingProducts}

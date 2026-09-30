@@ -186,13 +186,131 @@
   font-size: 0.8rem;
   font-weight: 700;
   text-align: center;
+  border: 2px solid transparent;
+}
+
+/* Sin registros */
+.admin-week-chip--pending {
   background: #eceeef;
   color: var(--color-text-muted);
 }
 
-.admin-week-chip--on {
+/* Se está llenando, todavía no se envía */
+.admin-week-chip--filling {
+  background: #fff;
+  border-color: var(--color-primary-dark);
+  color: var(--color-primary-dark);
+}
+
+/* Enviada, por revisar */
+.admin-week-chip--enviada {
+  background: var(--color-primary-dark);
+  color: #fff;
+}
+
+/* Revisada */
+.admin-week-chip--revisada {
   background: var(--color-success);
   color: #fff;
+}
+
+/* Modificada tras el envío */
+.admin-week-chip--modificada {
+  background: var(--color-warning);
+  color: #fff;
+}
+
+.admin-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.admin-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* --- Campanita --- */
+.admin-bell {
+  position: relative;
+}
+
+.admin-bell-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-bell-badge {
+  min-width: 1.3rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--color-accent-red);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3rem;
+  text-align: center;
+}
+
+/* Fijo respecto a la ventana (no al botón): así nunca se sale de la pantalla,
+   sin importar en qué parte del encabezado quede la campanita. */
+.admin-bell-menu {
+  position: fixed;
+  top: 4.5rem;
+  right: 1rem;
+  z-index: 50;
+  width: min(460px, calc(100vw - 2rem));
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+  text-align: left;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.admin-bell-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  color: var(--color-primary-dark);
+}
+
+.admin-bell-empty {
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.admin-bell-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-bell-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-bell-sub {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.admin-bell-sub--warn {
+  color: var(--color-warning);
+  font-weight: 600;
 }
 
 .admin-row-actions {

@@ -2,6 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { adminSession } from "./adminSession";
 import type { AjusteRowData, KardexDataSource, KardexRecordRow, RpcResult } from "./kardexDataSource";
+import type { AdminNotification, AdminWeekStatus } from "@/types/submissions";
 
 export type AdminLoginResult = { token: string; must_change: boolean };
 export type PasswordResult = { ok: boolean; recovery_code: string | null };
@@ -37,6 +38,20 @@ export type CommunityOverview = {
 };
 
 export const adminService = {
+  // Estado de las semanas enviadas de todas las comunidades en un mes.
+  async listWeekStatuses(year: number, month: number) {
+    return adminRpc<AdminWeekStatus[]>("admin_week_statuses", { p_year: year, p_month: month });
+  },
+
+  // La campanita: envíos sin revisar o modificados después.
+  async listNotifications() {
+    return adminRpc<AdminNotification[]>("admin_notifications");
+  },
+
+  async markReviewed(submissionId: string) {
+    return adminRpc<null>("admin_mark_reviewed", { p_id: submissionId });
+  },
+
   async listCommunities(year: number, month: number) {
     return adminRpc<CommunityOverview[]>("admin_communities_overview", { p_year: year, p_month: month });
   },
