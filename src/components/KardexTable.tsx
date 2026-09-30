@@ -28,6 +28,7 @@ export default function KardexTable({
   isLoading,
   currentWeek,
   currentWeekDates,
+  isClosingWeek = false,
   filteredProducts,
   exits,
   entries,
@@ -41,6 +42,8 @@ export default function KardexTable({
   isLoading: boolean;
   currentWeek: number;
   currentWeekDates: (number | null)[];
+  // Semana 6 de cierre: solo se pueden registrar los días que sobran (los demás quedan deshabilitados).
+  isClosingWeek?: boolean;
   filteredProducts: Product[];
   exits: Record<string, number[]>;
   entries: Record<string, number[]>;
@@ -61,7 +64,18 @@ export default function KardexTable({
       )}
 
       <div className="kardex-table-banner">
-        <h3>SEMANA {currentWeek} - Registro Diario</h3>
+        <h3>
+          {isClosingWeek
+            ? `SEMANA ${currentWeek} - Cierre del mes`
+            : `SEMANA ${currentWeek} - Registro Diario`}
+        </h3>
+        {isClosingWeek && (
+          <p className="kardex-closing-note">
+            Esta semana es solo para los últimos días del mes que no caben en las 5 semanas
+            ({currentWeekDates.filter((d) => d !== null).join(" y ")}). Los demás días están deshabilitados.
+            El saldo anterior sale solo del cierre de la semana 5.
+          </p>
+        )}
       </div>
 
       {/* Un solo contenedor de scroll: horizontal siempre, vertical acotado
@@ -172,7 +186,7 @@ export default function KardexTable({
                           readOnly={readOnly}
                           value={(exits[product.id] || [])[absoluteDayStart + idx] || ""}
                           onChange={(e) => onExitChange(product.id, idx, e.target.value)}
-                          title={isInvalidDay ? "Día fuera del mes" : ""}
+                          title={isInvalidDay ? (isClosingWeek ? "Este día es del mes siguiente" : "Día fuera del mes") : ""}
                         />
                       </td>
                     );

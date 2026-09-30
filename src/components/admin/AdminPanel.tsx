@@ -11,7 +11,7 @@ import KardexDashboard from "@/components/KardexDashboard";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useProducts } from "@/hooks/useProducts";
 import { adminService, type CommunityOverview } from "@/lib/adminService";
-import { buildCalendarWeeks } from "@/lib/calendar";
+import { WEEKS_MAX, buildCalendarWeeks, weekCountOf } from "@/lib/calendar";
 import { exportKardexToExcel } from "@/lib/exporters/excelExporter";
 import { loadMonthState } from "@/lib/monthState";
 import { formatDateTime, getWeekState, MONTH_NAMES, WEEK_STATE_LABEL } from "@/lib/weekStatus";
@@ -86,11 +86,11 @@ export default function AdminPanel({
     };
   }, [year, month, reloadKey]);
 
-  // Estado de cada semana por comunidad: community -> [estado de la semana 1..5]
+  // Estado de cada semana por comunidad: community -> [estado de la semana 1..6]
   const weekStatesByCommunity = useMemo(() => {
     const map = new Map<string, WeekState[]>();
     statuses.forEach((s) => {
-      const states = map.get(s.community) ?? Array<WeekState>(5).fill("pendiente");
+      const states = map.get(s.community) ?? Array<WeekState>(WEEKS_MAX).fill("pendiente");
       states[s.week_index] = getWeekState({ modified: s.modified, reviewed: s.reviewed_at !== null });
       map.set(s.community, states);
     });
@@ -305,7 +305,8 @@ export default function AdminPanel({
                         <td className="admin-col-center">{c.products_count}</td>
                         <td className="admin-col-center">
                           <div className="admin-weeks">
-                            {c.weeks_active.map((active, i) => {
+                            {/* Las 5 semanas de siempre, y la 6 (de cierre) solo si el mes la tiene. */}
+                            {c.weeks_active.slice(0, weekCountOf(year, month)).map((active, i) => {
                               const state = states?.[i] ?? "pendiente";
                               // Pendiente pero con registros = se está llenando, sin enviar.
                               const cls = state === "pendiente" ? (active ? "filling" : "pending") : state;

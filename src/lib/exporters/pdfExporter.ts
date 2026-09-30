@@ -1,18 +1,11 @@
+import { TOTAL_DAYS } from "@/lib/balanceEngine";
+import { DAYS_PER_WEEK, EXTRA_WEEK_INDEX } from "@/lib/calendar";
 import { Product } from "@/types/kardex";
 
 const DAYS = ["L", "M", "MC", "J", "V", "S", "D"];
 const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-export async function exportKardexToPDF({
-  community,
-  selectedMonth,
-  selectedYear,
-  calendarWeeks,
-  products,
-  exits,
-  entries,
-  prevBalances,
-}: {
+export type KardexPdfParams = {
   community: string;
   selectedMonth: number;
   selectedYear: number;
@@ -21,7 +14,19 @@ export async function exportKardexToPDF({
   exits: Record<string, number[]>;
   entries: Record<string, number[]>;
   prevBalances: Record<string, number[]>;
-}) {
+};
+
+// Arma el PDF (sin descargarlo): así se puede probar. Una página (o más) por semana; la
+// semana 6, de cierre, solo en los meses que la tienen (planes/004).
+export async function buildKardexPdf({
+  community,
+  selectedMonth,
+  calendarWeeks,
+  products,
+  exits,
+  entries,
+  prevBalances,
+}: KardexPdfParams) {
   const { default: JsPDF } = await import("jspdf");
   const { default: autoTable } = await import("jspdf-autotable");
 
@@ -43,7 +48,7 @@ export async function exportKardexToPDF({
     doc.text(`MES: ${monthName}    COMUNIDAD: ${community}    ${weekLabel}`, pageWidth / 2, 44, { align: "center" });
   };
 
-  for (let w = 0; w < 5; w++) {
+  for (let w = 0; w < allWeeks.length; w++) {
     if (w > 0) doc.addPage();
 
     const weekDates = allWeeks[w];
@@ -56,7 +61,7 @@ export async function exportKardexToPDF({
     const TOTAL_TABLE_COLS = 4 + 7 + 1; // ALIMENTO, UNIDAD, SALDO ANT, ENTRADA + 7 días + SALDO FINAL
     const body: (string | number | { content: string; colSpan: number; styles: Record<string, unknown> })[][] = [];
     let lastCategory = "";
-    const startDay = w * 7;
+    const startDay = w * DAYS_PER_WEEK;
 
     products.forEach((product) => {
       if (product.category !== lastCategory) {
@@ -68,11 +73,11 @@ export async function exportKardexToPDF({
         lastCategory = product.category;
       }
 
-      const pExits = exits[product.id] || Array(35).fill(0);
+      const pExits = exits[product.id] || Array(TOTAL_DAYS).fill(0);
       const pPrev = prevBalances[product.id] || [];
       const pEntries = entries[product.id] || [];
 
-      const weekExits = pExits.slice(startDay, startDay + 7).reduce((a: number, b: number) => a + b, 0);
+      const weekExits = pExits.slice(startDay, startDay + DAYS_PER_WEEK).reduce((a: number, b: number) => a + b, 0);
       const prevBalance = pPrev[w] ?? 0;
       const entry = pEntries[w] ?? 0;
       const finalBalance = prevBalance + entry - weekExits;
@@ -95,9 +100,17 @@ export async function exportKardexToPDF({
       styles: { fontSize: 7, cellPadding: 3, halign: "center", valign: "middle" },
       headStyles: { fillColor: [0, 133, 202], textColor: 255, fontSize: 7 },
       columnStyles: { 0: { halign: "left", cellWidth: 110 }, 1: { cellWidth: 55 } },
-      didDrawPage: () => drawHeader(`SEMANA ${w + 1}`),
+      didDrawPage: () => drawHeader(w === EXTRA_WEEK_INDEX ? `SEMANA ${w + 1} (CIERRE DEL MES)` : `SEMANA ${w + 1}`),
     });
   }
 
-  doc.save(`Kardex_${community}_${monthName}_${selectedYear}.pdf`);
+  return doc;
+}
+
+export const kardexPdfFileName = (community: string, month: number, year: number) =>
+  `Kardex_${community}_${MONTH_NAMES[month]}_${year}.pdf`;
+
+export async function exportKardexToPDF(params: KardexPdfParams) {
+  const doc = await buildKardexPdf(params);
+  doc.save(kardexPdfFileName(params.community, params.selectedMonth, params.selectedYear));
 }

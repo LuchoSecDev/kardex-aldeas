@@ -1,4 +1,5 @@
-import { computeCascade, finalBalanceOfMonth } from "@/lib/balanceEngine";
+import { TOTAL_DAYS, computeCascade, finalBalanceOfMonth, padTo } from "@/lib/balanceEngine";
+import { WEEKS_MAX } from "@/lib/calendar";
 import type { AjusteRowData, KardexDataSource, KardexRecordRow } from "@/lib/kardexDataSource";
 import { Product } from "@/types/kardex";
 
@@ -38,8 +39,9 @@ export function buildMonthState(
 
   products.forEach((p) => {
     const row = monthRows.find((r) => r.product_id === p.id);
-    const productExits = row ? row.exits : Array(35).fill(0);
-    const productEntries = row ? row.entries : [0, 0, 0, 0, 0];
+    // Siempre 42 salidas y 6 entradas: las filas guardadas con 5 semanas se rellenan con ceros.
+    const productExits = padTo(row?.exits, TOTAL_DAYS);
+    const productEntries = padTo(row?.entries, WEEKS_MAX);
     const base = inheritedBase[p.id] ?? 0;
     const overrides = ajustesByProduct[p.id] || {};
 

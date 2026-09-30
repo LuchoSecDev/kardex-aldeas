@@ -10,6 +10,7 @@ import AjusteModal from "@/components/AjusteModal";
 import HistorialModal from "@/components/HistorialModal";
 import ErrorToast from "@/components/ErrorToast";
 import { useCalendar } from "@/hooks/useCalendar";
+import { DAYS_PER_WEEK, isExtraWeek, weekCountOf } from "@/lib/calendar";
 import { useErrorAlert } from "@/hooks/useErrorAlert";
 import { useKardexData } from "@/hooks/useKardexData";
 import { useProducts } from "@/hooks/useProducts";
@@ -45,11 +46,15 @@ export default function KardexDashboard({
   initialYear?: number;
   initialMonth?: number;
 }) {
-  const [currentWeek, setCurrentWeek] = useState(initialWeek ?? 1);
+  // La semana elegida; si se cambia a un mes con menos semanas (p. ej. de la semana 6 de marzo a
+  // abril), se usa la última que tenga ese mes.
+  const [weekChoice, setCurrentWeek] = useState(initialWeek ?? 1);
   const [activeCategory, setActiveCategory] = useState("TODAS");
   const [selectedMonth, setSelectedMonth] = useState(initialMonth ?? new Date().getMonth()); // 0-indexado
   const [selectedYear, setSelectedYear] = useState(initialYear ?? new Date().getFullYear());
 
+  const weekCount = weekCountOf(selectedYear, selectedMonth); // 5, o 6 con semana de cierre
+  const currentWeek = Math.min(weekChoice, weekCount);
   const { calendarWeeks, currentWeekDates } = useCalendar(selectedYear, selectedMonth, currentWeek);
   const { errorToast, scheduleErrorCheck } = useErrorAlert();
   const { products, isLoadingProducts } = useProducts();
@@ -72,7 +77,7 @@ export default function KardexDashboard({
 
   // Envío de semana a la nutricionista (solo en el modo de la comunidad).
   const weekSubmissions = useWeekSubmissions(selectedYear, selectedMonth, saveStatus, !readOnly);
-  const weekStates = [0, 1, 2, 3, 4].map((i) => getWeekState(weekSubmissions.submissions.find((s) => s.week_index === i)));
+  const weekStates = Array.from({ length: weekCount }, (_, i) => getWeekState(weekSubmissions.submissions.find((s) => s.week_index === i)));
 
   // Bloqueado para editar: modo solo lectura, o la carga de datos falló (lo
   // que se vería en pantalla no serían los datos reales).
@@ -98,14 +103,14 @@ export default function KardexDashboard({
     const numValue = value === "" ? 0 : parseFloat(value);
     if (isNaN(numValue) || numValue < 0) return;
 
-    const absoluteDayIndex = ((currentWeek - 1) * 7) + dayIndex;
+    const absoluteDayIndex = ((currentWeek - 1) * DAYS_PER_WEEK) + dayIndex;
     const newProductExits = [...(exits[productId] || [])];
     newProductExits[absoluteDayIndex] = numValue;
 
     const newProductPrev = updateLocalState(productId, newProductExits, entries[productId] || []);
 
     const weekIndex = currentWeek - 1;
-    const weekExits = sumRange(newProductExits, weekIndex * 7, 7);
+    const weekExits = sumRange(newProductExits, weekIndex * DAYS_PER_WEEK, DAYS_PER_WEEK);
     const weekBalance = (newProductPrev[weekIndex] ?? 0) + ((entries[productId] || [])[weekIndex] ?? 0) - weekExits;
     scheduleErrorCheck(productId, products.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
 
@@ -123,7 +128,7 @@ export default function KardexDashboard({
     const newProductPrev = updateLocalState(productId, exits[productId] || [], newProductEntries);
 
     const weekIndex = currentWeek - 1;
-    const weekExits = sumRange(exits[productId] || [], weekIndex * 7, 7);
+    const weekExits = sumRange(exits[productId] || [], weekIndex * DAYS_PER_WEEK, DAYS_PER_WEEK);
     const weekBalance = (newProductPrev[weekIndex] ?? 0) + (newProductEntries[weekIndex] ?? 0) - weekExits;
     scheduleErrorCheck(productId, products.find(p => p.id === productId)?.name || productId, weekIndex, weekBalance);
 
@@ -298,6 +303,7 @@ export default function KardexDashboard({
       <KardexNavigation
         currentWeek={currentWeek}
         onWeekChange={setCurrentWeek}
+        weekCount={weekCount}
         categoryOptions={categoryOptions}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
@@ -319,6 +325,7 @@ export default function KardexDashboard({
         isLoading={isLoading || isLoadingProducts}
         currentWeek={currentWeek}
         currentWeekDates={currentWeekDates}
+        isClosingWeek={isExtraWeek(currentWeek - 1)}
         filteredProducts={filteredProducts}
         exits={exits}
         entries={entries}

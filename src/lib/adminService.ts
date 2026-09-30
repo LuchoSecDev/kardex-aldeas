@@ -41,7 +41,8 @@ export type CommunityOverview = {
   has_pin: boolean;
   last_update: string | null;
   products_count: number;
-  // weeks_active[i]: la semana i (0..4) tiene alguna entrada o salida.
+  // weeks_active[i]: la semana i (0..5) tiene alguna entrada o salida (la 5 es la de cierre; la
+  // pantalla solo la muestra en los meses que la tienen).
   weeks_active: boolean[];
 };
 

@@ -547,3 +547,17 @@
   margin-left: 0.3rem;
   font-size: 0.85em;
 }
+
+/* Semana 6 de cierre (planes/004): aviso bajo el título y marca en el botón de la semana */
+.kardex-closing-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.kardex-week-closing {
+  margin-left: 0.25rem;
+  font-size: 0.8em;
+  font-weight: 400;
+}

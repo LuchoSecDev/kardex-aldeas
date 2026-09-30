@@ -2,7 +2,7 @@
 
 // Lo que la comunidad ve de una semana que ya envió.
 export type WeekSubmission = {
-  week_index: number; // 0..4
+  week_index: number; // 0..5 (la 5 es la semana 6, de cierre del mes)
   submitted_at: string;
   submit_count: number;
   reviewed: boolean;

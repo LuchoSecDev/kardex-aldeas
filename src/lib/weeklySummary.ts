@@ -79,7 +79,7 @@ export function weekRangeLabel(year: number, month: number, weekIndex: number): 
   return days.length === 1 ? `${days[0]} de ${monthName}` : `${days[0]} al ${days[days.length - 1]} de ${monthName}`;
 }
 
-// La semana (0..4) en la que cae hoy, si el mes visible es el actual; si no, la
+// La semana (0..5) en la que cae hoy, si el mes visible es el actual; si no, la
 // primera. Es solo el valor inicial del selector.
 export function defaultWeekIndex(year: number, month: number, today: Date = new Date()): number {
   if (today.getFullYear() !== year || today.getMonth() !== month) return 0;

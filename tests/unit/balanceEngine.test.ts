@@ -9,7 +9,7 @@ import {
 
 // 35 días (5 semanas x 7) con las salidas indicadas por posición.
 const exitsWith = (byDay: Record<number, number>) => {
-  const arr = Array(35).fill(0);
+  const arr = Array(42).fill(0);
   Object.entries(byDay).forEach(([day, value]) => (arr[Number(day)] = value));
   return arr;
 };
@@ -33,12 +33,12 @@ describe("computeCascade (saldo anterior de cada semana)", () => {
   it("encadena: saldo previo + entradas - salidas de la semana anterior", () => {
     // Semana 1: entra 5 y salen 1 + 2 => la semana 2 arranca en 10 + 5 - 3 = 12
     const result = computeCascade(10, {}, [5, 0, 0, 0, 0], exitsWith({ 0: 1, 1: 2 }));
-    expect(result).toEqual([10, 12, 12, 12, 12]);
+    expect(result).toEqual([10, 12, 12, 12, 12, 12]);
   });
 
   it("maneja decimales (medias unidades)", () => {
     const result = computeCascade(1, {}, [0, 0, 0, 0, 0], exitsWith({ 1: 0.5, 8: 0.5 }));
-    expect(result).toEqual([1, 0.5, 0, 0, 0]);
+    expect(result).toEqual([1, 0.5, 0, 0, 0, 0]);
   });
 
   it("permite saldos negativos (salidas mayores al stock)", () => {
@@ -60,7 +60,7 @@ describe("computeCascade (saldo anterior de cada semana)", () => {
   });
 
   it("siempre devuelve 5 semanas", () => {
-    expect(computeCascade(0, {}, [], [])).toHaveLength(5);
+    expect(computeCascade(0, {}, [], [])).toHaveLength(6);
   });
 });
 

@@ -1,17 +1,10 @@
+import { TOTAL_DAYS } from "@/lib/balanceEngine";
+import { DAYS_PER_WEEK, EXTRA_WEEK_INDEX } from "@/lib/calendar";
 import { Product } from "@/types/kardex";
 
 const MONTH_NAMES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-export async function exportKardexToExcel({
-  community,
-  selectedMonth,
-  selectedYear,
-  calendarWeeks,
-  products,
-  exits,
-  entries,
-  prevBalances,
-}: {
+export type KardexExportParams = {
   community: string;
   selectedMonth: number;
   selectedYear: number;
@@ -20,15 +13,28 @@ export async function exportKardexToExcel({
   exits: Record<string, number[]>;
   entries: Record<string, number[]>;
   prevBalances: Record<string, number[]>;
-}) {
+};
+
+// Arma el libro de Excel (sin descargarlo): así su contenido se puede probar. Trae una
+// semana más (la 6, de cierre) solo en los meses que la necesitan (planes/004).
+export async function buildKardexWorkbook({
+  community,
+  selectedMonth,
+  calendarWeeks,
+  products,
+  exits,
+  entries,
+  prevBalances,
+}: KardexExportParams) {
   const { default: ExcelJS } = await import("exceljs");
 
   const monthName = MONTH_NAMES[selectedMonth];
   const allWeeks = calendarWeeks;
+  const WEEK_COUNT = allWeeks.length; // 5, o 6 si el mes tiene semana de cierre
 
   const FIXED_COLS = 3;
   const WEEK_BLOCK = 9;
-  const TOTAL_COLS = FIXED_COLS + 5 * WEEK_BLOCK; // 48
+  const TOTAL_COLS = FIXED_COLS + WEEK_COUNT * WEEK_BLOCK; // 48 (57 con la semana 6)
 
   const HEADER_FILL: import("exceljs").Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9E1F2" } };
   const CATEGORY_FILL: import("exceljs").Fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE2F0D9" } };
@@ -66,7 +72,7 @@ export async function exportKardexToExcel({
 
   type CellOpts = { bold?: boolean; fill?: import("exceljs").Fill; align?: "left" | "center"; border?: boolean };
 
-  pages.forEach((page, pageIndex) => {
+  pages.forEach((page) => {
     // Si la hoja no tiene datos, igual la creamos pero vacía
     const sheet = workbook.addWorksheet(page.name, {
       pageSetup: {
@@ -91,7 +97,7 @@ export async function exportKardexToExcel({
 
     // Anchos de columna
     const widths: number[] = [30, 14, 12];
-    for (let w = 0; w < 5; w++) {
+    for (let w = 0; w < WEEK_COUNT; w++) {
       widths.push(13.5); // ENTRADA
       for (let d = 0; d < 7; d++) widths.push(5.2); // L,M,MC,J,V,S,D
       widths.push(11.1); // SALDO
@@ -118,29 +124,29 @@ export async function exportKardexToExcel({
     sheet.getCell(2, 5).value = community;
     sheet.getCell(2, 5).font = boldNoBorder;
 
-    // Fila 3: títulos "SEMANA 1..5"
+    // Fila 3: títulos "SEMANA 1..5" (y "SEMANA 6 (CIERRE)" en los meses que la tienen)
     sheet.getRow(3).height = 22.05;
     for (let c = 1; c <= FIXED_COLS; c++) setCell(3, c, "");
-    for (let w = 0; w < 5; w++) {
+    for (let w = 0; w < WEEK_COUNT; w++) {
       const startCol = FIXED_COLS + 1 + w * WEEK_BLOCK;
       sheet.mergeCells(3, startCol, 3, startCol + WEEK_BLOCK - 1);
-      setCell(3, startCol, `SEMANA ${w + 1}`, { bold: true, fill: HEADER_FILL });
+      setCell(3, startCol, w === EXTRA_WEEK_INDEX ? `SEMANA ${w + 1} (CIERRE)` : `SEMANA ${w + 1}`, { bold: true, fill: HEADER_FILL });
     }
 
     // Fila 4: encabezados de columna
     sheet.getRow(4).height = 22.05;
     const headers = ["ALIMENTO", "UNIDAD DE MEDIDA", "SALDO ANTERIOR"];
-    for (let w = 0; w < 5; w++) headers.push("ENTRADA", "L", "M", "MC", "J", "V", "S", "D", "SALDO");
+    for (let w = 0; w < WEEK_COUNT; w++) headers.push("ENTRADA", "L", "M", "MC", "J", "V", "S", "D", "SALDO");
     headers.forEach((h, i) => setCell(4, i + 1, h, { bold: true, fill: HEADER_FILL }));
 
     // Fila 5: números de fecha bajo cada día
     sheet.getRow(5).height = 22.05;
     for (let c = 1; c <= FIXED_COLS; c++) setCell(5, c, "", { fill: HEADER_FILL });
-    for (let w = 0; w < 5; w++) {
+    for (let w = 0; w < WEEK_COUNT; w++) {
       const startCol = FIXED_COLS + 1 + w * WEEK_BLOCK;
       setCell(5, startCol, "", { fill: HEADER_FILL }); // ENTRADA sin fecha
       const weekDates = allWeeks[w];
-      for (let d = 0; d < 7; d++) {
+      for (let d = 0; d < DAYS_PER_WEEK; d++) {
         setCell(5, startCol + 1 + d, weekDates[d] !== null ? weekDates[d] : "", { fill: HEADER_FILL });
       }
       setCell(5, startCol + 8, "", { fill: HEADER_FILL }); // SALDO sin fecha
@@ -165,13 +171,13 @@ export async function exportKardexToExcel({
       
       const pPrev = prevBalances[product.id] || [];
       const pEntries = entries[product.id] || [];
-      const pExits = exits[product.id] || Array(35).fill(0);
+      const pExits = exits[product.id] || Array(TOTAL_DAYS).fill(0);
 
       setCell(currentRow, 3, pPrev[0] ?? 0); // El saldo anterior del mes (solo se muestra en la primera columna)
 
-      for (let w = 0; w < 5; w++) {
+      for (let w = 0; w < WEEK_COUNT; w++) {
         const startCol = FIXED_COLS + 1 + w * WEEK_BLOCK;
-        const startDay = w * 7;
+        const startDay = w * DAYS_PER_WEEK;
 
         setCell(currentRow, startCol, pEntries[w] || "");
         
@@ -189,12 +195,20 @@ export async function exportKardexToExcel({
     });
   });
 
+  return workbook;
+}
+
+export const kardexExcelFileName = (community: string, month: number, year: number) =>
+  `Kardex_${community}_${MONTH_NAMES[month]}_${year}.xlsx`;
+
+export async function exportKardexToExcel(params: KardexExportParams) {
+  const workbook = await buildKardexWorkbook(params);
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `Kardex_${community}_${monthName}_${selectedYear}.xlsx`;
+  link.download = kardexExcelFileName(params.community, params.selectedMonth, params.selectedYear);
   link.click();
   URL.revokeObjectURL(url);
 }

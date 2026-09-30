@@ -4,6 +4,7 @@ import "@/app/kardex.css";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import CustomSelect from "@/components/CustomSelect";
 import { adminService, type CommunityOverview } from "@/lib/adminService";
+import { EXTRA_WEEK_INDEX, weekCountOf } from "@/lib/calendar";
 import { exportWeeklySummaryToExcel } from "@/lib/exporters/weeklySummaryExporter";
 import { aggregateWeekly, defaultWeekIndex, weekRangeLabel, type WeeklyRow } from "@/lib/weeklySummary";
 import { MONTH_NAMES } from "@/lib/weekStatus";
@@ -40,7 +41,8 @@ export default function AdminWeeklySummary({
   // La semana elegida solo vale para el mes en que se eligió: al cambiar de mes
   // vuelve a la semana por defecto (sin necesidad de un efecto).
   const [choice, setChoice] = useState<WeekChoice | null>(null);
-  const week = choice && choice.key === monthKey ? choice.week : defaultWeekIndex(year, month);
+  const weekCount = weekCountOf(year, month); // 5, o 6 si el mes tiene semana de cierre
+  const week = choice && choice.key === monthKey ? Math.min(choice.week, weekCount - 1) : defaultWeekIndex(year, month);
 
   const [onlySent, setOnlySent] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
@@ -139,7 +141,7 @@ export default function AdminWeeklySummary({
             Semana {week + 1} · {range} · {MONTH_NAMES[month]} {year}
           </h2>
           <div className="kardex-week-list" role="group" aria-label="Semana del resumen">
-            {[0, 1, 2, 3, 4].map((w) => (
+            {Array.from({ length: weekCount }, (_, w) => w).map((w) => (
               <button
                 key={w}
                 type="button"
@@ -147,7 +149,7 @@ export default function AdminWeeklySummary({
                 onClick={() => setChoice({ key: monthKey, week: w })}
                 aria-pressed={week === w}
               >
-                Sem {w + 1}
+                Sem {w + 1}{w === EXTRA_WEEK_INDEX ? " (cierre)" : ""}
               </button>
             ))}
           </div>
