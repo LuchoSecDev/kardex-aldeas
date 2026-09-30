@@ -4,6 +4,7 @@ import "@/app/kardex.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import AdminBell from "@/components/admin/AdminBell";
+import AdminMarketLists from "@/components/admin/AdminMarketLists";
 import AdminWeeklySummary from "@/components/admin/AdminWeeklySummary";
 import CustomSelect from "@/components/CustomSelect";
 import KardexDashboard from "@/components/KardexDashboard";
@@ -14,6 +15,8 @@ import { buildCalendarWeeks } from "@/lib/calendar";
 import { exportKardexToExcel } from "@/lib/exporters/excelExporter";
 import { loadMonthState } from "@/lib/monthState";
 import { formatDateTime, getWeekState, MONTH_NAMES, WEEK_STATE_LABEL } from "@/lib/weekStatus";
+import type { AdminMarketNotification } from "@/types/market";
+import type { MarketFocus } from "@/hooks/useAdminMarket";
 import type { AdminNotification, AdminWeekStatus, WeekState } from "@/types/submissions";
 
 const formatLastUpdate = (iso: string | null) => (iso ? formatDateTime(iso) : "Sin actividad");
@@ -36,8 +39,11 @@ export default function AdminPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  // Sección visible: la tabla de comunidades o el resumen semanal (plan 002).
-  const [view, setView] = useState<"comunidades" | "resumen">("comunidades");
+  // Sección visible: comunidades, resumen semanal (plan 002) o listas de mercado (plan 003).
+  const [view, setView] = useState<"comunidades" | "resumen" | "mercado">("comunidades");
+  // Lista de mercado que se abre desde la campanita. El número cambia en cada clic para que
+  // la pantalla se vuelva a montar aunque sea la misma comunidad y semana.
+  const [marketFocus, setMarketFocus] = useState<{ focus: MarketFocus; n: number } | null>(null);
 
   // Kardex abierto en solo lectura (desde la tabla o desde la campanita).
   const [selected, setSelected] = useState<{ community: string; week?: number } | null>(null);
@@ -95,6 +101,11 @@ export default function AdminPanel({
   // recargaría sin parar.
   const detailDataSource = useMemo(() => (selected ? adminService.dataSourceFor(selected.community) : null), [selected]);
 
+  const openMarketFromNotification = (n: AdminMarketNotification) => {
+    setView("mercado");
+    setMarketFocus((prev) => ({ focus: { community: n.community, weekStart: n.week_start }, n: (prev?.n ?? 0) + 1 }));
+  };
+
   const openFromNotification = (n: AdminNotification) => {
     setYear(n.year);
     setMonth(n.month);
@@ -139,6 +150,9 @@ export default function AdminPanel({
     ? createPortal(
         <AdminBell
           notifications={bell.notifications}
+          marketNotifications={bell.marketNotifications}
+          onOpenMarket={openMarketFromNotification}
+          onReviewMarket={bell.markMarketReviewed}
           loadFailed={bell.loadFailed}
           reviewingId={bell.reviewingId}
           reviewError={bell.reviewError}
@@ -212,8 +226,18 @@ export default function AdminPanel({
         >
           Resumen semanal
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === "mercado"}
+          className={`btn btn-toggle ${view === "mercado" ? "btn-primary" : ""}`}
+          onClick={() => setView("mercado")}
+        >
+          Listas de mercado
+        </button>
       </div>
 
+      {view !== "mercado" && (
       <div className="card admin-toolbar">
         <div className="admin-toolbar-selects">
           <CustomSelect options={monthOptions} value={String(month)} onChange={(v) => setMonth(parseInt(v))} className="kardex-select-month" />
@@ -228,10 +252,18 @@ export default function AdminPanel({
           {isLoading ? "Actualizando…" : "Actualizar"}
         </button>
       </div>
+      )}
 
       {exportError && <p role="alert" className="admin-error admin-panel-error">{exportError}</p>}
 
-      {view === "resumen" ? (
+      {view === "mercado" ? (
+        <AdminMarketLists
+          key={marketFocus ? `focus-${marketFocus.n}` : "base"}
+          focus={marketFocus?.focus ?? null}
+          onChanged={() => void bell.refresh()}
+          externalReloadKey={reloadKey}
+        />
+      ) : view === "resumen" ? (
         <AdminWeeklySummary
           year={year}
           month={month}

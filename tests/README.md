@@ -37,6 +37,10 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 - `unit/marketListDashboard.test.tsx` — la pantalla de la lista de mercado completa (jsdom + Testing Library, con el servicio simulado): guardado con pausa, pestañas, búsqueda, participantes, envío, errores, semanas.
 - `unit/communityShell.test.tsx` — el selector Kardex | Lista: monta la lista al abrirla y conserva el estado de ambas.
 - `db/market_lists.test.sql` — lista de mercado contra Postgres local (ver arriba).
+- `unit/marketAdmin.test.ts` — estados de la lista en el panel (falta / pendiente / por revisar / revisada), resumen, semana por defecto.
+- `unit/adminMarketLists.test.tsx` y `unit/adminBell.test.tsx` — la pestaña «Listas de mercado» de la nutricionista y la campanita con los dos tipos de aviso (jsdom, servicio simulado).
+- `db/market_admin.test.sql` — las funciones `admin_market_*` contra Postgres local (acceso, resumen, detalle, revisar, campanita, tardías).
+- `integration/admin-market.test.ts` — las mismas contra Supabase: la parte de seguridad corre siempre; el resto es opt-in con `ADMIN_LOGIN_PASSWORD` (solo inicia sesión, no cambia la cuenta). **Necesita haber corrido `market_admin_1..3.sql`.**
 - `integration/market-lists.test.ts` — lista de mercado contra Supabase: acceso, catálogo, guardar, enviar, tardías, aislamiento. **Necesita haber corrido los `market_lists_1..5.sql` y los `market_seed_N.sql`.**
 - `unit/balanceEngine.test.ts` — cálculo de saldos (encadenado, ajustes, decimales, negativos), saldo heredado entre meses, semáforo.
 - `integration/sessions.test.ts` — PIN, login/logout, tokens inválidos, funciones internas no expuestas, nombres y PIN inválidos.

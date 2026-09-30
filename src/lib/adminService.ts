@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 import { adminSession } from "./adminSession";
 import type { AjusteRowData, KardexDataSource, KardexRecordRow, RpcResult } from "./kardexDataSource";
 import type { AdminNotification, AdminWeekStatus } from "@/types/submissions";
+import type { AdminMarketList, AdminMarketNotification, AdminMarketOverview } from "@/types/market";
 import type { WeeklyRow } from "./weeklySummary";
 
 export type AdminLoginResult = { token: string; must_change: boolean };
@@ -62,6 +63,27 @@ export const adminService = {
 
   async markReviewed(submissionId: string) {
     return adminRpc<null>("admin_mark_reviewed", { p_id: submissionId });
+  },
+
+  // --- Listas de mercado (plan 003, Fase C) ---
+
+  // Resumen de la semana: una fila por comunidad (enviaron o no).
+  async marketOverview(weekStart: string) {
+    return adminRpc<AdminMarketOverview>("admin_market_overview", { p_week_start: weekStart });
+  },
+
+  // Lo que envió UNA comunidad esa semana (solo los productos pedidos).
+  async marketList(community: string, weekStart: string) {
+    return adminRpc<AdminMarketList>("admin_market_list", { p_community: community, p_week_start: weekStart });
+  },
+
+  async markMarketReviewed(community: string, weekStart: string) {
+    return adminRpc<null>("admin_market_mark_reviewed", { p_community: community, p_week_start: weekStart });
+  },
+
+  // La campanita: listas de mercado enviadas y sin revisar.
+  async listMarketNotifications() {
+    return adminRpc<AdminMarketNotification[]>("admin_market_notifications");
   },
 
   async listCommunities(year: number, month: number) {

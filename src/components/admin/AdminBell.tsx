@@ -1,28 +1,44 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { marketKey } from "@/lib/marketAdmin";
+import { weekName } from "@/lib/marketCalendar";
 import { MONTH_NAMES, timeAgo } from "@/lib/weekStatus";
+import type { AdminMarketNotification } from "@/types/market";
 import type { AdminNotification } from "@/types/submissions";
 
-// Campanita: envíos de semana sin revisar (o modificados después del envío).
+// Campanita: envíos de semana del kardex y listas de mercado sin revisar (o modificados
+// después del envío), del más reciente al más antiguo.
 export default function AdminBell({
   notifications,
+  marketNotifications = [],
   loadFailed,
   reviewingId,
   reviewError,
   onOpen,
   onReview,
+  onOpenMarket,
+  onReviewMarket,
 }: {
   notifications: AdminNotification[];
+  marketNotifications?: AdminMarketNotification[];
   loadFailed: boolean;
   reviewingId: string | null;
   reviewError: string | null;
   onOpen: (notification: AdminNotification) => void;
   onReview: (id: string) => void;
+  onOpenMarket?: (notification: AdminMarketNotification) => void;
+  onReviewMarket?: (notification: AdminMarketNotification) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const count = notifications.length;
+  const count = notifications.length + marketNotifications.length;
+
+  // Las dos clases de aviso en una sola lista, ordenada por fecha de envío (recientes primero).
+  const items = [
+    ...notifications.map((n) => ({ type: "kardex" as const, at: n.submitted_at, n })),
+    ...marketNotifications.map((n) => ({ type: "market" as const, at: n.submitted_at, n })),
+  ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   // Cierra el menú al hacer clic fuera o con Escape.
   useEffect(() => {
@@ -70,25 +86,50 @@ export default function AdminBell({
             <p className="admin-lead admin-bell-empty">No hay envíos pendientes de revisión.</p>
           ) : (
             <ul className="admin-bell-list">
-              {notifications.map((n) => (
-                <li key={n.id} className="admin-bell-item">
-                  <div>
-                    <strong>{n.community}</strong> · Semana {n.week_index + 1} de {MONTH_NAMES[n.month]} {n.year}
-                    <div className={n.modified ? "admin-bell-sub admin-bell-sub--warn" : "admin-bell-sub"}>
-                      {n.modified ? "⚠ Modificada tras el envío" : "Enviada"}
-                      {n.submit_count > 1 ? " (reenviada)" : ""} · {timeAgo(n.submitted_at)}
+              {items.map((item) => {
+                if (item.type === "market") {
+                  const m = item.n;
+                  return (
+                    <li key={marketKey(m)} className="admin-bell-item">
+                      <div>
+                        <strong>{m.community}</strong> · Lista de mercado · {weekName(m.week_start)}
+                        <div className="admin-bell-sub">
+                          {m.late ? "Enviada tarde" : "Enviada"}
+                          {m.submit_count > 1 ? " (reenviada)" : ""} · {timeAgo(m.submitted_at)}
+                        </div>
+                      </div>
+                      <div className="admin-row-actions">
+                        <button type="button" className="btn btn-primary" onClick={() => { setIsOpen(false); onOpenMarket?.(m); }}>
+                          Ver lista
+                        </button>
+                        <button type="button" className="btn btn-outline" onClick={() => onReviewMarket?.(m)} disabled={reviewingId !== null}>
+                          {reviewingId === marketKey(m) ? "Marcando…" : "Marcar revisada"}
+                        </button>
+                      </div>
+                    </li>
+                  );
+                }
+                const n = item.n;
+                return (
+                  <li key={n.id} className="admin-bell-item">
+                    <div>
+                      <strong>{n.community}</strong> · Semana {n.week_index + 1} de {MONTH_NAMES[n.month]} {n.year}
+                      <div className={n.modified ? "admin-bell-sub admin-bell-sub--warn" : "admin-bell-sub"}>
+                        {n.modified ? "⚠ Modificada tras el envío" : "Enviada"}
+                        {n.submit_count > 1 ? " (reenviada)" : ""} · {timeAgo(n.submitted_at)}
+                      </div>
                     </div>
-                  </div>
-                  <div className="admin-row-actions">
-                    <button type="button" className="btn btn-primary" onClick={() => { setIsOpen(false); onOpen(n); }}>
-                      Ver kardex
-                    </button>
-                    <button type="button" className="btn btn-outline" onClick={() => onReview(n.id)} disabled={reviewingId !== null}>
-                      {reviewingId === n.id ? "Marcando…" : "Marcar revisada"}
-                    </button>
-                  </div>
-                </li>
-              ))}
+                    <div className="admin-row-actions">
+                      <button type="button" className="btn btn-primary" onClick={() => { setIsOpen(false); onOpen(n); }}>
+                        Ver kardex
+                      </button>
+                      <button type="button" className="btn btn-outline" onClick={() => onReview(n.id)} disabled={reviewingId !== null}>
+                        {reviewingId === n.id ? "Marcando…" : "Marcar revisada"}
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

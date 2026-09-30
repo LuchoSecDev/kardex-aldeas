@@ -45,6 +45,18 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Editar después de enviar muestra «⚠ … cambiaste algo después» y el botón pasa a «Volver a enviar la lista».
 - [ ] En un teléfono real (360 px): la página no se desliza hacia los lados, las 4 pestañas caben en 2 columnas y el teclado de las cantidades es numérico con coma.
 
+## Listas de mercado (panel de la nutricionista)
+- [ ] La pestaña **Listas de mercado** abre la semana de las listas más recientes (desde el viernes 5 p. m. hasta el martes en la tarde; luego, la del próximo pedido) y muestra su plazo.
+- [ ] Los botones ← → cambian de semana; «Ir a la semana más reciente» vuelve.
+- [ ] La línea de arriba dice cuántas enviaron, cuántas por revisar, cuántas tarde y **cuántas faltan (plazo vencido)**; antes del plazo no hay «faltan», solo «aún con tiempo».
+- [ ] Cada comunidad muestra su estado (Aún sin enviar / Falta por enviar / Por revisar / Revisada), «Tarde», «Llenando» y «cambios sin enviar» cuando corresponde.
+- [ ] Los números por tipo son los productos **enviados** (no el borrador); «—» si ese viernes no tocaba el tipo.
+- [ ] «Ver lista» (solo con envío) muestra solo lo pedido por tipo, con unidad y cantidad, **sin precios**; avisa si la comunidad cambió algo después de enviar.
+- [ ] «Marcar revisada» la pasa a Revisada, baja el contador de la campanita y actualiza el resumen.
+- [ ] Si la comunidad reenvía **con cambios**, vuelve a «Por revisar» y a la campanita; si reenvía **sin cambios**, sigue revisada.
+- [ ] La campanita mezcla semanas del kardex y listas de mercado («Lista de mercado · Semana N de mes»); «Ver lista» abre esa comunidad y semana.
+- [ ] En un teléfono real: la tabla se desliza dentro de su marco y el detalle se lee bien.
+
 ## Panel de la nutricionista (`/admin`)
 - [ ] Desde el inicio, el enlace pequeño "Acceso administrativo" abre el login; "← Volver al inicio" regresa.
 - [ ] Contraseña temporal → obliga a crear una propia → muestra el código de recuperación una sola vez.

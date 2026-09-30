@@ -25,7 +25,8 @@ run tests/db/bootstrap.sql
 for f in communities community_pin pin_rate_limit products ajustes session_access \
          lock_down_direct_access lock_down_kardex_records_delete \
          admin_auth admin_read week_submissions admin_weekly_summary \
-         market_lists_1 market_lists_2 market_lists_3 market_lists_4 market_lists_5; do
+         market_lists_1 market_lists_2 market_lists_3 market_lists_4 market_lists_5 \
+         market_admin_1 market_admin_2 market_admin_3; do
   run "supabase/$f.sql"
 done
 
