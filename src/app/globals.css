@@ -60,8 +60,14 @@ html, body {
   transition: all 0.3s ease;
   /* Evita que una fila sin flex-wrap "empuje" toda la página hacia los
      lados en pantallas angostas. El scroll horizontal intencional (la
-     tabla del kardex) vive en su propio contenedor con overflow-x: auto. */
+     tabla del kardex) vive en su propio contenedor con overflow-x: auto.
+     `clip` recorta igual que `hidden` pero NO convierte a html/body en
+     contenedores de scroll; con `hidden`, los encabezados `position: sticky`
+     se ataban a body (que nunca se desplaza) y no se quedaban pegados al
+     hacer scroll de la página. `hidden` queda como respaldo para navegadores
+     que no soportan `clip`. */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 * {

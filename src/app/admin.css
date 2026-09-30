@@ -155,6 +155,22 @@
   border-collapse: collapse;
 }
 
+/* Pantallas anchas: la tabla cabe a lo ancho, así que usa el scroll de la
+   PÁGINA y el encabezado se queda pegado arriba (mismo criterio que la tabla
+   del kardex, ver kardex.css). En pantallas angostas conserva el marco con
+   scroll horizontal. 860px = ancho mínimo de la tabla + márgenes. */
+@media (min-width: 860px) {
+  .admin-table-scroll {
+    overflow: visible;
+  }
+
+  .admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+}
+
 .admin-table th,
 .admin-table td {
   padding: 0.75rem 0.6rem;

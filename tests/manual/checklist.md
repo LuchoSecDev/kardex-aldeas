@@ -50,7 +50,9 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 
 ## Diseño
 - [ ] Móvil 360 px: sin scroll horizontal de la página; la tabla se desplaza dentro de su marco; el aviso de error cabe.
-- [ ] Escritorio: encabezado de la tabla fijo al desplazar.
+- [ ] Escritorio y portátil (≥ 1080 px de ancho): la tabla del kardex usa el scroll de la **página** y ocupa todo el alto de la pantalla; el encabezado de la tabla queda fijo arriba al desplazar. Probar también con un portátil de 14" (≈ 1280×620 útiles).
+- [ ] Ventana angosta o celular (< 1080 px): la tabla conserva su marco con scroll propio y el encabezado sigue fijo dentro de él.
+- [ ] Panel de la nutricionista (≥ 860 px): el encabezado de la tabla de comunidades queda fijo al desplazar la página.
 - [ ] Alto contraste y tamaños de letra A / A+ / A++ se ven bien.
 
 ## Después de desplegar

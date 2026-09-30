@@ -198,6 +198,29 @@
   max-height: 70dvh;
 }
 
+/* Pantallas anchas (portátiles, escritorio): la tabla entra completa a lo
+   ancho, así que NO hace falta scroll horizontal y, por tanto, tampoco el
+   marco con scroll propio (que además dejaba la tabla en solo el 70% de la
+   altura: en un portátil de 14" quedaba corta y con contenido inútil arriba).
+   Aquí la tabla usa el scroll de la PÁGINA y ocupa todo el alto disponible; el
+   encabezado se pega arriba igual, porque `overflow: visible` en el marco (y
+   `overflow: clip` en la tarjeta) dejan de crear contenedores de scroll y
+   `position: sticky` se ata a la ventana.
+   `clip` (y no `visible`) en la tarjeta conserva las esquinas redondeadas sin
+   ser un contenedor de scroll; si un navegador viejo no lo soporta, ignora la
+   línea y queda `hidden`: la tabla se ve completa, solo sin encabezado pegado.
+   1080px = ancho mínimo de la tabla (1000px) + márgenes + barra de scroll. */
+@media (min-width: 1080px) {
+  .kardex-table-card {
+    overflow: clip;
+  }
+
+  .kardex-table-scroll {
+    overflow: visible;
+    max-height: none;
+  }
+}
+
 .kardex-table {
   min-width: 1000px;
   width: 100%;
