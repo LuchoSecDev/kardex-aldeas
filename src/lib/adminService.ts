@@ -3,7 +3,13 @@ import { supabase } from "./supabase";
 import { adminSession } from "./adminSession";
 import type { AjusteRowData, KardexDataSource, KardexRecordRow, RpcResult } from "./kardexDataSource";
 import type { AdminNotification, AdminWeekStatus } from "@/types/submissions";
-import type { AdminMarketList, AdminMarketNotification, AdminMarketOverview } from "@/types/market";
+import type {
+  AdminMarketConsolidatedRow,
+  AdminMarketList,
+  AdminMarketNotification,
+  AdminMarketOverview,
+  MarketItem,
+} from "@/types/market";
 import type { WeeklyRow } from "./weeklySummary";
 
 export type AdminLoginResult = { token: string; must_change: boolean };
@@ -79,6 +85,16 @@ export const adminService = {
 
   async markMarketReviewed(community: string, weekStart: string) {
     return adminRpc<null>("admin_market_mark_reviewed", { p_community: community, p_week_start: weekStart });
+  },
+
+  // Lo enviado por todas las comunidades esa semana, una fila por (comunidad, producto).
+  async marketConsolidated(weekStart: string) {
+    return adminRpc<AdminMarketConsolidatedRow[]>("admin_market_consolidated", { p_week_start: weekStart });
+  },
+
+  // Catálogo completo de la lista (sin precios), para el Excel con el formato actual.
+  async marketCatalog() {
+    return adminRpc<MarketItem[]>("admin_market_catalog");
   },
 
   // La campanita: listas de mercado enviadas y sin revisar.

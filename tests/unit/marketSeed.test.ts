@@ -94,9 +94,9 @@ describe("scripts SQL de la lista de mercado: cabe en el SQL Editor de Supabase"
   // cortado puede ejecutarse a medias sin avisar. Por eso van en archivos chicos.
   const files = readdirSync(SEED_DIR).filter((f) => /^market_(lists|seed|admin)_\d+\.sql$/.test(f));
 
-  it("hay 5 archivos de estructura, 3 de la nutricionista y 7 de siembra", () => {
+  it("hay 5 archivos de estructura, 4 de la nutricionista y 7 de siembra", () => {
     expect(files.filter((f) => f.startsWith("market_lists_"))).toHaveLength(5);
-    expect(files.filter((f) => f.startsWith("market_admin_"))).toHaveLength(3);
+    expect(files.filter((f) => f.startsWith("market_admin_"))).toHaveLength(4);
     expect(files.filter((f) => f.startsWith("market_seed_"))).toHaveLength(7);
   });
 

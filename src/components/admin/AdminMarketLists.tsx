@@ -2,9 +2,11 @@
 
 import "@/app/kardex.css";
 import "@/app/market.css";
+import { useState } from "react";
+import AdminMarketConsolidated from "@/components/admin/AdminMarketConsolidated";
 import { useNow } from "@/hooks/useNow";
 import { useAdminMarket, type MarketFocus } from "@/hooks/useAdminMarket";
-import { MARKET_KINDS, MARKET_KIND_LABEL, weekLabel } from "@/lib/marketCalendar";
+import { MARKET_KINDS, MARKET_KIND_LABEL, weekLabel, type MarketKind } from "@/lib/marketCalendar";
 import {
   ADMIN_STATE_LABEL,
   adminListState,
@@ -12,7 +14,10 @@ import {
   punctualityLabel,
   summarizeOverview,
 } from "@/lib/marketAdmin";
+import { adminService } from "@/lib/adminService";
+import { exportCommunityListToExcel } from "@/lib/exporters/marketExporter";
 import { formatDeadline, resolveKindsDue } from "@/lib/marketList";
+import type { MarketItem, MarketQuantities } from "@/types/market";
 import { formatDateTime } from "@/lib/weekStatus";
 
 const fmt = (n: number) => n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
@@ -31,6 +36,40 @@ export default function AdminMarketLists({
 }) {
   const market = useAdminMarket(focus, onChanged, externalReloadKey);
   const now = useNow();
+  // "Por comunidad" (la tabla de la semana) o "Consolidado" (suma entre comunidades).
+  const [section, setSection] = useState<"comunidades" | "consolidado">("comunidades");
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  // Excel de UNA comunidad con el formato que se usaba: todos los productos, lo pedido y 0 en el resto.
+  const exportCommunity = async (list: NonNullable<typeof market.detail>, community: string) => {
+    setExporting(true);
+    setExportError(null);
+    try {
+      const { data: catalog, error } = await adminService.marketCatalog();
+      if (error || !catalog) throw error ?? new Error("Sin catálogo");
+      const quantities: Record<MarketKind, MarketQuantities> = { fruver: {}, carnes: {}, abarrotes: {}, aseo: {} };
+      const extraItems: Record<MarketKind, MarketItem[]> = { fruver: [], carnes: [], abarrotes: [], aseo: [] };
+      const known = new Set(catalog.map((i) => i.id));
+      for (const l of list.lists) {
+        for (const item of l.items) {
+          quantities[l.kind][item.id] = item.quantity;
+          // Un producto pedido que ya no está en el catálogo activo no se pierde: se agrega al final.
+          if (!known.has(item.id)) {
+            extraItems[l.kind].push({ id: item.id, kind: l.kind, name: item.name, unit: item.unit, is_event: item.is_event, sort_order: 100000 });
+          }
+        }
+      }
+      await exportCommunityListToExcel({
+        community, weekStart: list.week_start, participants: list.participants, catalog, quantities, extraItems,
+      });
+    } catch (e) {
+      console.error("Error exportando la lista de la comunidad:", e);
+      setExportError(`No se pudo generar el Excel de ${community}. Revisa tu conexión e inténtalo de nuevo.`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const overview = market.overview;
   const friday = overview?.friday ?? null;
@@ -120,6 +159,15 @@ export default function AdminMarketLists({
 
                 <div className="admin-market-review">
                   {market.reviewError && <p role="alert" className="admin-error">{market.reviewError}</p>}
+                  {exportError && <p role="alert" className="admin-error">{exportError}</p>}
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => exportCommunity(d, market.openCommunity as string)}
+                    disabled={exporting}
+                  >
+                    {exporting ? "Generando…" : "Descargar Excel (formato actual)"}
+                  </button>
                   <button
                     type="button"
                     className="btn btn-primary"
@@ -176,6 +224,20 @@ export default function AdminMarketLists({
         </p>
       )}
 
+      <div className="admin-tabs" role="tablist" aria-label="Vista de las listas">
+        <button type="button" role="tab" aria-selected={section === "comunidades"} className={`btn btn-toggle ${section === "comunidades" ? "btn-primary" : ""}`} onClick={() => setSection("comunidades")}>
+          Por comunidad
+        </button>
+        <button type="button" role="tab" aria-selected={section === "consolidado"} className={`btn btn-toggle ${section === "consolidado" ? "btn-primary" : ""}`} onClick={() => setSection("consolidado")}>
+          Consolidado
+        </button>
+      </div>
+
+      {section === "consolidado" && overview && !market.isLoading ? (
+        <AdminMarketConsolidated weekStart={market.weekStart} overview={overview} now={now} reloadKey={market.reloadCount} />
+      ) : section === "consolidado" ? (
+        <div className="card"><p className="admin-lead admin-panel-empty">Cargando las listas…</p></div>
+      ) : (
       <div className="card admin-table-card">
         {market.isLoading ? (
           <p className="admin-lead admin-panel-empty">Cargando las listas…</p>
@@ -253,6 +315,7 @@ export default function AdminMarketLists({
           </>
         )}
       </div>
+      )}
     </div>
   );
 }

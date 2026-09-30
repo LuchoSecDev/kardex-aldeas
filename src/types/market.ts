@@ -112,3 +112,15 @@ export type AdminMarketNotification = {
 
 // falta: venció el plazo y no envió · pendiente: aún hay tiempo · enviada: por revisar · revisada
 export type AdminListState = "falta" | "pendiente" | "enviada" | "revisada";
+
+// Una fila del consolidado: lo ENVIADO de un producto por una comunidad (sin precios).
+export type AdminMarketConsolidatedRow = {
+  community: string;
+  kind: MarketKind;
+  item_id: string;
+  name: string;
+  unit: string;
+  is_event: boolean;
+  sort_order: number;
+  quantity: number;
+};

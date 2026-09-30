@@ -56,6 +56,9 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Si la comunidad reenvía **con cambios**, vuelve a «Por revisar» y a la campanita; si reenvía **sin cambios**, sigue revisada.
 - [ ] La campanita mezcla semanas del kardex y listas de mercado («Lista de mercado · Semana N de mes»); «Ver lista» abre esa comunidad y semana.
 - [ ] En un teléfono real: la tabla se desliza dentro de su marco y el detalle se lee bien.
+- [ ] **Consolidado:** suma lo **enviado** por producto entre comunidades (comparar 2 o 3 a mano); dice qué comunidades entran, cuáles faltan y cuáles tienen cambios sin enviar; «Ver (n)» muestra el detalle por comunidad; el buscador funciona.
+- [ ] «Descargar Excel consolidado» baja `Lista_de_mercado_consolidado_SemanaN_Mes_Año.xlsx` con hoja de Resumen y una hoja por tipo (total + una columna por comunidad); **sin precios**.
+- [ ] En el detalle de una comunidad, «Descargar Excel (formato actual)» baja un libro con las hojas CARNES, FRUVER, ABARROTES y ASEO: encabezado (casa, semana, mes, participantes), **todos** los productos y la cantidad pedida (0 en los demás). Compararlo con el Excel que mandaban por correo.
 
 ## Panel de la nutricionista (`/admin`)
 - [ ] Desde el inicio, el enlace pequeño "Acceso administrativo" abre el login; "← Volver al inicio" regresa.

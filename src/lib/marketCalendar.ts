@@ -127,13 +127,21 @@ export function upcomingOrderFriday(now: Date, holidays?: ReadonlySet<string>): 
 // Rótulos
 // ---------------------------------------------------------------------------
 
-// "Semana 1 de octubre": la semana se numera por el jueves (día de entrega de
+// Número de semana y mes de la semana de entrega: se numera por el jueves (día de entrega de
 // fruver), así que la del lunes 28 sep al domingo 4 oct es la semana 1 de octubre.
-export function weekName(weekStart: string): string {
+export function weekParts(weekStart: string): { n: number; monthIndex: number; year: number } {
   const thursday = addDays(weekStart, 3);
-  const month = Number(thursday.slice(5, 7)) - 1;
-  const n = Math.ceil(Number(thursday.slice(8, 10)) / 7);
-  return `Semana ${n} de ${MONTH_LONG[month]}`;
+  return {
+    n: Math.ceil(Number(thursday.slice(8, 10)) / 7),
+    monthIndex: Number(thursday.slice(5, 7)) - 1,
+    year: Number(thursday.slice(0, 4)),
+  };
+}
+
+// "Semana 1 de octubre"
+export function weekName(weekStart: string): string {
+  const { n, monthIndex } = weekParts(weekStart);
+  return `Semana ${n} de ${MONTH_LONG[monthIndex]}`;
 }
 
 const shortDate = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTH_SHORT[Number(iso.slice(5, 7)) - 1]}`;

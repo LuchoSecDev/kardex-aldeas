@@ -136,7 +136,7 @@ Funciones:
 - [x] **Fase C — Panel de la nutricionista.** *(Programada y probada el 2026-09-30: `supabase/market_admin_1..3.sql`, `useAdminMarket`, `AdminMarketLists`, campanita con dos clases de aviso, `lib/marketAdmin.ts`. Verificada con pruebas SQL en Postgres local (con 5 mutaciones que fallan como deben), 36 pruebas unitarias/de pantalla y en navegador real contra un Supabase simulado (escritorio y 360 px). **Pendiente:** correr los 3 SQL en Supabase, `npm run test:integration` con `ADMIN_LOGIN_PASSWORD`, y probarla con la cuenta real.)* Pestaña nueva, detalle, a tiempo/tarde/falta, marcar revisada,
   campanita. *Aceptación:* lo enviado aparece con lo pedido; reenviar vuelve a sumar a la campanita; las tardías
   se distinguen.
-- [ ] **Fase D — Consolidado y Excel.** Suma por ítem entre comunidades, Excel consolidado y Excel por comunidad en el
+- [x] **Fase D — Consolidado y Excel.** *(Programada y probada el 2026-09-30: `supabase/market_admin_4.sql` (`admin_market_consolidated`, `admin_market_catalog`), `lib/marketConsolidated.ts`, `lib/exporters/marketExporter.ts`, `AdminMarketConsolidated`, secciones «Por comunidad | Consolidado» y botón de Excel en el detalle. Verificada con pruebas SQL locales (con mutaciones), 53 pruebas unitarias/de pantalla y en navegador real: se descargaron y abrieron los dos Excel. **Pendiente:** correr `market_admin_4.sql` en Supabase y `npm run test:integration`.)* Suma por ítem entre comunidades, Excel consolidado y Excel por comunidad en el
   formato actual (4 hojas, las que no tocan en 0, sin valores).
 - [ ] **Futuro:** importar el Excel; mostrar el saldo del kardex junto a cada ítem (requiere vincular catálogos);
   precios y presupuesto si la organización los pide (plan aparte).

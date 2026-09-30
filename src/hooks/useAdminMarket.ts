@@ -86,6 +86,8 @@ export function useAdminMarket(focus: MarketFocus | null, onChanged?: () => void
     overview: current?.data ?? null,
     isLoading: current === null,
     loadFailed: Boolean(current?.failed),
+    // Cambia cada vez que se recargan los datos (Actualizar, revisar, campanita).
+    reloadCount: reloadKey + externalReloadKey,
     reload: () => setReloadKey((k) => k + 1),
     openCommunity,
     openDetail: (community: string) => {

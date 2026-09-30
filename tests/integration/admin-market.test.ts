@@ -22,6 +22,8 @@ describe("listas de mercado (nutricionista): acceso", () => {
     supabase.rpc("admin_market_list", { p_token: token, p_community: community, p_week_start: WEEK }),
     supabase.rpc("admin_market_mark_reviewed", { p_token: token, p_community: community, p_week_start: WEEK }),
     supabase.rpc("admin_market_notifications", { p_token: token }),
+    supabase.rpc("admin_market_consolidated", { p_token: token, p_week_start: WEEK }),
+    supabase.rpc("admin_market_catalog", { p_token: token }),
   ];
 
   it("sin token o con token falso, todas responden SESION_ADMIN_INVALIDA", async () => {
@@ -132,5 +134,27 @@ describe.skipIf(!password)("listas de mercado (nutricionista): con sesión de ad
   it("rechaza semanas que no son lunes", async () => {
     const { error } = await supabase.rpc("admin_market_overview", { p_token: adminToken, p_week_start: "2099-03-03" });
     expect(error?.message).toContain("Semana inválida");
+    const consolidated = await supabase.rpc("admin_market_consolidated", { p_token: adminToken, p_week_start: "2099-03-03" });
+    expect(consolidated.error?.message).toContain("Semana inválida");
+  });
+
+  it("el consolidado trae una fila por (comunidad, producto) de lo ENVIADO, nunca el borrador", async () => {
+    const { data, error } = await supabase.rpc("admin_market_consolidated", { p_token: adminToken, p_week_start: WEEK });
+    expect(error).toBeNull();
+    const mine = (data as { community: string; item_id: string; quantity: number; name: string; unit: string }[]).filter(
+      (r) => r.community === a.name || r.community === b.name
+    );
+    expect(mine.some((r) => r.community === b.name)).toBe(false); // B solo tiene borrador
+    const acelga = mine.find((r) => r.community === a.name && r.item_id === "mf1");
+    expect(acelga).toMatchObject({ name: "ACELGA", unit: "KG", quantity: 2.5 });
+    expect(mine.find((r) => r.item_id === "mc1")?.quantity).toBe(30); // el último reenvío
+    expect(Object.keys(mine[0]).sort()).toEqual(["community", "is_event", "item_id", "kind", "name", "quantity", "sort_order", "unit"]);
+  });
+
+  it("el catálogo de la nutricionista trae los 285 ítems, sin precios", async () => {
+    const { data, error } = await supabase.rpc("admin_market_catalog", { p_token: adminToken });
+    expect(error).toBeNull();
+    expect(data).toHaveLength(285);
+    expect(Object.keys(data[0]).sort()).toEqual(["id", "is_event", "kind", "name", "sort_order", "unit"]);
   });
 });

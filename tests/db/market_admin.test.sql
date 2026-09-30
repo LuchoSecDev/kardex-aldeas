@@ -194,6 +194,41 @@ begin
   perform tst.ok(not exists (select 1 from admin_market_notifications(v_adm) n where n.week_start = '2026-01-05'), 'un envío de hace más de 120 días ya no va a la campanita');
 end $$;
 
+-- ===========================================================================
+-- Consolidado entre comunidades y catálogo (Fase D)
+-- ===========================================================================
+do $$
+declare
+  v_adm text := current_setting('tst.adm');
+  v_w date := current_setting('tst.w')::date;
+  v_c text := current_setting('tst.tok_c');
+begin
+  perform tst.raises(format('select * from admin_market_consolidated(%L, %L)', 'token-falso', v_w), 'SESION_ADMIN_INVALIDA', 'consolidado con token falso');
+  perform tst.raises(format('select * from admin_market_consolidated(%L, %L)', current_setting('tst.tok_a'), v_w), 'SESION_ADMIN_INVALIDA', 'un token de comunidad no sirve en el consolidado');
+  perform tst.raises(format('select * from admin_market_catalog(%L)', current_setting('tst.tok_a')), 'SESION_ADMIN_INVALIDA', 'un token de comunidad no sirve en el catálogo de admin');
+  perform tst.raises(format('select * from admin_market_catalog(null)'), 'SESION_ADMIN_INVALIDA', 'catálogo sin token');
+  perform tst.raises(format('select * from admin_market_consolidated(%L, %L)', v_adm, '2026-10-06'), 'Semana inválida', 'semana que no es lunes');
+
+  -- C envía fruver con mf1 = 1.5 (A ya envió mf1 = 2.5); B solo tiene borrador.
+  perform market_list_save(v_c, v_w, 'fruver', '{"mf1": 1.5}');
+  perform market_list_submit(v_c, v_w);
+
+  perform tst.ok((select count(*) from admin_market_consolidated(v_adm, v_w) r where r.community = 'ZZZ_TEST_adm_B') = 0, 'el borrador de B no entra al consolidado');
+  -- A edita SIN reenviar: el consolidado sigue mostrando lo enviado (mf3 = 4), no lo editado (9).
+  perform market_list_save(current_setting('tst.tok_a'), v_w, 'fruver', '{"mf3": 9, "mf1": 2.5}');
+  perform tst.ok((select sum(r.quantity) from admin_market_consolidated(v_adm, v_w) r where r.item_id = 'mf3') = 4, 'el consolidado usa lo ENVIADO, no lo editado sin enviar');
+  perform market_list_save(current_setting('tst.tok_a'), v_w, 'fruver', '{"mf3": 4, "mf1": 2.5}');
+  perform tst.ok((select count(*) from admin_market_consolidated(v_adm, v_w) r where r.item_id = 'mf1') = 2, 'mf1 lo pidieron dos comunidades (A y C)');
+  perform tst.ok((select sum(r.quantity) from admin_market_consolidated(v_adm, v_w) r where r.item_id = 'mf1') = 4, '2,5 + 1,5 = 4');
+  perform tst.ok((select array_agg(r.item_id order by r.sort_order) from (select distinct r.item_id, r.sort_order from admin_market_consolidated(v_adm, v_w) r where r.kind = 'fruver') r) = array['mf1', 'mf3'], 'en el orden del catálogo');
+  perform tst.ok((select r.name || '/' || r.unit from admin_market_consolidated(v_adm, v_w) r where r.item_id = 'mf1' limit 1) = 'ACELGA/KG', 'con nombre y unidad');
+  perform tst.ok((select count(*) from admin_market_consolidated(v_adm, '2099-02-02') r) = 0, 'una semana sin envíos da cero filas');
+  perform tst.ok(not exists (select 1 from information_schema.columns where table_name = 'market_items' and column_name ~* 'price|precio|valor'), 'sin precios');
+
+  perform tst.ok((select count(*) from admin_market_catalog(v_adm)) = 285, 'el catálogo de admin trae los 285 ítems');
+  perform tst.ok((select count(*) from admin_market_catalog(v_adm) c where c.kind = 'aseo') = 53, '53 de aseo');
+end $$;
+
 reset role;
 delete from communities where name like 'ZZZ\_TEST\_adm\_%';
 delete from admin_sessions where token_hash = encode(sha256(convert_to('token-admin-prueba', 'UTF8')), 'hex');
