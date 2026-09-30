@@ -59,7 +59,11 @@ export default function Home() {
       setIsSubmittingPin(false);
       if (error) {
         console.error("Error verificando el PIN:", error);
-        setPinError("No se pudo verificar el PIN. Intenta de nuevo.");
+        setPinError(
+          error.message?.includes("PIN_BLOQUEADO")
+            ? "Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo."
+            : "No se pudo verificar el PIN. Intenta de nuevo."
+        );
         return;
       }
       if (!data) {
