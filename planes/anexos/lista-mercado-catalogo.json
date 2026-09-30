@@ -1,0 +1,1743 @@
+{
+ "nota": "Catálogo de las listas de mercado extraído de \"Lista de mercado 26 septiembre 2026 casa Maná.xlsx\". SIN precios (los precios son solo de la nutricionista y no se guardan en el repositorio). Los ids son propuestos y estables.",
+ "kinds": {
+  "carnes": {
+   "sheet": "CARNES",
+   "label": "Carnes",
+   "count": 35,
+   "items": [
+    {
+     "id": "mc1",
+     "name": "CARNE ASAR PORCION",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc2",
+     "name": "CARNE SUDAR PORCION",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc3",
+     "name": "CARNE SUDAR PORCION x60gr",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc4",
+     "name": "COSTILLA RES T*80gr",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc5",
+     "name": "CARNE MOLIDA 90/10",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc6",
+     "name": "CARNE GOULASH",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc7",
+     "name": "CARNE DESMECHAR (POSTA)",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc8",
+     "name": "SOBREBARRIGA PORCIONADA",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc9",
+     "name": "HIGADO PORCIONADO",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc10",
+     "name": "CALLO PICADO",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc11",
+     "name": "BOFE",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc12",
+     "name": "CERDO PULPA PORCIONADO",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc13",
+     "name": "COSTILLA DE CERDO SL",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc14",
+     "name": "MOLIDA DE CERDO",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc15",
+     "name": "CERDO BRAZO JULIANA",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc16",
+     "name": "CERDO BRAZO GOULASH",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc17",
+     "name": "PECHUGA ENTERA",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc18",
+     "name": "FILETE PECHUGA PORCIONADA",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc19",
+     "name": "FILETE PECHUGA PORCIONADA*60gr",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc20",
+     "name": "CORAZONES DE POLLO",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc21",
+     "name": "COLOMBINA POLLO",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc22",
+     "name": "CONTRAMUSLO POLLO",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc23",
+     "name": "FILETE PESCADO",
+     "unit": "Porcion",
+     "isEvent": false
+    },
+    {
+     "id": "mc24",
+     "name": "PESCADO APANADO",
+     "unit": "Bandeja",
+     "isEvent": false
+    },
+    {
+     "id": "mc25",
+     "name": "HUESO RES POROSO",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc26",
+     "name": "PATA DE RES PICADA",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc27",
+     "name": "PEZUÑA",
+     "unit": "Kilo",
+     "isEvent": false
+    },
+    {
+     "id": "mc28",
+     "name": "RECORTE DE CHARCUTERIA (EVENTO)",
+     "unit": "Kilo",
+     "isEvent": true
+    },
+    {
+     "id": "mc29",
+     "name": "HAMBURGUESA 100gr (EVENTO)",
+     "unit": "UNIDAD",
+     "isEvent": true
+    },
+    {
+     "id": "mc30",
+     "name": "JAMON SANDUCHE (EVENTO)",
+     "unit": "Kilo",
+     "isEvent": true
+    },
+    {
+     "id": "mc31",
+     "name": "SALCHICHA PERRO (EVENTO)",
+     "unit": "Kilo",
+     "isEvent": true
+    },
+    {
+     "id": "mc32",
+     "name": "CHORIZO *430gr (EVENTO)",
+     "unit": "Paq",
+     "isEvent": true
+    },
+    {
+     "id": "mc33",
+     "name": "ENVUELTO*5",
+     "unit": "Paq",
+     "isEvent": false
+    },
+    {
+     "id": "mc34",
+     "name": "AREPA OBLEA*5",
+     "unit": "Paq",
+     "isEvent": false
+    },
+    {
+     "id": "mc35",
+     "name": "AREPA DE CHOCLO*5",
+     "unit": "Paq",
+     "isEvent": false
+    }
+   ]
+  },
+  "fruver": {
+   "sheet": "FRUVER",
+   "label": "Fruver y lácteos",
+   "count": 117,
+   "items": [
+    {
+     "id": "mf1",
+     "name": "ACELGA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf2",
+     "name": "AGUACATE JAZZ",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf3",
+     "name": "AGUACATE PAPELILLO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf4",
+     "name": "AJO NACIONAL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf5",
+     "name": "ALBACA",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf6",
+     "name": "APIO",
+     "unit": "MATA",
+     "isEvent": false
+    },
+    {
+     "id": "mf7",
+     "name": "ARANDANOS (evento)",
+     "unit": "KG",
+     "isEvent": true
+    },
+    {
+     "id": "mf8",
+     "name": "AROMÁTICAS",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf9",
+     "name": "ARRACACHA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf10",
+     "name": "ARVERJA VERDE DESGRANADA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf11",
+     "name": "AUYAMA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf12",
+     "name": "BANANO CRIOLLO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf13",
+     "name": "BANANO URABA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf14",
+     "name": "BERENJENA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf15",
+     "name": "BOLSA KILO Y MEDIO",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "mf16",
+     "name": "BROCOLI",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf17",
+     "name": "CALABACÍN",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf18",
+     "name": "CALABAZA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf19",
+     "name": "CEBOLLA CABEZONA BLANCA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf20",
+     "name": "CEBOLLA CABEZONA ROJA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf21",
+     "name": "CEBOLLA LARGA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf22",
+     "name": "CHAMPIÑON",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf23",
+     "name": "CILANTRO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf24",
+     "name": "CIRUELA IMPORTADA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf25",
+     "name": "CIRUELA NACIONAL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf26",
+     "name": "COCO",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "mf27",
+     "name": "COLICERO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf28",
+     "name": "COLIFLOR",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf29",
+     "name": "CREMA LECHE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf30",
+     "name": "CURUBA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf31",
+     "name": "DURAZNO NACIONAL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf32",
+     "name": "ESPINACA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf33",
+     "name": "FEIJOA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf34",
+     "name": "FRESA GRUESA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf35",
+     "name": "FRESA MEDIANA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf36",
+     "name": "GENGIBRE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf37",
+     "name": "GRANADILLA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf38",
+     "name": "GUANABANA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf39",
+     "name": "GUASCAS",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf40",
+     "name": "GUATILA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf41",
+     "name": "GUAYABA PERA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf42",
+     "name": "HABICHUELA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf43",
+     "name": "HIERNABUENA",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf44",
+     "name": "HUEVOS AMARILLOS AA*30",
+     "unit": "CUBETA",
+     "isEvent": false
+    },
+    {
+     "id": "mf45",
+     "name": "KIWI",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf46",
+     "name": "KUMIS *200ML",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "mf47",
+     "name": "KUMIS*1000ML",
+     "unit": "LT",
+     "isEvent": false
+    },
+    {
+     "id": "mf48",
+     "name": "LAUREL Y TOMILLO",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf49",
+     "name": "LECHE DESCREMADA MAXILITRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "mf50",
+     "name": "LECHE DESLACTOSADA MAXILITRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "mf51",
+     "name": "LECHE LARGA VIDA MAXILITRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "mf52",
+     "name": "LECHUGA BATAVIA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf53",
+     "name": "LECHUGA CRESPA VERDE",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "mf54",
+     "name": "LIMÓN TAHITI",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf55",
+     "name": "LIMONCILLO",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf56",
+     "name": "LULO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf57",
+     "name": "MANDARINA ARRAYANA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf58",
+     "name": "MANGO AZUCAR",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf59",
+     "name": "MANGO COMUN",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf60",
+     "name": "MANGO TOMY",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf61",
+     "name": "MANZANA GALA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf62",
+     "name": "MANZANA VERDE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf63",
+     "name": "MARACUYA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf64",
+     "name": "MAZORCA DESGRANADA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf65",
+     "name": "MAZORCA TUZA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf66",
+     "name": "MELÓN",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf67",
+     "name": "MORA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf68",
+     "name": "MUTE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf69",
+     "name": "NARANJA TANGELO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf70",
+     "name": "NARANJA VALENCIA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf71",
+     "name": "OREGANO",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf72",
+     "name": "PAPA CRIOLLA LAVADA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf73",
+     "name": "PAPA PASTUSA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf74",
+     "name": "PAPA SABANERA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf75",
+     "name": "PAPAYA MELONA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf76",
+     "name": "PAPAYUELA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf77",
+     "name": "PATILLA BABY",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf78",
+     "name": "PEPINO COHOMBRO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf79",
+     "name": "PEPINO COMÚN",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf80",
+     "name": "PERA NACIONAL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf81",
+     "name": "PERA VERDE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf82",
+     "name": "PEREJIL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf83",
+     "name": "PIMENTÓN ROJO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf84",
+     "name": "PIMENTÓN VERDE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf85",
+     "name": "PIÑA GOLDEN",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf86",
+     "name": "PIÑA PEROLERA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf87",
+     "name": "PLÁTANO MADURO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf88",
+     "name": "PLÁTANO VERDE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf89",
+     "name": "QUESO CAMPESINO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf90",
+     "name": "QUESO COSTEÑO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf91",
+     "name": "QUESO DOBLE CREMA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf92",
+     "name": "QUESO DOBLE CREMA TAJADO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf93",
+     "name": "RABANO ROJO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf94",
+     "name": "RICES CHINAS",
+     "unit": "BAN",
+     "isEvent": false
+    },
+    {
+     "id": "mf95",
+     "name": "REMOLACHA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf96",
+     "name": "REPOLLO BLANCO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf97",
+     "name": "REPOLLO MORADO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf98",
+     "name": "RUGULA",
+     "unit": "ATAO",
+     "isEvent": false
+    },
+    {
+     "id": "mf99",
+     "name": "SABILA",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "mf100",
+     "name": "TOMATE ÁRBOL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf101",
+     "name": "TOMATE CHONTO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf102",
+     "name": "TOMATE MILANO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf103",
+     "name": "TORTILLA *10U",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "mf104",
+     "name": "UCHUVA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf105",
+     "name": "UVA ISABELLA",
+     "unit": "BAN",
+     "isEvent": false
+    },
+    {
+     "id": "mf106",
+     "name": "UVA ROJA IMPORTADA (evento)",
+     "unit": "KG",
+     "isEvent": true
+    },
+    {
+     "id": "mf107",
+     "name": "UVA VERDE NACIONAL",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf108",
+     "name": "YACÓN",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf109",
+     "name": "YOGURT GRIEGO (evento)",
+     "unit": "LT",
+     "isEvent": true
+    },
+    {
+     "id": "mf110",
+     "name": "YOGURTH D1 (evento)",
+     "unit": "UNID",
+     "isEvent": true
+    },
+    {
+     "id": "mf111",
+     "name": "YOGURTH*1000ML",
+     "unit": "LT",
+     "isEvent": false
+    },
+    {
+     "id": "mf112",
+     "name": "YOGURTH*200ML",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "mf113",
+     "name": "YUCA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf114",
+     "name": "ZANAHORIA",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf115",
+     "name": "ZAPOTE",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf116",
+     "name": "ZUQUINI AMARILLO",
+     "unit": "KG",
+     "isEvent": false
+    },
+    {
+     "id": "mf117",
+     "name": "ZUQUINI VERDE",
+     "unit": "KG",
+     "isEvent": false
+    }
+   ]
+  },
+  "abarrotes": {
+   "sheet": "ABARRORTE",
+   "label": "Abarrotes",
+   "count": 80,
+   "items": [
+    {
+     "id": "ma1",
+     "name": "ACEITE DE OLIVA *1000ML",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma2",
+     "name": "ACEITE SOLISOYA *1000ML",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma3",
+     "name": "AJONJOLI",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma4",
+     "name": "ALMENDRA BOLSA *500GRS",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma5",
+     "name": "ARROZ BLANCO LIBRA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma6",
+     "name": "ANIS ESTRELLA *250",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma7",
+     "name": "ARVEJA VERDE LIBRA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma8",
+     "name": "ARVEJA AMARILLA LIBRA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma9",
+     "name": "ATUN EN ACEITE *175GR",
+     "unit": "LATA",
+     "isEvent": false
+    },
+    {
+     "id": "ma10",
+     "name": "AVENA HOJUELA PANCHO *180GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma11",
+     "name": "AVENA MOLIDA LA ABUELA *200GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma12",
+     "name": "AZUCAR BLANCO LIBRA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma13",
+     "name": "CAFÉ *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma14",
+     "name": "CANELA EN ASTILLA",
+     "unit": "KILO",
+     "isEvent": false
+    },
+    {
+     "id": "ma15",
+     "name": "CEBADA PERLADA *500 GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma16",
+     "name": "CEREAL HOJUELA SIN AZUCAR *500GR (NUTRIGAL)",
+     "unit": "KILO",
+     "isEvent": false
+    },
+    {
+     "id": "ma17",
+     "name": "CHOCOLATE ESPECIAL *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma18",
+     "name": "CLAVO DE OLOR *500GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma19",
+     "name": "COCO DESHIDRATADO *1000GR",
+     "unit": "KILO",
+     "isEvent": false
+    },
+    {
+     "id": "ma20",
+     "name": "COCOA *230 GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma21",
+     "name": "CUCHUCO DE CEBADA *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma22",
+     "name": "CURCUMA *500GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma23",
+     "name": "ESENCIA SABORES *500ML",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma24",
+     "name": "ESENCIA VAINILLA NEGRA *500",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma25",
+     "name": "FRIJOL BLANQUILLO *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma26",
+     "name": "FRIJOL BOLA ROJA DESPENSA*500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma27",
+     "name": "GALLETA CLUB SOCIAL *9",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma28",
+     "name": "GALLETA CRAQUEÑA MIEL *10",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma29",
+     "name": "GALLETA CRAQUEÑA SALTIN *8",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma30",
+     "name": "GALLETA DUCALES *9",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma31",
+     "name": "GALLETA DUCALES 2 TACOS",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma32",
+     "name": "GALLETA LECHE MUU *18",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma33",
+     "name": "GALLETA RAMO LECHERITA *8",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma34",
+     "name": "GALLETA RAMO LIMON *8",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma35",
+     "name": "GALLETA SALTIN NOEL 3 TACOS",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma36",
+     "name": "GALLETAS DUX *9",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma37",
+     "name": "GARBANZO DESPENSA *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma38",
+     "name": "GELATINA GELYFRUTS*500GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma39",
+     "name": "GELATINA SIN SABOR*500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma40",
+     "name": "GRANOLA*500 SIN AZUCAR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma41",
+     "name": "HARINA PAN AREPA *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma42",
+     "name": "HARINA TRIGO HAZ OROS POLVO HORNEAR *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma43",
+     "name": "KOLA GRANULADA",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma44",
+     "name": "LECHE PROLECHE ENTERA*900GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma45",
+     "name": "LECHE PROLECHE BOLSA *380 GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma46",
+     "name": "LENTEJA DESPENSA *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma47",
+     "name": "LINAZA EN PEPA *500 GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma48",
+     "name": "LINAZA MOLIDA *500 GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma49",
+     "name": "MAIZ PETO LIBRA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma50",
+     "name": "MAIZ PIRA LIBRA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma51",
+     "name": "MAIZ TIERNO LATA *432GR (EVENTO)",
+     "unit": "LATA",
+     "isEvent": true
+    },
+    {
+     "id": "ma52",
+     "name": "MAIZENA FECULA *380 GR",
+     "unit": "CAJA",
+     "isEvent": false
+    },
+    {
+     "id": "ma53",
+     "name": "MANI NATURAL",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma54",
+     "name": "MARGARINA CAMPI *250GR",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma55",
+     "name": "MARGARINA LA FINA *500GR",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma56",
+     "name": "MIEL BOTELLA *1000",
+     "unit": "BOTELLA",
+     "isEvent": false
+    },
+    {
+     "id": "ma57",
+     "name": "MIGA DE PAN",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma58",
+     "name": "NUEZ ALFA LIBRA",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma59",
+     "name": "NUEZ MOSCADA *500GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma60",
+     "name": "PANELA BOLSA 450 GRS",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma61",
+     "name": "PAPRIKA *500 GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma62",
+     "name": "PASTA LA NIEVE CONCHA *250GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma63",
+     "name": "PASTA LA NIEVE FIDEOS *250GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma64",
+     "name": "PASTA DORIA TORNILLOS *250GR",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma65",
+     "name": "PASTA LASAÑA DORIA *400GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma66",
+     "name": "PASTA MACARRONES*250GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma67",
+     "name": "PASTA LA NIEVE SPAGUETTI *500GR",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma68",
+     "name": "PIMIENTA MOLIDA *500 GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma69",
+     "name": "PIMIENTA PEPA *500 GRS",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma70",
+     "name": "POLVO HORNEAR",
+     "unit": "UNID",
+     "isEvent": false
+    },
+    {
+     "id": "ma71",
+     "name": "PONQUE RAMITO *10",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma72",
+     "name": "PUDIN SABOR*500GR (evento)",
+     "unit": "LIBRA",
+     "isEvent": true
+    },
+    {
+     "id": "ma73",
+     "name": "QUINUA BOLSA *500GRS",
+     "unit": "PAQ",
+     "isEvent": false
+    },
+    {
+     "id": "ma74",
+     "name": "SAL *1000GR",
+     "unit": "KILO",
+     "isEvent": false
+    },
+    {
+     "id": "ma75",
+     "name": "SALSA SOYA *1000ML",
+     "unit": "BOTELLA",
+     "isEvent": false
+    },
+    {
+     "id": "ma76",
+     "name": "SARDINA EN SALSA DE TOMATE *425GR",
+     "unit": "LATA",
+     "isEvent": false
+    },
+    {
+     "id": "ma77",
+     "name": "TE",
+     "unit": "CAJA",
+     "isEvent": false
+    },
+    {
+     "id": "ma78",
+     "name": "UVA PASA",
+     "unit": "LIBRA",
+     "isEvent": false
+    },
+    {
+     "id": "ma79",
+     "name": "VINAGRE FRASCO *500ML",
+     "unit": "BOTELLA",
+     "isEvent": false
+    },
+    {
+     "id": "ma80",
+     "name": "CARVE *200 GRS",
+     "unit": "BOLSA",
+     "isEvent": false
+    }
+   ]
+  },
+  "aseo": {
+   "sheet": "ASEO",
+   "label": "Aseo",
+   "count": 53,
+   "items": [
+    {
+     "id": "ms1",
+     "name": "BAYETILLA DE 100x70CM",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms2",
+     "name": "[object Object]",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms3",
+     "name": "BOLSA BASURA BLANCA 70*100 X 10 UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms4",
+     "name": "BOLSA BASURA BLANCA PAPELERA 40*60*10",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms5",
+     "name": "BOLSA BASURA NEGRA PAPELERA 40*60*10",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms6",
+     "name": "BOLSA BASURA NEGRA 70*100 X 10 UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms7",
+     "name": "BOLSA BASURA VERDE 70*100 X 10 UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms8",
+     "name": "CABO METALICO 120CM ALTA RESISTENCIA",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms9",
+     "name": "CEPILLO PARA LAVAR ROPA CERDAS DURAS",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms10",
+     "name": "CHUPA DE BAÑO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms11",
+     "name": "CHURRUSCO PARA BAÑO CON BASE 1A",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms12",
+     "name": "DESENGRASANTE GALON 4.000ML CLEAN-PRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms13",
+     "name": "DESENGRASANTE 500ML CLEAN-PRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms14",
+     "name": "[object Object]",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms15",
+     "name": "DETERG LIQUIDO MULTIUSOS PH NEUTRO GAL 4.000ml CLEAN-PRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms16",
+     "name": "DETERGENTE LAVADORA FRAGANCIA MANZANA O TALCO BB 5 LITROS",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms17",
+     "name": "ENCENDEDOR",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms18",
+     "name": "ESCOBA DURA TR SIN CABO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms19",
+     "name": "ESCOBA SUAVE SIN CABO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms20",
+     "name": "ESPONJA DE ALAMBRE ACERO MATRIX - CLOVER",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms21",
+     "name": "ESPONJA ORO /PLATA UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms22",
+     "name": "ESPONJILLON DE BRILLO GOL PQ *12",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms23",
+     "name": "FOSFORO MADERA BENGALA CJA *200UNDS",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms24",
+     "name": "GEL ANTIBACTERIAL 1.000ML CON VALVULA DISPENSADORA",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms25",
+     "name": "GUANTE AMARILLO CAL 20 TALLA 8",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms26",
+     "name": "GUANTE DE MANIPULACION PQ *100",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms27",
+     "name": "GUANTE NEGRO TALLA 8 CAL 35",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms28",
+     "name": "JABON EN BARRA DADO *500GR",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms29",
+     "name": "JABON EN BARRA REY UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms30",
+     "name": "[object Object]",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms31",
+     "name": "[object Object]",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms32",
+     "name": "JABON POLVO CLEAN-PRO x 1.000 grms",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms33",
+     "name": "JABON POLVO CLEAN-PRO x 500 grms",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms34",
+     "name": "LIMPIA PISOS DESINFECTANTE CON (FRAGANCIAS CITRONELA, CANELA O LAVANDA)4.000ml",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms35",
+     "name": "[object Object]",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms36",
+     "name": "LUSTRA MUEBLE LITRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms37",
+     "name": "NEUTRALIZADOR DE OLORES GAL 4.000l CLEAN-PRO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms38",
+     "name": "PAÑO ABSORVENTE REUTILIZABLE PAQ 4U*25Cms (1METRO)",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms39",
+     "name": "PAPEL ALUMINIO *40 MTS",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms40",
+     "name": "PAPEL HIGIENICO ELITE DUO AMARILLO *UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms41",
+     "name": "PAPEL HIGIENICO INDUSTRIAL 250 MTS POR ROLLO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms42",
+     "name": "PAPEL HIGIENICO INDUSTRIAL *4 *250 MTS BLANCO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms43",
+     "name": "RECOGEDOR PLASTICO",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms44",
+     "name": "SABRA VERDE GOL UND",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms45",
+     "name": "SELLANTE ANTIDESLIZANTE PARA PISOS 1.000ml",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms46",
+     "name": "SERVILLETA ELITE PAQx100H",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms47",
+     "name": "SUAVIZANTE FRAGANCIA CLEAN-PRO GALON 4LITROS",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms48",
+     "name": "TOALLA COCINA FAVORITA PAQ*3 ROLLOS",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms49",
+     "name": "TOALLAS DE COCINA SCOTT ROLLO REUTILIZABLE",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms50",
+     "name": "TOALLA EN Z PARA MANOS NATURAL PAQx150",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms51",
+     "name": "TOALLA PARA MANOS EN ROLLO ELITE X100mts COLOR NATURAL",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms52",
+     "name": "TRAPERO DE COPA 1A REF800",
+     "unit": "UND",
+     "isEvent": false
+    },
+    {
+     "id": "ms53",
+     "name": "VINIPEL ALIMENTO *300 MTS",
+     "unit": "UND",
+     "isEvent": false
+    }
+   ]
+  }
+ }
+}

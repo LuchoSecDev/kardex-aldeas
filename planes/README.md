@@ -13,6 +13,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 |---|---|---|---|
 | 001 | [Panel de la nutricionista](001-panel-nutricionista.md) | ✅ **Desplegado en producción el 2026-09-30** (merge a `main` + push, `b3e60df`). Falta: entregar la cuenta a la nutricionista (reset con la contraseña temporal real) y limpiar datos de prueba | `cfc3d80` (A) · `fc6934c` (B) · `53e474d` (C) · `5b3eaa7` acceso administrativo · `dee3ef1` campanita · `8e49fd2`/`b3e60df` ajustes de scroll |
 | 002 | [Resumen semanal para el pedido a proveedores](002-resumen-semanal.md) | ✅ Desplegado en producción el 2026-09-30. Pendiente de diseño: cantidad sugerida a pedir (falta la regla de la organización) | ver `git log` (rama `feature/resumen-semanal`) |
+| 003 | [Lista de mercado](003-lista-de-mercado.md) | 📝 Propuesta (plan listo; faltan 7 decisiones de la organización, ver el plan) | — |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)
@@ -34,17 +35,21 @@ Problemas encontrados que todavía no se corrigen (con su prueba marcada como fa
 
 | # | Hallazgo | Estado | Prueba |
 |---|---|---|---|
-| H1 | **Meses que no caben en 5 semanas** | ⚠️ **PENDIENTE DE REVISIÓN (importante)** — decisión de Lucho/organización | `tests/unit/calendar.test.ts` (`it.fails`) |
+| H1 | **Meses que no caben en 5 semanas** | ⚠️ **PENDIENTE (importante)** — práctica en papel aclarada; propuesta "semana 6 parcial" por confirmar (ver detalle) | `tests/unit/calendar.test.ts` (`it.fails`) |
 
 **H1 — detalle.** El kardex tiene 5 semanas (lunes a domingo). Un mes de 30/31 días que empieza en sábado o domingo pierde sus últimos 1–2 días: **no se pueden registrar**. En 2026: 30 y 31 de marzo, 31 de agosto y 30 de noviembre; en 2027: 31 de mayo y 30–31 de agosto.
 
-**Propuesta (sin 6.ª semana): "semana compartida entre meses".** La semana lunes–domingo que contiene el fin de mes también contiene el inicio del mes siguiente, y la primera semana del mes siguiente **ya tiene celdas vacías** justo en esos días. Los días que no caben (siempre los últimos 1–2) se registran en esas celdas, en la semana 1 del mes siguiente, rotulados con su fecha real (ej. «30 mar»).
-- Sin cambios de base de datos: las mismas 35 posiciones (las celdas iniciales de la semana 1 hoy quedan siempre vacías).
-- El saldo sigue coherente: la semana 1 del mes siguiente hereda el saldo de cierre del anterior y suma esas salidas, como una semana física normal; encaja con el envío semanal a la nutricionista.
-- Solo se habilitan las celdas de los días que de verdad no caben en el mes anterior (no las que ya están registradas allí).
-- Contras: los totales *mensuales* de marzo no incluirían el 30–31 (quedan en abril) → se avisa en pantalla y Excel/PDF; cambia el cálculo del calendario, la pantalla, el Excel y el PDF.
-- Alternativas descartadas: columnas extra en la semana 5 (tabla irregular), bloques fijos por día del mes 1–7, 8–14… (rompe la semana lunes–domingo y el ritmo de envío semanal), sexta semana (cambia base de datos y validaciones).
-- **Antes de decidir:** preguntar cómo maneja hoy el kardex de papel esos días.
+**Cómo lo resuelven hoy en papel (aclarado por Lucho el 2026-09-30).** Toman **otra hoja** y la tratan como un mes nuevo solo para esos días: en la semana 1 llenan las casillas que faltan (p. ej. lunes 30 y martes 31 de marzo) y dejan el saldo final al final de esa hoja. **Esa hoja sigue siendo de marzo** (queda cerrada como parte de marzo y no se reutiliza), y para abril hay que abrir **otra hoja aparte**, que arranca con el saldo con que cerró esa hoja.
+
+**La propuesta anterior ("semana compartida entre meses", que ponía esos días en la semana 1 del mes siguiente) queda DESCARTADA**: contradice la práctica (los días deben quedar en marzo y abril no debe heredar esas salidas como suyas).
+
+**Propuesta nueva (por confirmar): "semana 6 parcial" del mismo mes.**
+- Los meses que no caben muestran una **6.ª semana** con solo los 1–2 días sobrantes (con su propia casilla de entrada y su saldo), que hereda el saldo de la semana 5.
+- El mes siguiente hereda el saldo final **después** de esa semana 6 (hoy hereda el de la semana 5, ver `finalBalanceOfMonth`).
+- Los totales de marzo incluyen el 30 y 31 (como en papel); el Excel/PDF muestran una hoja/bloque extra solo cuando aplica.
+- **Impacto técnico (no es solo pantalla):** hoy `kardex_save_product` valida arreglos de 35 salidas / 5 entradas / 5 saldos, y `week_submissions`, `ajustes` y `admin_weekly_totals` limitan la semana a 0–4. Habría que aceptar 35 **o** 42 (los registros viejos de 35 siguen válidos, se leen rellenados con ceros), ampliar esos límites, `calendar.ts`, `monthState.ts`, `balanceEngine.ts`, los exportadores y el resumen semanal. Es un plan propio (004) con su SQL y pruebas (`calendar.test.ts` hoy tiene el `it.fails` de esta falla).
+- **Falta confirmar:** (a) que en esa hoja extra solo se registran los días sobrantes, con su propia entrada de la semana; (b) próximo caso: **lunes 30 de noviembre de 2026**.
+- La **lista de mercado (plan 003) no depende de H1**: se clava a la fecha (lunes de la semana de entrega), no a (mes, semana 0–4).
 
 ## Cómo se usa esta carpeta
 
