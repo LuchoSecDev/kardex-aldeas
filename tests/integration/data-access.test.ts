@@ -199,7 +199,7 @@ describe("ajustes auditados", () => {
     ["un motivo vacío", { p_motivo: "   " }, "Motivo inválido"],
     ["un motivo de más de 500 caracteres", { p_motivo: "x".repeat(501) }, "Motivo inválido"],
     ["un saldo nuevo negativo", { p_saldo_nuevo: -1 }, "Saldo inválido"],
-    ["una semana fuera de rango", { p_week_index: 5 }, "Fecha inválida"],
+    ["una semana fuera de rango (la 7)", { p_week_index: 6 }, "Fecha inválida"],
     ["un producto inexistente", { p_product_id: "producto-que-no-existe" }, "Producto inválido"],
   ])("rechaza %s", async (_label, override, message) => {
     const { error } = await saveAjuste(sharedAjusteToken, override);

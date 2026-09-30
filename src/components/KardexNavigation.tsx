@@ -38,11 +38,11 @@ export default function KardexNavigation({
               <button
                 key={week}
                 onClick={() => onWeekChange(week)}
-                className={`btn btn-toggle kardex-week-btn ${currentWeek === week ? 'btn-primary' : ''}`}
+                className={`btn btn-toggle kardex-week-btn ${closing ? 'kardex-week-btn--closing' : ''} ${currentWeek === week ? 'btn-primary' : ''}`}
                 title={closing ? "Cierre del mes: los últimos días que no caben en 5 semanas" : undefined}
                 aria-current={currentWeek === week ? "true" : undefined}
               >
-                Sem {week}{closing && <span className="kardex-week-closing"> (cierre)</span>}
+                Sem {week}{closing && <span className="kardex-week-closing">(cierre)</span>}
                 {(state === "enviada" || state === "revisada") && (
                   <span className="kardex-week-mark" title={WEEK_STATE_LABEL[state]}>✓<span className="sr-only"> {WEEK_STATE_LABEL[state]}</span></span>
                 )}

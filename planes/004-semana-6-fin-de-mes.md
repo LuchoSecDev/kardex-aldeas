@@ -1,6 +1,6 @@
 # 004 — Semana 6 de cierre (meses que no caben en 5 semanas) · hallazgo H1
 
-**Estado:** 🚧 En curso (2026-09-30). Próximo caso real: **lunes 30 de noviembre de 2026**.
+**Estado:** 🚧 Programada y probada en local (2026-09-30); **falta correr `six_weeks_1..5.sql` en Supabase y desplegar**. Próximo caso real: **lunes 30 de noviembre de 2026**.
 **Rama:** `claude/dazzling-wozniak-gkxfkz` (continúa la del plan 003)  **Fecha:** 2026-09-30
 
 ## Objetivo
@@ -46,11 +46,11 @@ La propuesta anterior ("semana compartida entre meses", que los movía a abril) 
 
 ## Fases
 
-- [ ] **Fase 1 — Lógica y pantalla** (calendario, saldos, tabla, navegación, exportadores, resumen). *Aceptación:* marzo 2026
+- [x] **Fase 1 — Lógica y pantalla** *(hecha; `kardexClosingWeek.test.tsx` prueba la pantalla completa, `kardexExporter.test.ts` el contenido real del Excel y el PDF)* (calendario, saldos, tabla, navegación, exportadores, resumen). *Aceptación:* marzo 2026
   muestra "Sem 6" con solo el 30 y 31 editables; el saldo de abril hereda el cierre de esa semana; los meses que caben no cambian.
-- [ ] **Fase 2 — Base de datos** (`six_weeks_1..N.sql`) y sus pruebas (Postgres local + integración). *Aceptación:* se guarda,
+- [x] **Fase 2 — Base de datos** *(hecha: `supabase/six_weeks_1..5.sql`, `tests/db/six_weeks.test.sql` con 6 mutaciones comprobadas y `tests/integration/six-weeks.test.ts`; falta correrlos en Supabase)* (`six_weeks_1..N.sql`) y sus pruebas (Postgres local + integración). *Aceptación:* se guarda,
   ajusta y envía la semana 6; 35/5/5 sigue aceptado; semanas fuera de 0–5 se rechazan.
-- [ ] **Fase 3 — Verificación en navegador** y cierre de la prueba `it.fails` de `calendar.test.ts`.
+- [x] **Fase 3 — Verificación en navegador** *(hecha contra un Supabase simulado, escritorio y 360 px; la prueba `it.fails` de `calendar.test.ts` ya es una prueba normal que cubre 2026-2030)* y cierre de la prueba `it.fails` de `calendar.test.ts` y cierre de la prueba `it.fails` de `calendar.test.ts`.
 
 ## Despliegue
 

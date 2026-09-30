@@ -114,3 +114,20 @@ describe("scripts SQL de la lista de mercado: cabe en el SQL Editor de Supabase"
     }
   });
 });
+
+describe("scripts SQL de la semana 6 (planes/004): caben en el SQL Editor y están en el orden de prueba", () => {
+  const files = readdirSync(SEED_DIR).filter((f) => /^six_weeks_\d+\.sql$/.test(f));
+
+  it("son 5 archivos y ninguno pasa de 95 líneas", () => {
+    expect(files).toHaveLength(5);
+    for (const name of files) {
+      const lines = readFileSync(path.join(SEED_DIR, name), "utf8").trimEnd().split("\n").length;
+      expect(lines, name).toBeLessThanOrEqual(95);
+    }
+  });
+
+  it("están todos en tests/db/run.sh", () => {
+    const runner = readFileSync("tests/db/run.sh", "utf8");
+    for (const name of files) expect(runner, name).toContain(name.replace(".sql", ""));
+  });
+});

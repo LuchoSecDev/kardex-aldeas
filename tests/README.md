@@ -37,6 +37,9 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 - `unit/marketListDashboard.test.tsx` — la pantalla de la lista de mercado completa (jsdom + Testing Library, con el servicio simulado): guardado con pausa, pestañas, búsqueda, participantes, envío, errores, semanas.
 - `unit/communityShell.test.tsx` — el selector Kardex | Lista: monta la lista al abrirla y conserva el estado de ambas.
 - `db/market_lists.test.sql` — lista de mercado contra Postgres local (ver arriba).
+- `unit/kardexClosingWeek.test.tsx` — la pantalla del kardex con la semana 6 de cierre (marzo 2026): qué días se habilitan, que guarda 42/6/6, el saldo de abril, filas viejas de 35 días.
+- `unit/kardexExporter.test.ts` — el Excel y el PDF del kardex con y sin semana 6.
+- `db/six_weeks.test.sql` e `integration/six-weeks.test.ts` — el servidor acepta 35/5/5 y 42/6/6, rechaza mezclas, y la semana 6 se ajusta, envía y resume. **Necesita haber corrido `six_weeks_1..5.sql`.**
 - `unit/marketAdmin.test.ts` — estados de la lista en el panel (falta / pendiente / por revisar / revisada), resumen, semana por defecto.
 - `unit/marketConsolidated.test.ts`, `unit/marketExporter.test.ts` y `unit/adminMarketExcel.test.tsx` — la suma entre comunidades, el contenido REAL de los dos Excel (se abren con exceljs: hojas, encabezado, columnas, sin precios) y las pantallas del consolidado y de las descargas.
 - `unit/adminMarketLists.test.tsx` y `unit/adminBell.test.tsx` — la pestaña «Listas de mercado» de la nutricionista y la campanita con los dos tipos de aviso (jsdom, servicio simulado).

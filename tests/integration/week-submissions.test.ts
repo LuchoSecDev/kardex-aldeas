@@ -107,7 +107,7 @@ describe("enviar semana a la nutricionista", () => {
 
   it("rechaza fechas fuera de rango", async () => {
     const { token } = await createTestCommunity("subdate");
-    for (const [week, month] of [[5, MONTH], [0, 12], [-1, MONTH]]) {
+    for (const [week, month] of [[6, MONTH], [0, 12], [-1, MONTH]]) {
       const { error } = await submit(token, week, YEAR, month);
       expect(error?.message, `semana ${week} mes ${month}`).toContain("Fecha inválida");
     }

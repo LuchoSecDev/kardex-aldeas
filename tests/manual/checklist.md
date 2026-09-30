@@ -32,6 +32,15 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Al editar esa semana después, aparece "⚠ … cambió después" (aviso y botón de semana); "Volver a enviar" lo limpia.
 - [ ] El botón se bloquea mientras hay un guardado en curso.
 
+## Semana 6 de cierre (meses que no caben en 5 semanas: marzo, agosto y noviembre de 2026)
+- [ ] Marzo 2026 muestra **Sem 6 (cierre)**; septiembre 2026 (y los demás meses que caben) **no** la muestran.
+- [ ] En la Sem 6 solo están habilitados el **30 y el 31** (y su **entrada**); los demás días y números salen deshabilitados, con el aviso de «Cierre del mes».
+- [ ] El saldo anterior de la Sem 6 sale solo del cierre de la Sem 5; registrar el 30 y 31 recalcula su saldo final.
+- [ ] Abril hereda como saldo anterior el cierre de marzo **después** de la Sem 6 (compararlo con la hoja de papel).
+- [ ] «Enviar semana 6» funciona y la nutricionista la ve (chip S6, campanita, resumen semanal «Sem 6 (cierre)»).
+- [ ] Excel y PDF de marzo traen «SEMANA 6 (CIERRE)» con el 30 y 31; los meses que caben siguen con 5 semanas.
+- [ ] Un mes ya guardado antes de este cambio (p. ej. febrero) se abre igual que antes y se puede seguir editando.
+
 ## Lista de mercado (comunidad)
 - [ ] Arriba aparece el selector **Kardex | Lista de mercado**; cambiar de uno a otro no pierde el mes/semana del kardex.
 - [ ] La lista abre en la **semana del próximo pedido** (p. ej. entre semana: la del lunes que viene) con su rótulo («Semana 2 de octubre · 5 oct – 11 oct»), el viernes de pedido y el plazo (5:00 p. m.).

@@ -556,8 +556,14 @@
   line-height: 1.4;
 }
 
+/* "Sem 6" arriba y "(cierre)" debajo, sin partir el nombre de la semana. */
+.kardex-week-btn--closing {
+  flex-direction: column;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
 .kardex-week-closing {
-  margin-left: 0.25rem;
-  font-size: 0.8em;
+  font-size: 0.75em;
   font-weight: 400;
 }
