@@ -11,7 +11,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 
 | # | Plan | Estado | Commits / notas |
 |---|---|---|---|
-| 001 | [Panel de la nutricionista](001-panel-nutricionista.md) | 🚧 En curso (rama `feature/panel-admin`) | — |
+| 001 | [Panel de la nutricionista](001-panel-nutricionista.md) | ✅ Fases A, B y C listas y verificadas (rama `feature/panel-admin`); **falta merge + push a `main` y entregar la cuenta** | `cfc3d80` (A) · `fc6934c` (B) · `53e474d` (C) |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)
