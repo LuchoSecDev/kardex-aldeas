@@ -1,11 +1,21 @@
--- Limpieza de todos los datos de prueba generados durante la verificación
--- del ajuste auditado y de las políticas RLS. Correr una sola vez en el
--- SQL Editor de Supabase (usa privilegios de administrador, no el anon key,
--- así que sí puede borrar aunque la app ya no pueda).
+-- Limpieza de TODOS los datos de prueba (manuales y de las pruebas
+-- automáticas de tests/). Correr en el SQL Editor de Supabase cuando quieras
+-- (usa privilegios de administrador, no el anon key, así que sí puede borrar
+-- aunque la app ya no pueda).
+--
+-- Borra cualquier comunidad cuyo nombre empiece por ZZZ_TEST_ (el prefijo
+-- obligatorio para toda comunidad de prueba), así ya no hay que agregar cada
+-- nombre nuevo a mano. Las sesiones, intentos de PIN y envíos de semana de
+-- esas comunidades se borran solos (on delete cascade).
+--
+-- CUIDADO: ninguna comunidad real debe llamarse ZZZ_TEST_...
 
-delete from kardex_records where community in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4', 'ZZZ_TEST_BORRAR5', 'ZZZ_TEST_PROD_VERIFY', 'ZZZ_TEST_BORRAR_DEPLOY', 'ZZZ_TEST_BORRAR_FASE3', 'ZZZ_TEST_BORRAR_FASE5', 'ZZZ_TEST_BORRAR_AUDIO', 'ZZZ_TEST_BORRAR_AUDIO2', 'ZZZ_TEST_BORRAR_VIBRA', 'ZZZ_TEST_BORRAR_FRUVER', 'ZZZ_TEST_BORRAR_PANABA', 'ZZZ_TEST_BORRAR_PIN', 'ZZZ_TEST_BORRAR_PIN_NEW', 'ZZZ_TEST_BORRAR_STICKY', 'ZZZ_TEST_BORRAR_SESSION', 'ZZZ_TEST_BORRAR_SAVE');
-delete from ajustes where community in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4', 'ZZZ_TEST_BORRAR5', 'ZZZ_TEST_PROD_VERIFY', 'ZZZ_TEST_BORRAR_DEPLOY', 'ZZZ_TEST_BORRAR_FASE3', 'ZZZ_TEST_BORRAR_FASE5', 'ZZZ_TEST_BORRAR_AUDIO', 'ZZZ_TEST_BORRAR_AUDIO2', 'ZZZ_TEST_BORRAR_VIBRA', 'ZZZ_TEST_BORRAR_FRUVER', 'ZZZ_TEST_BORRAR_PANABA', 'ZZZ_TEST_BORRAR_PIN', 'ZZZ_TEST_BORRAR_PIN_NEW', 'ZZZ_TEST_BORRAR_STICKY', 'ZZZ_TEST_BORRAR_SESSION', 'ZZZ_TEST_BORRAR_SAVE');
-delete from communities where name in ('ZZZ_TEST_BORRAR', 'ZZZ_TEST_BORRAR2', 'ZZZ_TEST_BORRAR3', 'ZZZ_TEST_BORRAR4', 'ZZZ_TEST_BORRAR5', 'ZZZ_TEST_PROD_VERIFY', 'ZZZ_TEST_BORRAR_DEPLOY', 'ZZZ_TEST_BORRAR_FASE3', 'ZZZ_TEST_BORRAR_FASE5', 'ZZZ_TEST_BORRAR_AUDIO', 'ZZZ_TEST_BORRAR_AUDIO2', 'ZZZ_TEST_BORRAR_VIBRA', 'ZZZ_TEST_BORRAR_FRUVER', 'ZZZ_TEST_BORRAR_PANABA', 'ZZZ_TEST_BORRAR_PIN', 'ZZZ_TEST_BORRAR_PIN_NEW', 'ZZZ_TEST_BORRAR_STICKY', 'ZZZ_TEST_BORRAR_SESSION', 'ZZZ_TEST_BORRAR_SAVE');
+delete from kardex_records where community like 'ZZZ\_TEST\_%';
+delete from ajustes where community like 'ZZZ\_TEST\_%';
+delete from communities where name like 'ZZZ\_TEST\_%';
 
--- Quedó de una verificación anterior (antes de este ajuste auditado).
+-- Quedó de una verificación anterior.
 delete from ajustes where community = '__diagnostic_test__';
+
+-- Comprobación: debe devolver 0 filas.
+select name from communities where name like 'ZZZ\_TEST\_%';
