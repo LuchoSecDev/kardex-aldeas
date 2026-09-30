@@ -131,3 +131,21 @@ describe("scripts SQL de la semana 6 (planes/004): caben en el SQL Editor y est�
     for (const name of files) expect(runner, name).toContain(name.replace(".sql", ""));
   });
 });
+
+describe("scripts SQL de rendimiento (perf_1, perf_2): caben en el SQL Editor y están en el orden de prueba", () => {
+  const files = readdirSync(SEED_DIR).filter((f) => /^perf_\d+\.sql$/.test(f));
+
+  it("son 2 archivos y ninguno pasa de 95 líneas", () => {
+    expect(files).toHaveLength(2);
+    for (const name of files) {
+      const lines = readFileSync(path.join(SEED_DIR, name), "utf8").trimEnd().split("\n").length;
+      expect(lines, name).toBeLessThanOrEqual(95);
+    }
+  });
+
+  it("están en tests/db/run.sh, después de week_submissions y six_weeks_4 (que redefinen/usan las mismas funciones)", () => {
+    const runner = readFileSync("tests/db/run.sh", "utf8");
+    for (const name of files) expect(runner, name).toContain(name.replace(".sql", ""));
+    expect(runner.indexOf("perf_1")).toBeGreaterThan(runner.indexOf("week_submissions"));
+  });
+});

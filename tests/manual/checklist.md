@@ -103,6 +103,11 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Panel de la nutricionista (≥ 860 px): el encabezado de la tabla de comunidades queda fijo al desplazar la página.
 - [ ] Alto contraste y tamaños de letra A / A+ / A++ se ven bien.
 
+## Rendimiento (después de correr perf_1.sql y perf_2.sql)
+- [ ] Con una semana enviada: editar un número de esa semana → sigue apareciendo «modificada» (en la comunidad y en la campanita/panel de la nutricionista).
+- [ ] Volver a dejar el número como estaba → deja de aparecer «modificada».
+- [ ] La campanita de la nutricionista sigue mostrando los envíos sin revisar y, al revisarlos, desaparecen.
+
 ## Después de desplegar
 - [ ] El sitio en vivo carga y se puede entrar y guardar con una comunidad de prueba.
 - [ ] `npm run test:integration` en verde (confirma permisos de la base de datos).
