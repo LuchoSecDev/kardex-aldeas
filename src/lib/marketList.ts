@@ -1,6 +1,6 @@
 import { MARKET_KINDS, MARKET_KIND_LABEL, kindsDueOnFriday } from "@/lib/marketCalendar";
 import type { MarketKind } from "@/lib/marketCalendar";
-import type { MarketItem, MarketListRow, MarketListState, MarketQuantities } from "@/types/market";
+import type { KindChanges, MarketChange, MarketItem, MarketListRow, MarketListState, MarketQuantities } from "@/types/market";
 
 // Estado de una lista a partir de su fila (undefined = nunca se guardó nada).
 export function getListState(row: Pick<MarketListRow, "sent" | "modified"> | undefined): MarketListState {
@@ -73,6 +73,49 @@ export const summarizeByKind = (drafts: KindDrafts) =>
     label: MARKET_KIND_LABEL[kind],
     count: countOrdered(cleanQuantities(drafts[kind])),
   }));
+
+// ---------------------------------------------------------------------------
+// Zona de cambios (plan 008): notas del pedido, p. ej. «pescado por pechuga»
+// ---------------------------------------------------------------------------
+
+// Mismos límites que valida el servidor (supabase/market_changes_1.sql).
+export const MAX_CHANGES = 20;
+export const MAX_CHANGE_TEXT = 200;
+
+export const emptyKindChanges = (): KindChanges => ({ fruver: [], carnes: [], abarrotes: [], aseo: [] });
+
+// Espacios y saltos de línea repetidos se juntan en uno (igual que el servidor).
+export const normalizeChangeText = (raw: string) => raw.replace(/\s+/g, " ").trim();
+
+// Id de una nota nueva: solo letras y números, de 19 caracteres (el servidor acepta hasta 40).
+export function newChangeId(): string {
+  const bytes = new Uint8Array(9);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") crypto.getRandomValues(bytes);
+  else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  return "c" + Array.from(bytes, (b) => b.toString(36).padStart(2, "0")).join("");
+}
+
+// Lo que se guarda: texto normalizado y cortado a 200, sin notas vacías y a lo más 20. Si ya se cargó el catálogo,
+// una nota ligada a un producto que ya no está activo pierde ese vínculo (si no, el servidor rechazaría el guardado).
+export function cleanChanges(changes: MarketChange[], knownItemIds?: ReadonlySet<string>): MarketChange[] {
+  const clean: MarketChange[] = [];
+  for (const change of changes) {
+    const text = normalizeChangeText(change.text).slice(0, MAX_CHANGE_TEXT).trim();
+    if (!text) continue;
+    const linked = change.item_id && (!knownItemIds || knownItemIds.size === 0 || knownItemIds.has(change.item_id));
+    clean.push({ id: change.id, item_id: linked ? change.item_id : null, text, ...(change.at ? { at: change.at } : {}) });
+    if (clean.length === MAX_CHANGES) break;
+  }
+  return clean;
+}
+
+export const countChanges = (changes: KindChanges) => MARKET_KINDS.reduce((sum, kind) => sum + changes[kind].length, 0);
+
+export const changesForItem = (changes: MarketChange[], itemId: string) => changes.filter((c) => c.item_id === itemId);
+
+// Cuántas notas lleva cada tipo (para la confirmación de envío).
+export const summarizeChangesByKind = (changes: KindChanges) =>
+  MARKET_KINDS.map((kind) => ({ kind, label: MARKET_KIND_LABEL[kind], count: changes[kind].length }));
 
 // Tipos que se piden el viernes de la semana: el calendario sembrado o, si ese
 // viernes no está sembrado, la regla del cronograma.

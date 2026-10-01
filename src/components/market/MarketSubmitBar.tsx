@@ -1,16 +1,17 @@
 "use client";
 
 import { MARKET_KIND_LABEL } from "@/lib/marketCalendar";
-import { LIST_STATE_LABEL, getListState, summarizeByKind, type KindDrafts } from "@/lib/marketList";
+import { LIST_STATE_LABEL, getListState, summarizeByKind, summarizeChangesByKind, type KindDrafts } from "@/lib/marketList";
 import { formatDateTime } from "@/lib/weekStatus";
 import type { QueueStatus } from "@/lib/saveQueue";
-import type { MarketWeek } from "@/types/market";
+import type { KindChanges, MarketWeek } from "@/types/market";
 
 // "Enviar lista de la semana": envía los 4 tipos juntos, como el libro de Excel
 // que se mandaba por correo. Se puede reenviar si se cambia algo.
 export default function MarketSubmitBar({
   week,
   drafts,
+  changes,
   saveStatus,
   isSubmitting,
   message,
@@ -18,13 +19,16 @@ export default function MarketSubmitBar({
 }: {
   week: MarketWeek | null;
   drafts: KindDrafts;
+  changes: KindChanges;
   saveStatus: QueueStatus;
   isSubmitting: boolean;
   message: { kind: "ok" | "error"; text: string } | null;
   onSubmit: () => void;
 }) {
   const summary = summarizeByKind(drafts);
+  const changeCounts = summarizeChangesByKind(changes);
   const total = summary.reduce((sum, s) => sum + s.count, 0);
+  const totalChanges = changeCounts.reduce((sum, s) => sum + s.count, 0);
   const lists = week?.lists ?? [];
   const everSent = lists.some((l) => l.sent);
   const anyModified = lists.some((l) => l.modified);
@@ -33,7 +37,12 @@ export default function MarketSubmitBar({
   const busy = saveStatus === "saving" || saveStatus === "error";
 
   const handleClick = () => {
-    const lines = summary.map((s) => `• ${s.label}: ${s.count > 0 ? `${s.count} productos` : "no pedí"}`).join("\n");
+    const lines = summary
+      .map((s, i) => {
+        const notes = changeCounts[i].count;
+        return `• ${s.label}: ${s.count > 0 ? `${s.count} productos` : "no pedí"}${notes > 0 ? ` · ${notes} ${notes === 1 ? "cambio" : "cambios"}` : ""}`;
+      })
+      .join("\n");
     const question = everSent
       ? `¿Volver a enviar la lista de la semana?\n\n${lines}\n\nLa nutricionista recibirá el aviso otra vez.`
       : `¿Enviar la lista de la semana a la nutricionista?\n\n${lines}\n\nPodrás volver a enviarla si haces cambios.`;
@@ -48,6 +57,7 @@ export default function MarketSubmitBar({
       <div className="market-submit-info">
         <p className="market-submit-total">
           <strong>Esta semana vas a pedir {total} {total === 1 ? "producto" : "productos"}.</strong>
+          {totalChanges > 0 && <> Con {totalChanges} {totalChanges === 1 ? "cambio" : "cambios"} para la nutricionista.</>}
         </p>
         {!everSent && <p>Aún no la has enviado a la nutricionista.</p>}
         {everSent && !anyModified && sentAt && (

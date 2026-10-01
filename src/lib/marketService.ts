@@ -1,5 +1,5 @@
 import { authedRpc } from "./authedRpc";
-import type { MarketItem, MarketQuantities, MarketSubmitResult, MarketWeek } from "@/types/market";
+import type { MarketChange, MarketItem, MarketQuantities, MarketSubmitResult, MarketWeek } from "@/types/market";
 import type { MarketKind } from "./marketCalendar";
 
 // Acceso a la lista de mercado (ver supabase/market_lists_N.sql). Como en el
@@ -17,6 +17,11 @@ export const marketService = {
   // Guardado automático de un tipo de lista.
   saveList(weekStart: string, kind: MarketKind, quantities: MarketQuantities) {
     return authedRpc<null>("market_list_save", { p_week_start: weekStart, p_kind: kind, p_quantities: quantities });
+  },
+
+  // Guardado automático de las notas de cambio de un tipo de lista (plan 008).
+  saveChanges(weekStart: string, kind: MarketKind, changes: MarketChange[]) {
+    return authedRpc<null>("market_list_save_changes", { p_week_start: weekStart, p_kind: kind, p_changes: changes });
   },
 
   setParticipants(participants: number) {

@@ -259,3 +259,187 @@
   font-size: 0.9em;
   color: var(--color-text-muted);
 }
+
+/* --- Zona de cambios (plan 008) --- */
+.market-note-btn {
+  position: relative;
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.market-note-btn:hover:not(:disabled),
+.market-note-btn:focus-visible {
+  opacity: 1;
+  border-color: var(--color-primary-dark);
+}
+
+.market-note-btn--has {
+  opacity: 1;
+  background: rgba(0, 133, 202, 0.1);
+  border-color: var(--color-primary-dark);
+}
+
+.market-note-count {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  background: var(--color-primary-dark);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
+}
+
+.market-tab-notes {
+  margin-left: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.market-changes {
+  margin-bottom: 1rem;
+}
+
+.market-changes-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.market-changes-arrow {
+  margin-left: auto;
+  font-size: 0.75rem;
+}
+
+.market-changes-body {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.market-changes-help {
+  margin: 0 0 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.market-changes-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.market-changes-label {
+  font-weight: 700;
+}
+
+.market-changes-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.market-changes-row .input-field {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.market-changes-count {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.market-changes-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.market-change {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.market-change-chip {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(0, 133, 202, 0.12);
+  color: var(--color-primary-dark);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.market-change-text {
+  flex: 1 1 12rem;
+  overflow-wrap: anywhere;
+}
+
+.market-change-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* --- Cambios solicitados en el panel de la nutricionista (plan 008) --- */
+.admin-market-notes {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--color-primary-dark);
+  border-left-width: 5px;
+  border-radius: 10px;
+  background: rgba(0, 133, 202, 0.07);
+}
+
+.admin-market-notes-title {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+}
+
+.admin-market-notes-group + .admin-market-notes-group {
+  margin-top: 0.75rem;
+}
+
+.admin-market-notes-list {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+}
+
+.admin-market-notes-list li {
+  padding: 0.25rem 0;
+}
+
+.admin-market-note-kind {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.admin-market-note-text {
+  overflow-wrap: anywhere;
+}
+
+.admin-market-notes-flag {
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}

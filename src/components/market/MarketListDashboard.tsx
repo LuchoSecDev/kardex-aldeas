@@ -85,11 +85,16 @@ export default function MarketListDashboard({
         kindsDue={market.kindsDue}
         disabled={locked}
         onQuantityChange={market.setQuantity}
+        changes={market.changes}
+        onAddChange={market.addChange}
+        onUpdateChange={market.updateChange}
+        onRemoveChange={market.removeChange}
       />
 
       <MarketSubmitBar
         week={locked ? null : market.week}
         drafts={market.drafts}
+        changes={market.changes}
         saveStatus={market.saveStatus}
         isSubmitting={market.isSubmitting}
         message={market.message}

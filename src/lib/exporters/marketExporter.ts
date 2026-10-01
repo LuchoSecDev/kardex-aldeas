@@ -1,7 +1,7 @@
 import { MARKET_KINDS, MARKET_KIND_LABEL, weekLabel, weekParts, type MarketKind } from "@/lib/marketCalendar";
-import { communitiesOfKind, countsByKind, type ConsolidatedByKind } from "@/lib/marketConsolidated";
+import { communitiesOfKind, countsByKind, type ConsolidatedByKind, type ConsolidatedChange } from "@/lib/marketConsolidated";
 import { MONTH_NAMES } from "@/lib/weekStatus";
-import type { MarketItem, MarketQuantities } from "@/types/market";
+import type { AdminMarketChange, MarketItem, MarketQuantities } from "@/types/market";
 
 // Excel de la lista de mercado (plan 003, Fase D). Sin precios ni totales en pesos.
 //   1. Consolidado: por tipo, una hoja con el total por producto y una columna por comunidad.
@@ -48,9 +48,11 @@ export type ConsolidatedExportParams = {
   // Comunidades que enviaron la lista esa semana, y las que no.
   included: string[];
   missing: string[];
+  // Notas de cambio enviadas por las comunidades (plan 008): salen en la hoja «Cambios».
+  changes?: ConsolidatedChange[];
 };
 
-export async function buildConsolidatedWorkbook({ weekStart, byKind, included, missing }: ConsolidatedExportParams) {
+export async function buildConsolidatedWorkbook({ weekStart, byKind, included, missing, changes = [] }: ConsolidatedExportParams) {
   const ExcelJS = await loadExcel();
   const workbook = new ExcelJS.Workbook();
   const counts = countsByKind(byKind);
@@ -64,6 +66,7 @@ export async function buildConsolidatedWorkbook({ weekStart, byKind, included, m
     ["Comunidades que enviaron", included.length > 0 ? included.join(", ") : "ninguna"],
     ["Comunidades que faltan por enviar", missing.length > 0 ? missing.join(", ") : "ninguna"],
     ...MARKET_KINDS.map((k): [string, string] => [`Productos pedidos · ${MARKET_KIND_LABEL[k]}`, String(counts[k])]),
+    ...(changes.length > 0 ? [["Cambios solicitados", `${changes.length} (ver la hoja «Cambios»)`] as [string, string]] : []),
   ];
   summary.mergeCells(1, 1, 1, 2);
   const title = summary.getCell(1, 1);
@@ -128,6 +131,34 @@ export async function buildConsolidatedWorkbook({ weekStart, byKind, included, m
     });
   }
 
+  // --- Hoja «Cambios»: lo que las comunidades pidieron cambiar (solo si hay notas) ---
+  if (changes.length > 0) {
+    const sheet = workbook.addWorksheet("Cambios", {
+      pageSetup: { orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+      views: [{ state: "frozen", ySplit: 4 }],
+    });
+    [18, 20, 36, 70].forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
+    sheet.mergeCells(1, 1, 1, 4);
+    const t = sheet.getCell(1, 1);
+    t.value = `CAMBIOS SOLICITADOS — ${weekLabel(weekStart)}`;
+    t.font = { bold: true, size: 13, name: "Calibri" };
+    t.alignment = { horizontal: "left", vertical: "middle" };
+    sheet.getRow(1).height = 26;
+    ["COMUNIDAD", "TIPO", "PRODUCTO", "CAMBIO"].forEach((h, i) => {
+      const cell = sheet.getCell(4, i + 1);
+      cell.value = h;
+      styleCell(cell, { bold: true, fill: HEADER_FILL });
+    });
+    changes.forEach((c, idx) => {
+      const values = [c.community, MARKET_KIND_LABEL[c.kind], c.itemName ?? "(nota general)", c.text];
+      values.forEach((v, i) => {
+        const cell = sheet.getCell(5 + idx, i + 1);
+        cell.value = v;
+        styleCell(cell, { align: "left" });
+      });
+    });
+  }
+
   return workbook;
 }
 
@@ -145,6 +176,8 @@ export type CommunityExportParams = {
   quantities: Record<MarketKind, MarketQuantities>;
   // Nombres de los productos pedidos que ya no están en el catálogo activo.
   extraItems?: Record<MarketKind, MarketItem[]>;
+  // Notas de cambio ENVIADAS de cada tipo (plan 008): nota de celda en el producto y hoja «CAMBIOS».
+  changes?: Partial<Record<MarketKind, AdminMarketChange[]>>;
 };
 
 // Los nombres de hoja y títulos que usaba el Excel de las colaboradoras.
@@ -155,7 +188,7 @@ const SHEETS: { kind: MarketKind; sheet: string; title: string }[] = [
   { kind: "aseo", sheet: "ASEO", title: "CONTROL DE PEDIDOS ASEO" },
 ];
 
-export async function buildCommunityWorkbook({ community, weekStart, participants, catalog, quantities, extraItems }: CommunityExportParams) {
+export async function buildCommunityWorkbook({ community, weekStart, participants, catalog, quantities, extraItems, changes }: CommunityExportParams) {
   const ExcelJS = await loadExcel();
   const workbook = new ExcelJS.Workbook();
   const { n, monthIndex } = weekParts(weekStart);
@@ -202,6 +235,45 @@ export async function buildCommunityWorkbook({ community, weekStart, participant
         const cell = sheet.getCell(r, i + 1);
         cell.value = v;
         styleCell(cell, { align: i === 1 ? "center" : "left", bold: i === 1 && Number(v) > 0 });
+      });
+      // Como la nota de celda del Excel de antes: las notas de cambio de este producto, en su celda del nombre.
+      const notes = (changes?.[kind] ?? []).filter((c) => c.item_id === item.id);
+      if (notes.length > 0) sheet.getCell(r, 1).note = notes.map((c) => `• ${c.text}`).join("\n");
+    });
+  }
+
+  // --- Hoja «CAMBIOS»: todas las notas de la comunidad (las de producto y las generales), solo si hay ---
+  const allChanges = SHEETS.flatMap(({ kind }) => (changes?.[kind] ?? []).map((c) => ({ kind, ...c })));
+  if (allChanges.length > 0) {
+    const sheet = workbook.addWorksheet("CAMBIOS", {
+      pageSetup: { orientation: "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+      views: [{ state: "frozen", ySplit: 8 }],
+    });
+    [14, 40, 70].forEach((w, i) => { sheet.getColumn(i + 1).width = w; });
+    sheet.getCell(3, 1).value = "CAMBIOS SOLICITADOS";
+    sheet.getCell(3, 1).font = { bold: true, size: 13, name: "Calibri" };
+    const header: [string, string | number][] = [
+      ["CASA", community],
+      ["SEMANA", n],
+      ["MES", MONTH_NAMES[monthIndex]],
+    ];
+    header.forEach(([label, value], i) => {
+      sheet.getCell(4 + i, 1).value = label;
+      styleCell(sheet.getCell(4 + i, 1), { bold: true, align: "left" });
+      sheet.getCell(4 + i, 2).value = value;
+      styleCell(sheet.getCell(4 + i, 2), { align: "left" });
+    });
+    ["TIPO", "PRODUCTO", "CAMBIO"].forEach((h, i) => {
+      const cell = sheet.getCell(8, i + 1);
+      cell.value = h;
+      styleCell(cell, { bold: true, fill: HEADER_FILL });
+    });
+    allChanges.forEach((c, idx) => {
+      const values = [MARKET_KIND_LABEL[c.kind], c.item_name ?? "(nota general)", c.text];
+      values.forEach((v, i) => {
+        const cell = sheet.getCell(9 + idx, i + 1);
+        cell.value = v;
+        styleCell(cell, { align: "left" });
       });
     });
   }

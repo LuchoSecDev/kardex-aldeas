@@ -36,6 +36,15 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Al editar esa semana después, aparece "⚠ … cambió después" (aviso y botón de semana); "Volver a enviar" lo limpia.
 - [ ] El botón se bloquea mientras hay un guardado en curso.
 
+## Zona de cambios de la lista de mercado (plan 008)
+- [ ] En la lista de mercado, cada producto tiene un 📝; al tocarlo se abre «Cambios del pedido de …» con ese producto elegido y el cursor listo para escribir.
+- [ ] Agregar «cambiar pescado por pechuga» (con y sin producto): aparece en la lista de cambios, el contador sube y «Guardando…» termina en «✓ Todos los cambios guardados»; al recargar y volver a entrar la nota sigue.
+- [ ] Editar y quitar una nota funcionan; con 20 notas el campo se bloquea y avisa.
+- [ ] Al enviar, la confirmación dice cuántos cambios lleva cada tipo.
+- [ ] Como nutricionista: en la tabla de la semana aparece «📝 n cambios»; en «Ver lista» el bloque «Cambios solicitados» sale sobre los productos del tipo; en «Consolidado» salen agrupados por comunidad.
+- [ ] En el Excel de una comunidad el producto lleva una nota de celda (triángulo rojo) y hay una hoja «CAMBIOS»; el consolidado trae la hoja «Cambios». Ábrelos en Excel.
+- [ ] Celular de 360 px: sin scroll horizontal y los botones se pueden tocar sin errar.
+
 ## Semana 6 de cierre (meses que no caben en 5 semanas: marzo, agosto y noviembre de 2026)
 - [ ] Marzo 2026 muestra **Sem 6 (cierre)**; septiembre 2026 (y los demás meses que caben) **no** la muestran.
 - [ ] En la Sem 6 solo están habilitados el **30 y el 31** (y su **entrada**); los demás días y números salen deshabilitados, con el aviso de «Cierre del mes».

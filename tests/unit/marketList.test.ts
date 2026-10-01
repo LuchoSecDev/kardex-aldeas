@@ -142,3 +142,64 @@ describe("mensajes y participantes", () => {
     for (const bad of ["", "0", "501", "-3", "2,5", "abc", "1000"]) expect(parseParticipants(bad), bad).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Zona de cambios (plan 008)
+// ---------------------------------------------------------------------------
+import {
+  MAX_CHANGES,
+  MAX_CHANGE_TEXT,
+  changesForItem,
+  cleanChanges,
+  countChanges,
+  emptyKindChanges,
+  newChangeId,
+  normalizeChangeText,
+  summarizeChangesByKind,
+} from "@/lib/marketList";
+
+describe("notas de cambio: normalizeChangeText y newChangeId", () => {
+  it("junta espacios, tabulaciones y saltos de línea en un solo espacio", () => {
+    expect(normalizeChangeText("  cambiar \n\n pescado\tpor   pechuga  ")).toBe("cambiar pescado por pechuga");
+    expect(normalizeChangeText(" \n ")).toBe("");
+  });
+
+  it("los ids son distintos, de 19 caracteres y solo letras minúsculas y números (el servidor acepta [A-Za-z0-9_-]{1,40})", () => {
+    const ids = new Set(Array.from({ length: 200 }, () => newChangeId()));
+    expect(ids.size).toBe(200);
+    for (const id of ids) expect(id).toMatch(/^c[a-z0-9]{18}$/);
+  });
+});
+
+describe("notas de cambio: cleanChanges", () => {
+  const n = (id: string, text: string, item_id: string | null = null) => ({ id, item_id, text });
+
+  it("normaliza el texto, descarta las vacías y conserva id, producto y fecha", () => {
+    expect(cleanChanges([{ id: "a", item_id: "mc1", text: "  Cambiar   pescado ", at: "2026-10-01T00:00:00Z" }, n("b", "   "), n("c", "otra")])).toEqual([
+      { id: "a", item_id: "mc1", text: "Cambiar pescado", at: "2026-10-01T00:00:00Z" },
+      { id: "c", item_id: null, text: "otra" },
+    ]);
+  });
+
+  it("corta cada texto a 200 caracteres y la lista a 20 notas", () => {
+    expect(cleanChanges([n("a", "x".repeat(300))])[0].text).toHaveLength(MAX_CHANGE_TEXT);
+    const muchas = Array.from({ length: 30 }, (_, i) => n(`n${i}`, `nota ${i}`));
+    expect(cleanChanges(muchas)).toHaveLength(MAX_CHANGES);
+  });
+
+  it("quita el vínculo con un producto que ya no está en el catálogo activo, solo si el catálogo cargó", () => {
+    const known = new Set(["mc1"]);
+    expect(cleanChanges([n("a", "x", "mc1"), n("b", "y", "viejo")], known).map((c) => c.item_id)).toEqual(["mc1", null]);
+    expect(cleanChanges([n("a", "x", "viejo")], new Set()).map((c) => c.item_id)).toEqual(["viejo"]); // catálogo aún vacío
+    expect(cleanChanges([n("a", "x", "viejo")]).map((c) => c.item_id)).toEqual(["viejo"]);
+  });
+});
+
+describe("notas de cambio: conteos", () => {
+  it("cuenta por tipo, en total y por producto", () => {
+    const changes = { ...emptyKindChanges(), carnes: [{ id: "a", item_id: "mc1", text: "x" }, { id: "b", item_id: null, text: "y" }], aseo: [{ id: "c", item_id: "ms1", text: "z" }] };
+    expect(countChanges(changes)).toBe(3);
+    expect(changesForItem(changes.carnes, "mc1")).toHaveLength(1);
+    expect(summarizeChangesByKind(changes).map((s) => [s.kind, s.count])).toEqual([["fruver", 0], ["carnes", 2], ["abarrotes", 0], ["aseo", 1]]);
+  });
+});

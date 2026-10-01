@@ -1,6 +1,6 @@
 import { MARKET_KINDS, type MarketKind } from "@/lib/marketCalendar";
 import { filterItems } from "@/lib/marketList";
-import type { AdminMarketConsolidatedRow } from "@/types/market";
+import type { AdminMarketConsolidatedRow, AdminMarketList } from "@/types/market";
 
 // Consolidado de la lista de mercado entre comunidades (plan 003, Fase D): por producto, el total
 // de lo que enviaron todas las comunidades esa semana y el detalle por comunidad. Sin precios.
@@ -70,3 +70,42 @@ export const filterConsolidated = (items: ConsolidatedItem[], query: string): Co
   const matching = new Set(filterItems(items.map((i) => ({ id: i.id, name: i.name, kind: "fruver" as const, unit: i.unit, is_event: i.isEvent, sort_order: i.sortOrder })), query).map((i) => i.id));
   return items.filter((i) => matching.has(i.id));
 };
+
+// ---------------------------------------------------------------------------
+// Cambios solicitados (plan 008): las notas de cambio ENVIADAS por las comunidades
+// ---------------------------------------------------------------------------
+
+export type ConsolidatedChange = {
+  community: string;
+  kind: MarketKind;
+  // null = nota general (no ligada a un producto).
+  itemName: string | null;
+  unit: string | null;
+  text: string;
+  at: string;
+};
+
+// Junta las notas enviadas de varias comunidades: por comunidad (A-Z), luego por tipo (fruver, carnes, abarrotes,
+// aseo) y, dentro de cada tipo, en el orden en que se escribieron.
+export function collectChanges(lists: Pick<AdminMarketList, "community" | "lists">[]): ConsolidatedChange[] {
+  const out: ConsolidatedChange[] = [];
+  for (const list of [...lists].sort((a, b) => byName(a.community, b.community))) {
+    for (const kind of MARKET_KINDS) {
+      const kindList = list.lists.find((l) => l.kind === kind);
+      for (const change of kindList?.changes ?? []) {
+        out.push({ community: list.community, kind, itemName: change.item_name, unit: change.unit, text: change.text, at: change.at });
+      }
+    }
+  }
+  return out;
+}
+
+export function groupChangesByCommunity(changes: ConsolidatedChange[]): { community: string; changes: ConsolidatedChange[] }[] {
+  const groups: { community: string; changes: ConsolidatedChange[] }[] = [];
+  for (const change of changes) {
+    const last = groups[groups.length - 1];
+    if (last && last.community === change.community) last.changes.push(change);
+    else groups.push({ community: change.community, changes: [change] });
+  }
+  return groups;
+}

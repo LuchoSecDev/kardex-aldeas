@@ -16,10 +16,19 @@ export type MarketItem = {
 // Cantidades por ítem: {item_id: cantidad}; solo las distintas de cero.
 export type MarketQuantities = Record<string, number>;
 
+// Una nota de la zona de cambios de un tipo de lista (plan 008): p. ej. «pescado por pechuga». `item_id` es el
+// producto al que se refiere (o null si es una nota general); `at` la pone el servidor.
+export type MarketChange = { id: string; item_id: string | null; text: string; at?: string };
+
+// Las notas de cada uno de los 4 tipos.
+export type KindChanges = Record<MarketKind, MarketChange[]>;
+
 // Lo que la comunidad ve de UNA de las 4 listas de una semana.
 export type MarketListRow = {
   kind: MarketKind;
   quantities: MarketQuantities;
+  // Notas de cambio (copia de trabajo). Opcional: una respuesta del servidor anterior no las traía.
+  changes?: MarketChange[];
   // Alguna vez se envió.
   sent: boolean;
   // Se editó después de enviarla (hay cambios sin enviar).
@@ -73,6 +82,8 @@ export type AdminMarketRow = {
   has_draft: boolean;
   // Productos pedidos de cada tipo, de lo ENVIADO.
   counts: Record<MarketKind, number>;
+  // Notas de cambio ENVIADAS (plan 008). Opcional por la misma razón que MarketListRow.changes.
+  changes_count?: number;
 };
 
 export type AdminMarketOverview = {
@@ -91,13 +102,23 @@ export type AdminMarketItem = {
   quantity: number;
 };
 
+// Una nota de cambio ENVIADA, con el nombre del producto cuando lo tiene (null = nota general).
+export type AdminMarketChange = {
+  id: string;
+  item_id: string | null;
+  item_name: string | null;
+  unit: string | null;
+  text: string;
+  at: string;
+};
+
 // Lo que envió UNA comunidad en una semana: solo los productos pedidos, sin precios.
-export type AdminMarketList = Omit<AdminMarketRow, "counts" | "has_draft"> & {
+export type AdminMarketList = Omit<AdminMarketRow, "counts" | "has_draft" | "changes_count"> & {
   week_start: string;
   friday: string;
   deadline_at: string;
   kinds_due: MarketKind[] | null;
-  lists: { kind: MarketKind; items: AdminMarketItem[] }[];
+  lists: { kind: MarketKind; items: AdminMarketItem[]; changes?: AdminMarketChange[] }[];
 };
 
 // Una entrada de la campanita: lista enviada sin revisar (o reenviada con cambios).

@@ -17,7 +17,7 @@ import {
 import { adminService } from "@/lib/adminService";
 import { exportCommunityListToExcel } from "@/lib/exporters/marketExporter";
 import { formatDeadline, resolveKindsDue } from "@/lib/marketList";
-import type { MarketItem, MarketQuantities } from "@/types/market";
+import type { AdminMarketChange, MarketItem, MarketQuantities } from "@/types/market";
 import { formatDateTime } from "@/lib/weekStatus";
 
 const fmt = (n: number) => n.toLocaleString("es-CO", { maximumFractionDigits: 2 });
@@ -60,8 +60,10 @@ export default function AdminMarketLists({
           }
         }
       }
+      const changes: Partial<Record<MarketKind, AdminMarketChange[]>> = {};
+      for (const l of list.lists) changes[l.kind] = l.changes ?? [];
       await exportCommunityListToExcel({
-        community, weekStart: list.week_start, participants: list.participants, catalog, quantities, extraItems,
+        community, weekStart: list.week_start, participants: list.participants, catalog, quantities, extraItems, changes,
       });
     } catch (e) {
       console.error("Error exportando la lista de la comunidad:", e);
@@ -81,6 +83,7 @@ export default function AdminMarketLists({
     const d = market.detail;
     const due = d ? resolveKindsDue(d.kinds_due, d.friday) : [];
     const state = d ? adminListState(d, d.deadline_at, now) : null;
+    const totalChanges = d ? d.lists.reduce((sum, l) => sum + (l.changes?.length ?? 0), 0) : 0;
     return (
       <div className="card admin-market-detail">
         <div className="admin-market-detail-head">
@@ -112,6 +115,9 @@ export default function AdminMarketLists({
                   <li className={d.late ? "admin-market-late" : ""}>{punctualityLabel(d)}</li>
                   {d.submit_count > 1 && <li>Enviada {d.submit_count} veces</li>}
                   {d.participants !== null && <li>{d.participants} participantes</li>}
+                  {totalChanges > 0 && (
+                    <li className="admin-market-notes-flag">📝 {totalChanges} {totalChanges === 1 ? "cambio solicitado" : "cambios solicitados"}</li>
+                  )}
                 </ul>
 
                 {d.has_unsent_changes && (
@@ -131,6 +137,19 @@ export default function AdminMarketLists({
                         <span className="admin-market-kind-note"> (ese viernes no tocaba)</span>
                       )}
                     </h3>
+                    {(list.changes?.length ?? 0) > 0 && (
+                      <div className="admin-market-notes" role="group" aria-label={`Cambios solicitados de ${MARKET_KIND_LABEL[list.kind]}`}>
+                        <p className="admin-market-notes-title">📝 Cambios solicitados</p>
+                        <ul className="admin-market-notes-list">
+                          {(list.changes ?? []).map((change) => (
+                            <li key={change.id}>
+                              <span className="market-change-chip">{change.item_name ?? "General"}</span>{" "}
+                              <span className="admin-market-note-text">{change.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     {list.items.length > 0 && (
                       <table className="admin-subtable admin-market-items">
                         <thead>
@@ -284,6 +303,11 @@ export default function AdminMarketLists({
                           )}
                           {row.has_unsent_changes && (
                             <span className="admin-market-flag" title="La comunidad editó después de enviar"> ✎ cambios sin enviar</span>
+                          )}
+                          {row.sent && (row.changes_count ?? 0) > 0 && (
+                            <span className="admin-market-flag admin-market-notes-flag" title="Cambios solicitados en el pedido">
+                              {" "}📝 {row.changes_count} {row.changes_count === 1 ? "cambio" : "cambios"}
+                            </span>
                           )}
                           {!row.sent && row.has_draft && <span className="admin-market-flag"> Llenando</span>}
                         </td>

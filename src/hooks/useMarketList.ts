@@ -12,18 +12,26 @@ import {
 } from "@/lib/marketCalendar";
 import type { MarketKind } from "@/lib/marketCalendar";
 import {
+  MAX_CHANGES,
+  cleanChanges,
   cleanQuantities,
   draftsFromQuantities,
+  emptyKindChanges,
   emptyKindDrafts,
+  newChangeId,
+  normalizeChangeText,
   parseParticipants,
   resolveKindsDue,
   sanitizeQuantityInput,
   submitErrorMessage,
   type KindDrafts,
 } from "@/lib/marketList";
-import type { MarketItem, MarketQuantities, MarketWeek } from "@/types/market";
+import type { KindChanges, MarketChange, MarketItem, MarketQuantities, MarketWeek } from "@/types/market";
 
-type SavePayload = { weekStart: string; kind: MarketKind; quantities: MarketQuantities };
+// Lo que viaja por la cola de guardado: las cantidades de un tipo o sus notas de cambio (plan 008).
+type SavePayload =
+  | { type: "quantities"; weekStart: string; kind: MarketKind; quantities: MarketQuantities }
+  | { type: "changes"; weekStart: string; kind: MarketKind; changes: MarketChange[] };
 type Message = { kind: "ok" | "error"; text: string };
 
 // Pausa tras la última tecla antes de guardar (evita un guardado por pulsación).
@@ -39,6 +47,7 @@ export function useMarketList() {
   const [items, setItems] = useState<MarketItem[]>([]);
   const [week, setWeek] = useState<MarketWeek | null>(null);
   const [drafts, setDrafts] = useState<KindDrafts>(emptyKindDrafts);
+  const [changes, setChanges] = useState<KindChanges>(emptyKindChanges);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -49,13 +58,19 @@ export function useMarketList() {
   const [isSavingParticipants, setIsSavingParticipants] = useState(false);
 
   const draftsRef = useRef(drafts);
+  const changesRef = useRef(changes);
+  const itemsRef = useRef<MarketItem[]>([]);
   const weekStartRef = useRef(weekStart);
   const timers = useRef<Partial<Record<MarketKind, ReturnType<typeof setTimeout>>>>({});
+  const changeTimers = useRef<Partial<Record<MarketKind, ReturnType<typeof setTimeout>>>>({});
 
   // La cola vive lo que vive la pantalla.
   const [queue] = useState<SaveQueue<SavePayload>>(() =>
     createSaveQueue<SavePayload>({
-      send: (p) => marketService.saveList(p.weekStart, p.kind, p.quantities),
+      send: (p) =>
+        p.type === "quantities"
+          ? marketService.saveList(p.weekStart, p.kind, p.quantities)
+          : marketService.saveChanges(p.weekStart, p.kind, p.changes),
       onStatusChange: setQueueStatus,
     })
   );
@@ -70,6 +85,7 @@ export function useMarketList() {
         setLoadError(true);
         return;
       }
+      itemsRef.current = data;
       setItems(data);
     });
     return () => {
@@ -81,10 +97,21 @@ export function useMarketList() {
   const enqueueKind = useCallback(
     (kind: MarketKind, forWeek: string) => {
       const quantities = cleanQuantities(draftsRef.current[kind]);
-      return queue.enqueue(`${forWeek}|${kind}`, { weekStart: forWeek, kind, quantities });
+      return queue.enqueue(`${forWeek}|${kind}`, { type: "quantities", weekStart: forWeek, kind, quantities });
     },
     [queue]
   );
+
+  const enqueueChanges = useCallback(
+    (kind: MarketKind, forWeek: string) => {
+      const known = new Set(itemsRef.current.map((i) => i.id));
+      const clean = cleanChanges(changesRef.current[kind], known);
+      return queue.enqueue(`c|${forWeek}|${kind}`, { type: "changes", weekStart: forWeek, kind, changes: clean });
+    },
+    [queue]
+  );
+
+  const noTimersPending = () => Object.keys(timers.current).length === 0 && Object.keys(changeTimers.current).length === 0;
 
   // Manda ya lo que esté esperando la pausa (al enviar, al cambiar de semana, al salir).
   const flushPending = useCallback(() => {
@@ -95,13 +122,22 @@ export function useMarketList() {
       delete timers.current[kind];
       enqueueKind(kind, weekStartRef.current);
     }
+    for (const kind of MARKET_KINDS) {
+      const timer = changeTimers.current[kind];
+      if (timer === undefined) continue;
+      clearTimeout(timer);
+      delete changeTimers.current[kind];
+      enqueueChanges(kind, weekStartRef.current);
+    }
     setDirty(false);
-  }, [enqueueKind]);
+  }, [enqueueKind, enqueueChanges]);
 
   useEffect(() => {
     const pending = timers.current;
+    const pendingChanges = changeTimers.current;
     return () => {
       Object.values(pending).forEach((t) => t !== undefined && clearTimeout(t));
+      Object.values(pendingChanges).forEach((t) => t !== undefined && clearTimeout(t));
     };
   }, []);
 
@@ -119,11 +155,59 @@ export function useMarketList() {
       const forWeek = weekStartRef.current;
       timers.current[kind] = setTimeout(() => {
         delete timers.current[kind];
-        if (Object.keys(timers.current).length === 0) setDirty(false);
+        if (noTimersPending()) setDirty(false);
         enqueueKind(kind, forWeek);
       }, SAVE_DEBOUNCE_MS);
     },
     [enqueueKind]
+  );
+
+  // --- Zona de cambios (plan 008): agregar, editar y quitar notas; se guardan solas igual que las cantidades ---
+  const applyChanges = useCallback(
+    (kind: MarketKind, update: (current: MarketChange[]) => MarketChange[]) => {
+      const next = { ...changesRef.current, [kind]: update(changesRef.current[kind]) };
+      changesRef.current = next;
+      setChanges(next);
+      setMessage(null);
+
+      setDirty(true);
+      const previous = changeTimers.current[kind];
+      if (previous !== undefined) clearTimeout(previous);
+      const forWeek = weekStartRef.current;
+      changeTimers.current[kind] = setTimeout(() => {
+        delete changeTimers.current[kind];
+        if (noTimersPending()) setDirty(false);
+        enqueueChanges(kind, forWeek);
+      }, SAVE_DEBOUNCE_MS);
+    },
+    [enqueueChanges]
+  );
+
+  // Devuelve un aviso si no se pudo agregar (vacía o ya hay 20), o null si quedó agregada.
+  const addChange = useCallback(
+    (kind: MarketKind, itemId: string | null, raw: string): string | null => {
+      const text = normalizeChangeText(raw);
+      if (!text) return "Escribe el cambio que quieres pedir.";
+      if (changesRef.current[kind].length >= MAX_CHANGES) return `Ya hay ${MAX_CHANGES} cambios en esta lista: quita alguno para agregar otro.`;
+      applyChanges(kind, (current) => [...current, { id: newChangeId(), item_id: itemId, text }]);
+      return null;
+    },
+    [applyChanges]
+  );
+
+  const updateChange = useCallback(
+    (kind: MarketKind, id: string, raw: string): string | null => {
+      const text = normalizeChangeText(raw);
+      if (!text) return "El cambio no puede quedar vacío: escríbelo o quítalo.";
+      applyChanges(kind, (current) => current.map((c) => (c.id === id ? { ...c, text } : c)));
+      return null;
+    },
+    [applyChanges]
+  );
+
+  const removeChange = useCallback(
+    (kind: MarketKind, id: string) => applyChanges(kind, (current) => current.filter((c) => c.id !== id)),
+    [applyChanges]
   );
 
   // --- Semana: carga completa al cambiar de semana, y solo los datos de envío
@@ -148,9 +232,15 @@ export function useMarketList() {
         return;
       }
       const fresh = emptyKindDrafts();
-      for (const list of data.lists) fresh[list.kind] = draftsFromQuantities(list.quantities);
+      const freshChanges = emptyKindChanges();
+      for (const list of data.lists) {
+        fresh[list.kind] = draftsFromQuantities(list.quantities);
+        freshChanges[list.kind] = list.changes ?? [];
+      }
       draftsRef.current = fresh;
+      changesRef.current = freshChanges;
       setDrafts(fresh);
+      setChanges(freshChanges);
       setWeek(data);
       setLoadError(false);
       setIsLoading(false);
@@ -263,6 +353,10 @@ export function useMarketList() {
     deadlineAt,
     drafts,
     setQuantity,
+    changes,
+    addChange,
+    updateChange,
+    removeChange,
     isLoading,
     loadError,
     reload: () => {

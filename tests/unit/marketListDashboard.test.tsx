@@ -10,6 +10,7 @@ vi.mock("@/lib/marketService", () => ({
     loadCatalog: vi.fn(),
     loadWeek: vi.fn(),
     saveList: vi.fn(),
+    saveChanges: vi.fn(),
     setParticipants: vi.fn(),
     submitWeek: vi.fn(),
   },
@@ -74,6 +75,7 @@ beforeEach(() => {
   service.loadCatalog.mockResolvedValue({ data: CATALOG, error: null });
   service.loadWeek.mockResolvedValue(okWeek());
   service.saveList.mockResolvedValue({ data: null, error: null });
+  service.saveChanges.mockResolvedValue({ data: null, error: null });
   service.setParticipants.mockResolvedValue({ data: null, error: null });
   service.submitWeek.mockResolvedValue({ data: { submitted_at: NOW.toISOString(), late: false, changed_after_deadline: false }, error: null });
   vi.spyOn(window, "confirm").mockReturnValue(true);
