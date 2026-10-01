@@ -53,7 +53,8 @@ describe("supabase/market_seed_N.sql", () => {
   const files = readdirSync(SEED_DIR)
     .filter((f) => SEED_FILE.test(f))
     .sort((a, b) => Number(a.match(/\d+/)![0]) - Number(b.match(/\d+/)![0]));
-  const read = (name: string) => readFileSync(path.join(SEED_DIR, name), "utf8");
+  // Normaliza saltos de línea: en Windows Git puede dejar los .sql con CRLF y no es un cambio real.
+  const read = (name: string) => readFileSync(path.join(SEED_DIR, name), "utf8").replace(/\r\n/g, "\n");
 
   it("coinciden con lo que genera scripts/generate-market-seed.ts (si falla: npm run seed:market)", () => {
     const expected = renderMarketSeedFiles(readCatalog());

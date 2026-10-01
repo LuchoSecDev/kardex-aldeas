@@ -1,0 +1,4 @@
+# Los scripts SQL se pegan en Supabase y se prueban con bash: siempre con saltos de línea LF,
+# también en Windows (si no, tests/unit/marketSeed.test.ts y tests/db/run.sh se confunden).
+*.sql text eol=lf
+*.sh  text eol=lf
