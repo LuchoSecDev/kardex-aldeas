@@ -23,7 +23,7 @@ Hay cuatro niveles, del más rápido al más completo:
 
 Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usando la anon key de `.env.local`, igual que la app. Por eso:
 
-1. **Escriben solo en comunidades `ZZZ_TEST_BORRAR_AUTO_*`**, que crean ellas mismas con nombre único en cada corrida.
+1. **Escriben solo en comunidades `ZZZ_TEST_BORRAR_AUTO_*`**, que crean ellas mismas con nombre único en cada corrida. Crear comunidades ya no es libre (plan 005): usan `provision_community` con la clave `PROVISION_KEY` de `.env.local` (nunca va al navegador ni al repositorio; se define con `supabase/lock_down_community_creation_1.sql`). Sin esa clave, las pruebas se detienen con un mensaje claro.
 2. **Nunca prueban PINs incorrectos contra comunidades reales** (Maná, Fortaleza…): bloquearían a quien las usa. Lo único que se hace con Maná es un login sin PIN, que no cuenta como intento fallido.
 3. **Dejan datos de prueba a propósito** (no pueden borrarlos: la app no tiene permiso de borrado). Cuando quieras, corre [`supabase/cleanup_test_data.sql`](../supabase/cleanup_test_data.sql) en el SQL Editor; borra todo lo que empiece por `ZZZ_TEST_`, y la consulta final debe devolver 0 filas.
 4. Ninguna comunidad real debe llamarse `ZZZ_TEST_...`.
@@ -49,6 +49,8 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 - `integration/market-lists.test.ts` — lista de mercado contra Supabase: acceso, catálogo, guardar, enviar, tardías, aislamiento. **Necesita haber corrido los `market_lists_1..5.sql` y los `market_seed_N.sql`.**
 - `unit/balanceEngine.test.ts` — cálculo de saldos (encadenado, ajustes, decimales, negativos), saldo heredado entre meses, semáforo.
 - `integration/sessions.test.ts` — PIN, login/logout, tokens inválidos, funciones internas no expuestas, nombres y PIN inválidos.
+- `db/community_creation.test.sql` e `integration/community-creation.test.ts` — las 8 comunidades fijas existen con PIN, repetir `fixed_communities.sql` no cambia PIN ya puestos, `create_community_with_pin` y `claim_pin_for_existing_community` ya no se pueden llamar, `provision_community` exige la clave, y una comunidad sin PIN no entra. **Necesita haber corrido `fixed_communities.sql` y `lock_down_community_creation_1..2.sql`.**
+- `unit/homePage.test.tsx` — la pantalla de entrada: solo se elige de la lista (sin crear comunidades ni PIN), pide solo el PIN, no entra a una comunidad sin PIN, avisa si no carga la lista.
 - `integration/lockout.test.ts` — 5 fallos bloquean 15 min (incluso con el PIN correcto); un acierto reinicia el contador.
 - `integration/data-access.test.ts` — tablas cerradas al acceso directo, guardar/leer sin perder decimales, aislamiento entre comunidades, validaciones del servidor, ajustes de solo inserción.
 - `integration/admin-security.test.ts` — la cuenta de la nutricionista: tokens falsos o de comunidad rechazados, funciones internas y tablas cerradas. **Sin riesgo** para la cuenta real (nunca intenta contraseñas).

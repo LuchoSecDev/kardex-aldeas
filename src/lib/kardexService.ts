@@ -22,18 +22,10 @@ export const kardexService = {
     return supabase.from("communities").select("name,has_pin").order("name");
   },
 
-  async createCommunityWithPin(name: string, pin: string) {
-    return supabase.rpc("create_community_with_pin", { p_name: name, p_pin: pin });
-  },
-
-  async claimPinForExistingCommunity(name: string, pin: string) {
-    return supabase.rpc("claim_pin_for_existing_community", { p_name: name, p_pin: pin });
-  },
-
-  // Devuelve el token de sesión, o null si el PIN es incorrecto. Con una
-  // comunidad sin PIN se puede llamar sin PIN.
-  async loginCommunity(name: string, pin?: string): Promise<RpcResult<string>> {
-    const { data, error } = await supabase.rpc("login_community", { p_name: name, p_pin: pin ?? null });
+  // Devuelve el token de sesión, o null si el PIN es incorrecto (o la comunidad no
+  // tiene PIN: ya no se puede entrar sin él).
+  async loginCommunity(name: string, pin: string): Promise<RpcResult<string>> {
+    const { data, error } = await supabase.rpc("login_community", { p_name: name, p_pin: pin });
     return { data: (data as string | null) ?? null, error };
   },
 

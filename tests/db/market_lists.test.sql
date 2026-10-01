@@ -30,11 +30,12 @@ end $$;
 grant execute on function tst.ok(boolean, text), tst.raises(text, text, text) to anon;
 
 -- Comunidades de prueba: A y B con participantes, C sin participantes.
+\i tests/db/provision_key.sql
 set role anon;
 do $$ begin
-  perform create_community_with_pin('ZZZ_TEST_mkt_A', '4321');
-  perform create_community_with_pin('ZZZ_TEST_mkt_B', '4321');
-  perform create_community_with_pin('ZZZ_TEST_mkt_C', '4321');
+  perform provision_community('clave-de-prueba', 'ZZZ_TEST_mkt_A', '4321');
+  perform provision_community('clave-de-prueba', 'ZZZ_TEST_mkt_B', '4321');
+  perform provision_community('clave-de-prueba', 'ZZZ_TEST_mkt_C', '4321');
   perform set_config('tst.tok_a', login_community('ZZZ_TEST_mkt_A', '4321'), false);
   perform set_config('tst.tok_b', login_community('ZZZ_TEST_mkt_B', '4321'), false);
   perform set_config('tst.tok_c', login_community('ZZZ_TEST_mkt_C', '4321'), false);

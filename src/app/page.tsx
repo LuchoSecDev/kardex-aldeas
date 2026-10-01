@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CommunityShell from "@/components/CommunityShell";
-import CommunityCombobox from "@/components/CommunityCombobox";
-import PinGate, { PinGateMode } from "@/components/PinGate";
+import CustomSelect from "@/components/CustomSelect";
+import PinGate from "@/components/PinGate";
 import { kardexService } from "@/lib/kardexService";
 import { session } from "@/lib/session";
 
@@ -15,35 +15,43 @@ export default function Home() {
   const [tempSelection, setTempSelection] = useState("");
   const [communities, setCommunities] = useState<CommunityInfo[]>([]);
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
-  // Paso de PIN: null mientras se elige la comunidad; se activa al enviar
-  // el formulario, en el modo que corresponda según si la comunidad existe
-  // y si ya tiene PIN.
-  const [pinMode, setPinMode] = useState<PinGateMode | null>(null);
-  const [pinCommunity, setPinCommunity] = useState("");
+  // Paso del PIN: null mientras se elige la comunidad. Las comunidades son fijas
+  // (las crea la administración con su PIN, ver planes/005): aquí solo se elige una.
+  const [pinCommunity, setPinCommunity] = useState<string | null>(null);
   const [isSubmittingPin, setIsSubmittingPin] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [sessionNotice, setSessionNotice] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCommunities = async () => {
       const { data, error } = await kardexService.loadCommunities();
-      if (error) {
+      if (error || !data) {
         console.error("Error cargando comunidades:", error);
-      } else if (data) {
+        setLoadFailed(true);
+      } else {
         setCommunities(data as CommunityInfo[]);
+        setLoadFailed(false);
       }
       setIsLoadingCommunities(false);
     };
     loadCommunities();
-  }, []);
+  }, [loadAttempt]);
+
+  const retryLoad = () => {
+    setIsLoadingCommunities(true);
+    setLoadAttempt((n) => n + 1);
+  };
 
   // Si el servidor rechaza el token (sesión vencida), se vuelve a la pantalla
   // de entrada con un aviso en vez de fallar en silencio al guardar.
   useEffect(() => {
     return session.onExpired(() => {
       setSelectedCommunity(null);
-      setPinMode(null);
+      setPinCommunity(null);
       setTempSelection("");
       setSessionNotice("Tu sesión venció. Vuelve a entrar con el PIN de tu comunidad.");
     });
@@ -51,23 +59,29 @@ export default function Home() {
 
   const handleEnter = (e: React.FormEvent) => {
     e.preventDefault();
-    const typed = tempSelection.trim();
-    if (!typed) return;
+    const community = communities.find((c) => c.name === tempSelection);
+    if (!community) return;
 
-    // Si ya existe con otra combinación de mayúsculas/minúsculas, usamos el
-    // nombre ya guardado para no crear una comunidad duplicada.
-    const existing = communities.find((c) => c.name.toLowerCase() === typed.toLowerCase());
-    const finalName = existing?.name ?? typed;
+    // Una comunidad sin PIN no puede entrar (tampoco lo permite el servidor).
+    if (!community.has_pin) {
+      setSelectionError("Esta comunidad todavía no tiene PIN. Pídele a la administradora que se lo asigne.");
+      return;
+    }
 
-    setPinCommunity(finalName);
+    setSelectionError(null);
     setPinError(null);
-    setPinMode(!existing ? "create" : existing.has_pin ? "verify" : "claim");
+    setPinCommunity(community.name);
   };
 
   // Pide el token de sesión al servidor y, si lo obtiene, entra al kardex.
-  // Devuelve false (con el mensaje ya mostrado) si no se pudo entrar.
-  const enterWithSession = async (pin?: string): Promise<boolean> => {
+  const handleSubmitPin = async (pin: string) => {
+    if (!pinCommunity) return;
+    setIsSubmittingPin(true);
+    setPinError(null);
+
     const { data: token, error } = await kardexService.loginCommunity(pinCommunity, pin);
+    setIsSubmittingPin(false);
+
     if (error) {
       console.error("Error iniciando sesión:", error);
       setPinError(
@@ -75,68 +89,19 @@ export default function Home() {
           ? "Demasiados intentos fallidos. Espera 15 minutos e inténtalo de nuevo."
           : "No se pudo verificar el PIN. Intenta de nuevo."
       );
-      return false;
+      return;
     }
     if (!token) {
       setPinError("PIN incorrecto.");
-      return false;
+      return;
     }
     session.set(token);
     setSessionNotice(null);
     setSelectedCommunity(pinCommunity);
-    return true;
-  };
-
-  const handleSubmitPin = async (pin: string) => {
-    setIsSubmittingPin(true);
-    setPinError(null);
-
-    if (pinMode === "create") {
-      const { data, error } = await kardexService.createCommunityWithPin(pinCommunity, pin);
-      if (error || !data) {
-        console.error("Error creando la comunidad:", error);
-        setIsSubmittingPin(false);
-        setPinError("No se pudo crear la comunidad. Intenta de nuevo.");
-        return;
-      }
-      // Actualiza la lista en memoria: si no, al salir y volver a entrar a
-      // esta misma comunidad se trataría otra vez como si fuera nueva.
-      setCommunities((prev) => [...prev, { name: pinCommunity, has_pin: true }]);
-    } else if (pinMode === "claim") {
-      const { data, error } = await kardexService.claimPinForExistingCommunity(pinCommunity, pin);
-      if (error || !data) {
-        console.error("Error asignando el PIN:", error);
-        setIsSubmittingPin(false);
-        setPinError("No se pudo asignar el PIN. Intenta de nuevo.");
-        return;
-      }
-      setCommunities((prev) => prev.map((c) => c.name === pinCommunity ? { ...c, has_pin: true } : c));
-    }
-
-    const entered = await enterWithSession(pin);
-    setIsSubmittingPin(false);
-    // La comunidad/PIN ya quedaron creados: si el inicio de sesión falla, un
-    // reintento debe pasar por la verificación normal, no volver a crear.
-    if (!entered && pinMode !== "verify") setPinMode("verify");
-  };
-
-  const handleSkipClaim = async () => {
-    setIsSubmittingPin(true);
-    setPinError(null);
-    const entered = await enterWithSession();
-    setIsSubmittingPin(false);
-    // Si mientras tanto alguien le puso PIN a la comunidad, ya no se puede
-    // entrar sin él: se pasa a pedirlo.
-    if (!entered) {
-      setCommunities((prev) => prev.map((c) => c.name === pinCommunity ? { ...c, has_pin: true } : c));
-      setPinMode("verify");
-      setPinError("Esta comunidad ya tiene PIN. Ingrésalo para entrar.");
-    }
   };
 
   const handleCancelPin = () => {
-    setPinMode(null);
-    setPinCommunity("");
+    setPinCommunity(null);
     setPinError(null);
     setTempSelection("");
   };
@@ -144,7 +109,8 @@ export default function Home() {
   const handleLogout = () => {
     kardexService.logoutCommunity();
     setSelectedCommunity(null);
-    setPinMode(null);
+    setPinCommunity(null);
+    setTempSelection("");
   };
 
   if (selectedCommunity) {
@@ -159,14 +125,12 @@ export default function Home() {
       justifyContent: "center",
       padding: "var(--spacing-base)",
     }}>
-      {pinMode ? (
+      {pinCommunity ? (
         <PinGate
           community={pinCommunity}
-          mode={pinMode}
           isSubmitting={isSubmittingPin}
           serverError={pinError}
           onSubmitPin={handleSubmitPin}
-          onSkipClaim={handleSkipClaim}
           onCancel={handleCancelPin}
         />
       ) : (
@@ -178,7 +142,7 @@ export default function Home() {
           </h1>
 
           <p style={{ marginBottom: "2rem", fontSize: "1.2rem" }}>
-            Bienvenido. Escriba el nombre de su comunidad (o selecciónela si ya existe) para comenzar el registro diario de alimentos.
+            Bienvenido. Seleccione su comunidad para comenzar el registro diario de alimentos.
           </p>
 
           {sessionNotice && (
@@ -187,27 +151,49 @@ export default function Home() {
             </p>
           )}
 
-          <form onSubmit={handleEnter} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            <div style={{ textAlign: "left" }}>
-              <label htmlFor="community" style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold" }}>
-                Comunidad
-              </label>
-              <CommunityCombobox
-                value={tempSelection}
-                onChange={setTempSelection}
-                suggestions={communities.map((c) => c.name)}
-              />
+          {loadFailed ? (
+            <div role="alert" style={{ marginBottom: "1rem" }}>
+              <p style={{ color: "var(--color-accent-red)", fontWeight: 600, marginBottom: "1rem" }}>
+                No se pudo cargar la lista de comunidades. Revisa tu conexión a internet.
+              </p>
+              <button type="button" className="btn btn-primary" onClick={retryLoad} disabled={isLoadingCommunities}>
+                {isLoadingCommunities ? "Cargando..." : "Reintentar"}
+              </button>
             </div>
+          ) : (
+            <form onSubmit={handleEnter} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <div style={{ textAlign: "left" }}>
+                <label htmlFor="community" style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold" }}>
+                  Comunidad
+                </label>
+                <CustomSelect
+                  className="home-select"
+                  options={communities.map((c) => ({ value: c.name, label: c.name }))}
+                  value={tempSelection}
+                  onChange={(value) => {
+                    setTempSelection(value);
+                    setSelectionError(null);
+                  }}
+                  placeholder={isLoadingCommunities ? "Cargando comunidades..." : "Elija su comunidad"}
+                />
+              </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ fontSize: "1.25rem", padding: "1rem", marginTop: "1rem" }}
-              disabled={!tempSelection.trim() || isLoadingCommunities}
-            >
-              {isLoadingCommunities ? "Cargando comunidades..." : "Continuar"}
-            </button>
-          </form>
+              {selectionError && (
+                <p role="alert" style={{ color: "var(--color-accent-red)", fontWeight: 600, margin: 0 }}>
+                  {selectionError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ fontSize: "1.25rem", padding: "1rem", marginTop: "1rem" }}
+                disabled={!tempSelection || isLoadingCommunities}
+              >
+                {isLoadingCommunities ? "Cargando comunidades..." : "Continuar"}
+              </button>
+            </form>
+          )}
 
           {/* Acceso de la nutricionista: discreto y aparte del formulario de las
               comunidades (ver planes/001). */}

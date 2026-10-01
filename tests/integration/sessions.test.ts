@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TEST_PIN, createTestCommunity, supabase, uniqueName } from "./helpers";
+import { TEST_PIN, createTestCommunity, provision, supabase, uniqueName } from "./helpers";
 
 describe("PIN y sesiones", () => {
   it("login a una comunidad que no existe devuelve null", async () => {
@@ -33,18 +33,18 @@ describe("PIN y sesiones", () => {
   });
 
   it("rechaza un PIN que no sean 4 dígitos", async () => {
-    const { error } = await supabase.rpc("create_community_with_pin", { p_name: uniqueName("badfmt"), p_pin: "12a4" });
+    const { error } = await provision(uniqueName("badfmt"), "12a4");
     expect(error?.message).toContain("PIN inválido");
   });
 
   it("rechaza nombres de comunidad demasiado cortos", async () => {
-    const { error } = await supabase.rpc("create_community_with_pin", { p_name: "x", p_pin: TEST_PIN });
+    const { error } = await provision("x", TEST_PIN);
     expect(error?.message).toContain("Nombre de comunidad inválido");
   });
 
   it("crear una comunidad que ya existe devuelve false y no cambia su PIN", async () => {
     const { name } = await createTestCommunity("dup");
-    const again = await supabase.rpc("create_community_with_pin", { p_name: name, p_pin: "9999" });
+    const again = await provision(name, "9999");
     expect(again.data).toBe(false);
     const login = await supabase.rpc("login_community", { p_name: name, p_pin: TEST_PIN });
     expect(typeof login.data).toBe("string");

@@ -6,8 +6,10 @@ Lo que las pruebas automáticas no pueden ver. Usa una comunidad `ZZZ_TEST_BORRA
 Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en verde.
 
 ## Entrada y sesión
-- [ ] Comunidad nueva: pide crear PIN + confirmarlo, y entra.
-- [ ] Comunidad con PIN: pide el PIN; uno incorrecto muestra "PIN incorrecto."
+- [ ] La pantalla de entrada es un selector con las 8 comunidades: no se puede escribir un nombre nuevo ni crear comunidades.
+- [ ] Elegir una comunidad pide solo el PIN (sin «Confirma el PIN» ni «Omitir»); uno incorrecto muestra "PIN incorrecto."
+- [ ] Una comunidad sin PIN avisa «todavía no tiene PIN…» y no entra.
+- [ ] Sin internet, la pantalla de entrada avisa que no cargó la lista y «Reintentar» la vuelve a pedir.
 - [ ] Tras 5 PIN incorrectos muestra "Demasiados intentos fallidos…"
 - [ ] "Cambiar Comunidad" vuelve a la pantalla de entrada.
 - [ ] Recargar la página pide el PIN otra vez.

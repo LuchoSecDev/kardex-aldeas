@@ -36,10 +36,11 @@ insert into admin_account (id, password_hash, must_change) values (1, 'no-se-usa
 insert into admin_sessions (token_hash, expires_at)
   values (encode(sha256(convert_to('token-admin-6sem', 'UTF8')), 'hex'), now() + interval '1 hour');
 
+\i tests/db/provision_key.sql
 set role anon;
 do $$ begin
-  perform create_community_with_pin('ZZZ_TEST_6s_A', '4321');
-  perform create_community_with_pin('ZZZ_TEST_6s_B', '4321');
+  perform provision_community('clave-de-prueba', 'ZZZ_TEST_6s_A', '4321');
+  perform provision_community('clave-de-prueba', 'ZZZ_TEST_6s_B', '4321');
   perform set_config('tst.a', login_community('ZZZ_TEST_6s_A', '4321'), false);
   perform set_config('tst.b', login_community('ZZZ_TEST_6s_B', '4321'), false);
   perform set_config('tst.adm', 'token-admin-6sem', false);

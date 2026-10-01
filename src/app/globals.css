@@ -251,6 +251,21 @@ h1, h2, h3 {
   animation: selectSlideIn 0.2s ease;
 }
 
+/* Selector de comunidad de la pantalla de entrada: ancho completo y letra grande. */
+.home-select {
+  display: block;
+  width: 100%;
+}
+
+.home-select .custom-select__trigger {
+  font-size: 1.2rem;
+  padding: 0.9rem 1rem;
+}
+
+.home-select .custom-select__option {
+  font-size: 1.15rem;
+}
+
 @keyframes selectSlideIn {
   from {
     opacity: 0;

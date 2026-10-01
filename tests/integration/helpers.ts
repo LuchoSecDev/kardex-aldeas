@@ -19,9 +19,22 @@ export const uniqueName = (tag: string) =>
 
 export const zeros = (n: number) => Array(n).fill(0);
 
+// Crear una comunidad ya no es libre (plan 005): exige la clave de aprovisionamiento
+// (PROVISION_KEY en .env.local, la misma que se guardó con lock_down_community_creation_1.sql).
+export function provisionKey(): string {
+  const key = process.env.PROVISION_KEY;
+  if (!key) {
+    throw new Error("Falta PROVISION_KEY en .env.local: las pruebas necesitan la clave para crear comunidades ZZZ_TEST_ (ver planes/005).");
+  }
+  return key;
+}
+
+export const provision = (name: string, pin: string, key: string = provisionKey()) =>
+  supabase.rpc("provision_community", { p_key: key, p_name: name, p_pin: pin });
+
 export async function createTestCommunity(tag: string) {
   const name = uniqueName(tag);
-  const created = await supabase.rpc("create_community_with_pin", { p_name: name, p_pin: TEST_PIN });
+  const created = await provision(name, TEST_PIN);
   expect(created.error).toBeNull();
   expect(created.data).toBe(true);
 

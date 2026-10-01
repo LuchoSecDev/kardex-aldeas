@@ -48,9 +48,10 @@ begin
 end $$;
 grant execute on function tst.truth(text, int, int, int), tst.check_all(text) to anon;
 
+\i tests/db/provision_key.sql
 set role anon;
 do $$ begin
-  perform create_community_with_pin('ZZZ_TEST_perf', '4321');
+  perform provision_community('clave-de-prueba', 'ZZZ_TEST_perf', '4321');
   perform set_config('tst.a', login_community('ZZZ_TEST_perf', '4321'), false);
 end $$;
 
