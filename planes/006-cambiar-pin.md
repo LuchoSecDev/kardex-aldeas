@@ -1,6 +1,6 @@
 # 006 — Cambiar PIN (la comunidad cambia su propio PIN)
 
-**Estado:** 🚧 Programada y probada en local (2026-10-01); **falta correr `supabase/change_pin.sql` en Supabase y desplegar**.
+**Estado:** ✅ Desplegada el 2026-10-01 (`fcd1591`); `change_pin.sql` corrido y pruebas de integración en verde.
 **Rama:** `feature/cambiar-pin`  **Fecha:** 2026-10-01
 
 ## Objetivo

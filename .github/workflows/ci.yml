@@ -1,0 +1,60 @@
+name: CI
+
+# Corre solo lo que NO toca la base real: tipos, lint, pruebas unitarias, el build y las pruebas de los
+# scripts SQL contra un Postgres desechable. Las pruebas de integración (tests/integration) hablan con el
+# Supabase de producción y se corren a mano (ver tests/README.md).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Valores de relleno: las pruebas y el build solo necesitan que existan; nada se conecta a Supabase.
+  NEXT_PUBLIC_SUPABASE_URL: https://ci.invalid
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-anon-key
+
+jobs:
+  app:
+    name: Tipos, lint, pruebas unitarias y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  sql:
+    name: Scripts SQL contra Postgres local
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGCLIENTENCODING: UTF8
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash tests/db/run.sh

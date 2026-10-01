@@ -1,6 +1,6 @@
 # 005 — Comunidades fijas (cierre de la creación libre)
 
-**Estado:** 🚧 Programada y probada en local (2026-10-01); **falta correr el SQL en Supabase y desplegar** (orden en «Despliegue»).
+**Estado:** ✅ Desplegada el 2026-10-01 (`4bb3956`); SQL aplicado y pruebas de integración en verde.
 **Rama:** `feature/comunidades-fijas`  **Fecha:** 2026-10-01
 
 ## Objetivo

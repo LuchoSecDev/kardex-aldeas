@@ -1,6 +1,6 @@
 # 003 — Lista de mercado (pedido semanal de cada comunidad)
 
-**Estado:** 🚧 En curso — **Fase A programada y probada en local (2026-09-30)**; falta correr el SQL en Supabase. Sin precios ni presupuesto (ver decisiones).
+**Estado:** ✅ Desplegada (Fases A–D en `main`; SQL aplicado, pruebas de integración en verde el 2026-10-01). Sin precios ni presupuesto (ver decisiones). Pendiente: probarla en celulares reales.
 **Rama:** `feature/lista-mercado`  **Fecha:** 2026-09-30
 
 ## Objetivo
@@ -31,7 +31,7 @@ Material de origen:
 Cada hoja lleva arriba: **Casa** (lista desplegable), **Semana** (1–15), **Mes** y **Número de participantes**.
 De todas las columnas de valores **la app solo toma la cantidad y la unidad**.
 
-Otros hallazgos del archivo: el desplegable "Casa" solo trae 8 comunidades (la app ya tiene las 15 reales); los totales
+Otros hallazgos del archivo: el desplegable "Casa" solo trae 8 comunidades (la organización tiene 8 comunidades fijas: ver plan 005); los totales
 del Excel tenían errores de rango (CARNES se salta la primera fila, ABARROTE la última); la hoja oculta tiene
 fórmulas rotas (`#REF!`). Nada de eso aplica a la app al no manejar valores.
 

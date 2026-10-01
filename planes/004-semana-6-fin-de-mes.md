@@ -1,6 +1,6 @@
 # 004 — Semana 6 de cierre (meses que no caben en 5 semanas) · hallazgo H1
 
-**Estado:** 🚧 Programada y probada en local (2026-09-30); **falta correr `six_weeks_1..5.sql` en Supabase y desplegar**. Próximo caso real: **lunes 30 de noviembre de 2026**.
+**Estado:** ✅ Desplegada (`six_weeks_1..5.sql` corridos en Supabase, confirmado el 2026-10-01). Próximo caso real: **lunes 30 de noviembre de 2026**.
 **Rama:** `claude/dazzling-wozniak-gkxfkz` (continúa la del plan 003)  **Fecha:** 2026-09-30
 
 ## Objetivo
