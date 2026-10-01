@@ -32,6 +32,8 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # El sitio es estático (plan 010): el build deja los archivos en out/.
+      - run: test -f out/index.html && test -f out/admin.html
 
   sql:
     name: Scripts SQL contra Postgres local

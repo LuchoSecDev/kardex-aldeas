@@ -1,0 +1,20 @@
+# Cabeceras de seguridad para Cloudflare Pages (también las entiende Netlify). Plan 010.
+# Vercel no lee este archivo: si algún día se vuelve a publicar allí, se ponen en vercel.json.
+#
+# La política de contenido (CSP) deja cargar solo lo que la app usa: sus propios archivos, la tipografía Inter de
+# Google Fonts y las llamadas a Supabase. `unsafe-inline` en scripts es lo que Next necesita para arrancar un sitio
+# estático; NO se permite `unsafe-eval`.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+# El panel de la nutricionista no debe aparecer en buscadores.
+/admin
+  X-Robots-Tag: noindex, nofollow
+
+# Los archivos con huella en el nombre nunca cambian: se pueden guardar un año.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable

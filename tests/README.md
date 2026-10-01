@@ -55,6 +55,7 @@ Corren contra **la base de datos real** (solo hay un proyecto de Supabase), usan
 - `unit/marketChangesZone.test.tsx` y `unit/marketList.test.ts` — la zona de cambios en la pantalla de la comunidad (plan 008, Fase B): agregar, editar, quitar, 📝 por producto, tope de 20, guardado automático, lo pendiente se guarda al cambiar de semana, envío con los cambios.
 - `unit/adminMarketChanges.test.tsx` y `unit/marketChangesExport.test.ts` — la nutricionista ve los cambios (detalle, tabla y consolidado) y salen en los dos Excel (se abre el .xlsx real).
 - `unit/toast.test.tsx`, `unit/toastKardex.test.tsx` y `unit/toastMarketAdmin.test.tsx` — los avisos de confirmación (plan 009): duran 5 s, se cierran tocándolos (sin «X»), los errores se quedan, y cada acción manual (enviar, descargar, corregir saldo, cambiar PIN, marcar revisada…) los dispara.
+- `unit/staticExport.test.ts` — el sitio sigue siendo 100 % estático (sin rutas API, acciones de servidor ni middleware) y `public/_headers` mantiene las cabeceras de seguridad y la política de contenido sin `unsafe-eval`.
 - `unit/sqlScripts.test.ts` — todo script nuevo de `supabase/` queda en la lista de `tests/db/run.sh` y en su README.
 - `unit/homePage.test.tsx` — la pantalla de entrada: solo se elige de la lista (sin crear comunidades ni PIN), pide solo el PIN, no entra a una comunidad sin PIN, avisa si no carga la lista.
 - `integration/lockout.test.ts` — 5 fallos bloquean 15 min (incluso con el PIN correcto); un acierto reinicia el contador.
