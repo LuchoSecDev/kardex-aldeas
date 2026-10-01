@@ -24,7 +24,10 @@ export const zeros = (n: number) => Array(n).fill(0);
 export function provisionKey(): string {
   const key = process.env.PROVISION_KEY;
   if (!key) {
-    throw new Error("Falta PROVISION_KEY en .env.local: las pruebas necesitan la clave para crear comunidades ZZZ_TEST_ (ver planes/005).");
+    throw new Error(
+      "PROVISION_KEY está vacía o no existe en .env.local: las pruebas necesitan la clave para crear comunidades ZZZ_TEST_ (ver planes/005). " +
+        'Si la clave lleva un # (o un $), escríbela ENTRE COMILLAS DOBLES: PROVISION_KEY="tu-clave"; sin comillas el # corta el valor.'
+    );
   }
   return key;
 }

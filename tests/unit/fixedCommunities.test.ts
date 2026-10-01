@@ -12,6 +12,7 @@ const SQL_NUEVOS = [
   "supabase/fixed_communities.sql",
   "supabase/lock_down_community_creation_1.sql",
   "supabase/lock_down_community_creation_2.sql",
+  "supabase/change_pin.sql",
 ];
 
 const nombresEn = (texto: string) => [...texto.matchAll(/'([^']+)'/g)].map((m) => m[1]).sort();

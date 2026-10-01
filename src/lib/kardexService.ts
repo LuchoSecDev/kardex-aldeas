@@ -29,6 +29,12 @@ export const kardexService = {
     return { data: (data as string | null) ?? null, error };
   },
 
+  // Cambia el PIN de la comunidad de la sesión (ver supabase/change_pin.sql). Devuelve true si lo cambió y false
+  // si el PIN actual no era el correcto.
+  async changePin(currentPin: string, newPin: string) {
+    return authedRpc<boolean>("change_community_pin", { p_current_pin: currentPin, p_new_pin: newPin });
+  },
+
   async logoutCommunity() {
     const token = session.get();
     session.set(null);

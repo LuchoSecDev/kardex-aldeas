@@ -8,6 +8,8 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 ## Entrada y sesión
 - [ ] La pantalla de entrada es un selector con las 8 comunidades: no se puede escribir un nombre nuevo ni crear comunidades.
 - [ ] Elegir una comunidad pide solo el PIN (sin «Confirma el PIN» ni «Omitir»); uno incorrecto muestra "PIN incorrecto."
+- [ ] «Cambiar PIN» (arriba a la derecha, en Kardex y en Lista de mercado) abre el diálogo: pide PIN actual, nuevo y confirmación; con 0000 o 1234 avisa que es fácil de adivinar; con un PIN actual equivocado avisa; con datos correctos muestra «✓ Tu PIN se cambió».
+- [ ] Tras cambiarlo: «Cambiar Comunidad» y volver a entrar con el PIN NUEVO funciona y con el anterior no (probar con una comunidad ZZZ_TEST_, nunca con una real).
 - [ ] Una comunidad sin PIN avisa «todavía no tiene PIN…» y no entra.
 - [ ] Sin internet, la pantalla de entrada avisa que no cargó la lista y «Reintentar» la vuelve a pedir.
 - [ ] Tras 5 PIN incorrectos muestra "Demasiados intentos fallidos…"

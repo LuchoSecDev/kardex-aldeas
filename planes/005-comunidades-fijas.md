@@ -70,3 +70,4 @@ Después se vuelve a correr `fixed_communities.sql` completo y esta vez sí mues
 - Si alguna comunidad pierde su PIN, se resetea desde el SQL Editor (`community_pin.sql` trae la instrucción) y vuelve a quedar sin acceso hasta que se le ponga uno: ya no puede «reclamarlo» cualquiera.
 - Si en la base aparecen otras comunidades que no son las 8 (con otro nombre o con errores de tipeo), el script no las borra: revísalas con `select name, has_pin from communities;` antes de eliminar nada (puede tener datos en `kardex_records`).
 - La clave `PROVISION_KEY` hay que guardarla (gestor de contraseñas): si se pierde se define otra con el mismo `insert`.
+- **Si la clave lleva `#` o `$`, va entre comillas dobles en `.env.local`** (`PROVISION_KEY="tu-clave"`): sin comillas, el `#` empieza un comentario y el valor queda vacío o cortado (las pruebas dicen que falta la clave). Lo más simple es una clave solo con letras y números.

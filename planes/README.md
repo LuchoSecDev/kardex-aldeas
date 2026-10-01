@@ -16,6 +16,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 | 003 | [Lista de mercado](003-lista-de-mercado.md) | 🚧 En curso: Fase A lista en código y probada en local (falta correr el SQL en Supabase); **sin precios ni presupuesto** | — |
 | 004 | [Semana 6 de cierre (hallazgo H1)](004-semana-6-fin-de-mes.md) | 🚧 Programada y probada en local; falta correr el SQL y desplegar (próximo caso: lunes 30 nov 2026) | — |
 | 005 | [Comunidades fijas (cierre de la creación libre)](005-comunidades-fijas.md) | 🚧 Programada y probada en local; falta correr `fixed_communities.sql` y `lock_down_community_creation_1..2.sql` en Supabase y desplegar | rama `feature/comunidades-fijas` |
+| 006 | [Cambiar PIN](006-cambiar-pin.md) | 🚧 Programada y probada en local; falta correr `change_pin.sql` en Supabase y desplegar | rama `feature/cambiar-pin` |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)

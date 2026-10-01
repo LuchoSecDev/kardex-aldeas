@@ -57,4 +57,18 @@ describe("CommunityShell: selector Kardex | Lista de mercado", () => {
     expect(mounts).toEqual({ kardex: 1, lista: 1 });
     expect(visible("pantalla-lista")).toBe(true);
   });
+
+  it("«Cambiar PIN» abre el diálogo desde cualquiera de las dos pantallas y al cerrarlo no se pierde nada", () => {
+    render(<CommunityShell community="Maná" onLogout={vi.fn()} />);
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Lista de mercado" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cambiar PIN" }));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(mounts).toEqual({ kardex: 1, lista: 1 });
+    expect(visible("pantalla-lista")).toBe(true);
+  });
 });
