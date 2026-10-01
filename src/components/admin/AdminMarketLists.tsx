@@ -4,6 +4,7 @@ import "@/app/kardex.css";
 import "@/app/market.css";
 import { useState } from "react";
 import AdminMarketConsolidated from "@/components/admin/AdminMarketConsolidated";
+import { useToast } from "@/components/toast/ToastProvider";
 import { useNow } from "@/hooks/useNow";
 import { useAdminMarket, type MarketFocus } from "@/hooks/useAdminMarket";
 import { MARKET_KINDS, MARKET_KIND_LABEL, weekLabel, type MarketKind } from "@/lib/marketCalendar";
@@ -35,6 +36,7 @@ export default function AdminMarketLists({
   externalReloadKey?: number;
 }) {
   const market = useAdminMarket(focus, onChanged, externalReloadKey);
+  const toast = useToast();
   const now = useNow();
   // "Por comunidad" (la tabla de la semana) o "Consolidado" (suma entre comunidades).
   const [section, setSection] = useState<"comunidades" | "consolidado">("comunidades");
@@ -65,9 +67,11 @@ export default function AdminMarketLists({
       await exportCommunityListToExcel({
         community, weekStart: list.week_start, participants: list.participants, catalog, quantities, extraItems, changes,
       });
+      toast.success(`Excel de ${community} descargado.`);
     } catch (e) {
       console.error("Error exportando la lista de la comunidad:", e);
       setExportError(`No se pudo generar el Excel de ${community}. Revisa tu conexión e inténtalo de nuevo.`);
+      toast.error(`No se pudo generar el Excel de ${community}.`);
     } finally {
       setExporting(false);
     }

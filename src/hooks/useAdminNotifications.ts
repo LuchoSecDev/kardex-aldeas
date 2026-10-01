@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/toast/ToastProvider";
 import { adminService } from "@/lib/adminService";
 import type { AdminNotification } from "@/types/submissions";
 import { marketKey } from "@/lib/marketAdmin";
@@ -26,6 +27,7 @@ async function fetchNotifications(): Promise<Fetched | null> {
 // consulta cada 60 s mientras el panel está abierto, y al volver a la pestaña.
 // El número también se muestra en el título de la pestaña.
 export function useAdminNotifications(onChanged?: () => void) {
+  const toast = useToast();
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [marketNotifications, setMarketNotifications] = useState<AdminMarketNotification[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -93,8 +95,9 @@ export function useAdminNotifications(onChanged?: () => void) {
       return;
     }
     await refresh();
+    toast.success("Semana marcada como revisada.");
     onChangedRef.current?.();
-  }, [refresh]);
+  }, [refresh, toast]);
 
   // Marcar revisada una lista de mercado (las 4 a la vez).
   const markMarketReviewed = useCallback(async (n: AdminMarketNotification) => {
@@ -111,8 +114,9 @@ export function useAdminNotifications(onChanged?: () => void) {
       return;
     }
     await refresh();
+    toast.success(`La lista de ${n.community} quedó marcada como revisada.`);
     onChangedRef.current?.();
-  }, [refresh]);
+  }, [refresh, toast]);
 
   return { notifications, marketNotifications, loadFailed, reviewingId, reviewError, refresh, markReviewed, markMarketReviewed };
 }

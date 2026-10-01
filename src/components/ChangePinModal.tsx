@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/toast/ToastProvider";
 import { kardexService } from "@/lib/kardexService";
 import { WRONG_CURRENT_PIN_MESSAGE, onlyPinDigits, pinChangeErrorMessage, validatePinChange } from "@/lib/pin";
 
@@ -15,6 +16,7 @@ export default function ChangePinModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -46,6 +48,7 @@ export default function ChangePinModal({ onClose }: { onClose: () => void }) {
       setNext("");
       setConfirm("");
       setDone(true);
+      toast.success("Tu PIN se cambió. Desde ahora entra con el PIN nuevo.");
     }
   };
 

@@ -495,23 +495,6 @@
   font-size: 0.9rem;
 }
 
-/* --- ErrorToast --- */
-.kardex-toast {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--color-accent-red);
-  color: white;
-  padding: 0.9rem 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  z-index: 2000;
-  max-width: 90vw;
-  font-weight: 600;
-  text-align: center;
-}
-
 /* --- WeekSubmitBar (enviar semana) --- */
 .kardex-submit-bar {
   display: flex;

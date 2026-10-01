@@ -379,3 +379,98 @@ tbody tr:hover {
   background: white;
   color: var(--color-primary-dark);
 }
+
+/* Avisos de confirmación (toasts): arriba y al centro, encima de todo, con letra grande que sigue el tamaño A+/A++ (por eso usa em: el tamaño lo fija el body, no el html, y rem no cambiaría).
+   Se cierran tocándolos; los éxitos y avisos duran 5 segundos y los errores se quedan hasta tocarlos. */
+.toast-region {
+  position: fixed;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  width: min(36rem, calc(100vw - 1.5rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  width: 100%;
+  min-height: 3.5em;
+  padding: 0.9em 1.1em;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  font: inherit;
+  font-size: 1.15em;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  animation: toastIn 0.2s ease-out;
+}
+
+.toast--success { background: var(--color-success); }
+.toast--warning { background: var(--color-warning); }
+.toast--error { background: var(--color-accent-red); }
+
+.toast:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: -8px;
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.toast-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  min-width: 0;
+}
+
+.toast-text {
+  overflow-wrap: anywhere;
+}
+
+.toast-hint {
+  font-size: 0.8em;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Alto contraste: fondo negro, borde blanco grueso y texto blanco (el color solo no distingue éxito de error: lo hace el ícono). */
+.high-contrast .toast {
+  background: #000;
+  color: #fff;
+  border: 4px solid #fff;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}

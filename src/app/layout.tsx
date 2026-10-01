@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { A11yProvider } from "@/components/A11yProvider";
+import { ToastProvider } from "@/components/toast/ToastProvider";
 
 export const metadata: Metadata = {
   title: "Kardex Digital - Aldeas Infantiles SOS",
@@ -24,7 +25,7 @@ export default function RootLayout({
     <html lang="es">
       <body>
         <A11yProvider>
-          {children}
+          <ToastProvider>{children}</ToastProvider>
         </A11yProvider>
       </body>
     </html>

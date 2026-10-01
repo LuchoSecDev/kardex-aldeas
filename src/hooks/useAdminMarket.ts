@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useToast } from "@/components/toast/ToastProvider";
 import { adminService } from "@/lib/adminService";
 import { addDays } from "@/lib/marketCalendar";
 import { adminDefaultWeekStart } from "@/lib/marketAdmin";
@@ -21,6 +22,7 @@ export function useAdminMarket(focus: MarketFocus | null, onChanged?: () => void
   const [detail, setDetail] = useState<{ key: string; data: AdminMarketList | null; failed: boolean } | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const toast = useToast();
 
   // `externalReloadKey` cambia cuando algo fuera de esta pantalla (la campanita) modificó datos.
   const overviewKey = `${weekStart}|${reloadKey}|${externalReloadKey}`;
@@ -64,9 +66,10 @@ export function useAdminMarket(focus: MarketFocus | null, onChanged?: () => void
         return;
       }
       setReloadKey((k) => k + 1);
+      toast.success(`La lista de ${community} quedó marcada como revisada.`);
       onChanged?.();
     },
-    [weekStart, onChanged]
+    [weekStart, onChanged, toast]
   );
 
   const current = overview && overview.key === overviewKey ? overview : null;

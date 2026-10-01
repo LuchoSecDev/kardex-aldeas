@@ -8,6 +8,7 @@ import AdminMarketLists from "@/components/admin/AdminMarketLists";
 import AdminWeeklySummary from "@/components/admin/AdminWeeklySummary";
 import CustomSelect from "@/components/CustomSelect";
 import KardexDashboard from "@/components/KardexDashboard";
+import { useToast } from "@/components/toast/ToastProvider";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useProducts } from "@/hooks/useProducts";
 import { adminService, type CommunityOverview } from "@/lib/adminService";
@@ -47,6 +48,7 @@ export default function AdminPanel({
 
   // Kardex abierto en solo lectura (desde la tabla o desde la campanita).
   const [selected, setSelected] = useState<{ community: string; week?: number } | null>(null);
+  const toast = useToast();
   const [exporting, setExporting] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -133,13 +135,15 @@ export default function AdminPanel({
         entries: state.entries,
         prevBalances: state.prevBalances,
       });
+      toast.success(`Excel de ${community} descargado.`);
     } catch (e) {
       console.error("Error exportando a Excel:", e);
       setExportError(`No se pudo generar el Excel de ${community}.`);
+      toast.error(`No se pudo generar el Excel de ${community}.`);
     } finally {
       setExporting(null);
     }
-  }, [products, year, month]);
+  }, [products, year, month, toast]);
 
   // La campanita vive en la barra azul de arriba (junto a "Accesibilidad
   // visual"), a la izquierda, y se ve tanto en la tabla como dentro del kardex

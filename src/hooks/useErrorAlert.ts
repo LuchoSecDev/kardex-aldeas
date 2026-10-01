@@ -64,7 +64,7 @@ export function useErrorAlert() {
     if (newBalance < 0) {
       errorCheckTimers.current[key] = setTimeout(() => {
         delete errorCheckTimers.current[key];
-        setErrorToast(`⚠️ ${productName} — el saldo de la Semana ${weekIndex + 1} quedó en ${newBalance}. Revisa las salidas.`);
+        setErrorToast(`${productName} — el saldo de la Semana ${weekIndex + 1} quedó en ${newBalance}. Revisa las salidas.`);
         triggerAlertFeedback();
       }, 600);
     }

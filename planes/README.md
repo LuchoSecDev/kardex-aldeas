@@ -19,6 +19,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 | 006 | [Cambiar PIN](006-cambiar-pin.md) | ✅ **Desplegada el 2026-10-01** (`change_pin.sql` corrido, pruebas en verde) | `fcd1591` |
 | 007 | [Panel del desarrollador `/dev` (errores, alertas, diagnóstico)](007-panel-dev.md) | 📝 Decisiones confirmadas el 2026-10-01 (acceso en la base, alertas por correo y Telegram, acciones remotas con auditoría); falta programarla | — |
 | 008 | [Zona de cambios en la lista de mercado (notas del pedido, con respuesta de la nutricionista y campanita para las comunidades)](008-zona-de-cambios.md) | 🚧 Fase A (SQL y pruebas) lista en local; falta correr `market_changes_1..6.sql` y las Fases B–D | rama `feature/zona-de-cambios` |
+| 009 | [Avisos de confirmación («toasts»)](009-avisos-de-confirmacion.md) | 🚧 Programada y probada en local (sin SQL); falta desplegar | rama `feature/toasts` |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)

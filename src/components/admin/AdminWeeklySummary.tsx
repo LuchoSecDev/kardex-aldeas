@@ -3,6 +3,7 @@
 import "@/app/kardex.css";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import CustomSelect from "@/components/CustomSelect";
+import { useToast } from "@/components/toast/ToastProvider";
 import { adminService, type CommunityOverview } from "@/lib/adminService";
 import { EXTRA_WEEK_INDEX, weekCountOf } from "@/lib/calendar";
 import { exportWeeklySummaryToExcel } from "@/lib/exporters/weeklySummaryExporter";
@@ -49,6 +50,7 @@ export default function AdminWeeklySummary({
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("TODAS");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const toast = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -123,9 +125,11 @@ export default function AdminWeeklySummary({
         includedCommunities: includedNames,
         onlySent,
       });
+      toast.success("Excel del resumen semanal descargado.");
     } catch (e) {
       console.error("Error exportando el resumen semanal:", e);
       setExportError("No se pudo generar el Excel del resumen.");
+      toast.error("No se pudo generar el Excel del resumen.");
     } finally {
       setIsExporting(false);
     }

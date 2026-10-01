@@ -36,6 +36,15 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Al editar esa semana después, aparece "⚠ … cambió después" (aviso y botón de semana); "Volver a enviar" lo limpia.
 - [ ] El botón se bloquea mientras hay un guardado en curso.
 
+## Avisos de confirmación («toasts», plan 009)
+- [ ] Enviar la lista de mercado o la semana del kardex: arriba aparece un aviso verde con ✓ («¡Listo!…») que se va solo a los 5 segundos.
+- [ ] Tocar el aviso lo cierra al instante (no hay una «X»).
+- [ ] Descargar el Excel o el PDF, corregir un saldo, cambiar el PIN, agregar/quitar un cambio: cada uno avisa.
+- [ ] Provocar un error (modo avión y enviar la lista): el aviso rojo con ⚠ se QUEDA hasta tocarlo.
+- [ ] Escribir cantidades NO da un aviso por cada guardado (solo el indicador «✓ Todos los cambios guardados»).
+- [ ] Con letra A++ y con «Alto Contraste» el aviso se lee bien (negro con borde blanco) y no se sale de la pantalla a 360 px.
+- [ ] Nutricionista: marcar revisada y descargar cada Excel avisan.
+
 ## Zona de cambios de la lista de mercado (plan 008)
 - [ ] En la lista de mercado, cada producto tiene un 📝; al tocarlo se abre «Cambios del pedido de …» con ese producto elegido y el cursor listo para escribir.
 - [ ] Agregar «cambiar pescado por pechuga» (con y sin producto): aparece en la lista de cambios, el contador sube y «Guardando…» termina en «✓ Todos los cambios guardados»; al recargar y volver a entrar la nota sigue.

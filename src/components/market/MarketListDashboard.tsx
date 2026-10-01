@@ -4,6 +4,8 @@ import "@/app/kardex.css";
 import "@/app/market.css";
 import { useEffect } from "react";
 import SaveStatus from "@/components/SaveStatus";
+import { useToast } from "@/components/toast/ToastProvider";
+import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
 import MarketItemsPanel from "@/components/market/MarketItemsPanel";
 import MarketParticipants from "@/components/market/MarketParticipants";
 import MarketSubmitBar from "@/components/market/MarketSubmitBar";
@@ -23,6 +25,16 @@ export default function MarketListDashboard({
 }) {
   const market = useMarketList();
   const now = useNow();
+  const toast = useToast();
+
+  // Lo que la persona hizo a mano (enviar la lista, guardar los participantes) y su resultado, además del mensaje fijo de la pantalla.
+  const message = market.message;
+  useEffect(() => {
+    if (!message) return;
+    if (message.kind === "ok") toast.success(message.text);
+    else toast.error(message.text);
+  }, [message, toast]);
+  useSaveRecoveryToast(market.saveStatus);
 
   // Con cambios sin guardar, el navegador pregunta antes de cerrar o recargar.
   useEffect(() => {
@@ -86,9 +98,20 @@ export default function MarketListDashboard({
         disabled={locked}
         onQuantityChange={market.setQuantity}
         changes={market.changes}
-        onAddChange={market.addChange}
-        onUpdateChange={market.updateChange}
-        onRemoveChange={market.removeChange}
+        onAddChange={(kind, itemId, text) => {
+          const problem = market.addChange(kind, itemId, text);
+          if (!problem) toast.success("Cambio agregado a la lista.");
+          return problem;
+        }}
+        onUpdateChange={(kind, id, text) => {
+          const problem = market.updateChange(kind, id, text);
+          if (!problem) toast.success("Cambio actualizado.");
+          return problem;
+        }}
+        onRemoveChange={(kind, id) => {
+          market.removeChange(kind, id);
+          toast.success("Cambio quitado de la lista.");
+        }}
       />
 
       <MarketSubmitBar

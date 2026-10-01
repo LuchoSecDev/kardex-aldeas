@@ -8,7 +8,8 @@ import KardexNavigation from "@/components/KardexNavigation";
 import KardexTable from "@/components/KardexTable";
 import AjusteModal from "@/components/AjusteModal";
 import HistorialModal from "@/components/HistorialModal";
-import ErrorToast from "@/components/ErrorToast";
+import { useToast } from "@/components/toast/ToastProvider";
+import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
 import { useCalendar } from "@/hooks/useCalendar";
 import { DAYS_PER_WEEK, isExtraWeek, weekCountOf } from "@/lib/calendar";
 import { useErrorAlert } from "@/hooks/useErrorAlert";
@@ -57,6 +58,7 @@ export default function KardexDashboard({
   const currentWeek = Math.min(weekChoice, weekCount);
   const { calendarWeeks, currentWeekDates } = useCalendar(selectedYear, selectedMonth, currentWeek);
   const { errorToast, scheduleErrorCheck } = useErrorAlert();
+  const toast = useToast();
   const { products, isLoadingProducts } = useProducts();
 
   const {
@@ -74,6 +76,12 @@ export default function KardexDashboard({
     updateLocalState,
     applyAjuste
   } = useKardexData(community, selectedYear, selectedMonth, products, dataSource);
+
+  // El aviso de «saldo negativo» (error de digitación) y el de «ya se guardó» tras una falla salen como toast.
+  useEffect(() => {
+    if (errorToast) toast.warning(errorToast);
+  }, [errorToast, toast]);
+  useSaveRecoveryToast(saveStatus);
 
   // Envío de semana a la nutricionista (solo en el modo de la comunidad).
   const weekSubmissions = useWeekSubmissions(selectedYear, selectedMonth, saveStatus, !readOnly);
@@ -189,6 +197,7 @@ export default function KardexDashboard({
     if (error) {
       console.error("Error guardando el ajuste:", error);
       setIsSubmittingAjuste(false);
+      toast.error("No se pudo guardar la corrección del saldo. Revisa tu conexión e inténtalo de nuevo.");
       return;
     }
 
@@ -200,6 +209,7 @@ export default function KardexDashboard({
     setIsSubmittingAjuste(false);
     setAjusteProduct(null);
     setAjusteMotivo("");
+    toast.success(`Saldo corregido: ${ajusteProduct.name} quedó en ${numValue}.`);
   };
 
   // --- Historial: meses con datos registrados + registro de ajustes ---
@@ -244,27 +254,43 @@ export default function KardexDashboard({
   const getProductName = (productId: string) =>
     products.find((p) => p.id === productId)?.name ?? productId;
 
-  const handleExportExcel = () => exportKardexToExcel({
-    community,
-    selectedMonth,
-    selectedYear,
-    calendarWeeks,
-    products,
-    exits,
-    entries,
-    prevBalances,
-  });
+  const handleExportExcel = async () => {
+    try {
+      await exportKardexToExcel({
+        community,
+        selectedMonth,
+        selectedYear,
+        calendarWeeks,
+        products,
+        exits,
+        entries,
+        prevBalances,
+      });
+      toast.success(`Excel descargado: ${MONTH_NAMES[selectedMonth]} ${selectedYear}.`);
+    } catch (e) {
+      console.error("Error exportando a Excel:", e);
+      toast.error("No se pudo descargar el Excel. Inténtalo de nuevo.");
+    }
+  };
 
-  const handleExportPDF = () => exportKardexToPDF({
-    community,
-    selectedMonth,
-    selectedYear,
-    calendarWeeks,
-    products,
-    exits,
-    entries,
-    prevBalances,
-  });
+  const handleExportPDF = async () => {
+    try {
+      await exportKardexToPDF({
+        community,
+        selectedMonth,
+        selectedYear,
+        calendarWeeks,
+        products,
+        exits,
+        entries,
+        prevBalances,
+      });
+      toast.success(`PDF descargado: ${MONTH_NAMES[selectedMonth]} ${selectedYear}.`);
+    } catch (e) {
+      console.error("Error exportando a PDF:", e);
+      toast.error("No se pudo descargar el PDF. Inténtalo de nuevo.");
+    }
+  };
 
   const categories = ["TODAS", ...Array.from(new Set(products.map(p => p.category)))];
 
@@ -379,8 +405,6 @@ export default function KardexDashboard({
           </button>
         </div>
       )}
-
-      <ErrorToast message={errorToast} />
 
     </div>
   );

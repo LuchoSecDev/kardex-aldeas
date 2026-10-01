@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/components/toast/ToastProvider";
 import { kardexService } from "@/lib/kardexService";
 import type { SaveStatus } from "@/hooks/useSaveQueue";
 import type { WeekSubmission } from "@/types/submissions";
@@ -14,6 +15,7 @@ export function useWeekSubmissions(year: number, month: number, saveStatus: Save
   const [submissions, setSubmissions] = useState<WeekSubmission[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastMessage, setLastMessage] = useState<SubmitMessage | null>(null);
+  const toast = useToast();
   // Último mes consultado y si tenía semanas enviadas.
   const known = useRef<{ key: string; hasSent: boolean } | null>(null);
 
@@ -55,25 +57,23 @@ export function useWeekSubmissions(year: number, month: number, saveStatus: Save
       // Si la sesión venció, la pantalla ya volvió a la entrada.
       if (error.message?.includes("SESION_INVALIDA")) return;
       console.error("Error enviando la semana:", error);
-      setLastMessage({
-        year,
-        month,
-        kind: "error",
-        text: error.message?.includes("SEMANA_VACIA")
-          ? "Esta semana todavía no tiene entradas ni salidas registradas."
-          : "No se pudo enviar la semana. Revisa tu conexión e inténtalo de nuevo.",
-      });
+      const text = error.message?.includes("SEMANA_VACIA")
+        ? "Esta semana todavía no tiene entradas ni salidas registradas."
+        : "No se pudo enviar la semana. Revisa tu conexión e inténtalo de nuevo.";
+      setLastMessage({ year, month, kind: "error", text });
+      toast.error(text);
       return;
     }
 
     setLastMessage({ year, month, kind: "ok", text: `Semana ${weekIndex + 1} enviada a la nutricionista.` });
+    toast.success(`¡Listo! La semana ${weekIndex + 1} se envió a la nutricionista.`);
 
     const { data } = await kardexService.loadWeekSubmissions(year, month);
     if (data) {
       known.current = { key: `${year}-${month}`, hasSent: data.length > 0 };
       setSubmissions(data);
     }
-  }, [year, month]);
+  }, [year, month, toast]);
 
   // El aviso solo se muestra en el mes donde ocurrió (al cambiar de mes desaparece).
   const message = lastMessage && lastMessage.year === year && lastMessage.month === month

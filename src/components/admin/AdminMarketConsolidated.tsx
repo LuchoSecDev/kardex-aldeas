@@ -3,6 +3,7 @@
 import "@/app/kardex.css";
 import "@/app/market.css";
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useToast } from "@/components/toast/ToastProvider";
 import { adminService } from "@/lib/adminService";
 import { exportConsolidatedToExcel } from "@/lib/exporters/marketExporter";
 import { MARKET_KINDS, MARKET_KIND_LABEL, type MarketKind } from "@/lib/marketCalendar";
@@ -36,6 +37,7 @@ export default function AdminMarketConsolidated({
   // Cambia cuando algo modificó los datos (se recarga el consolidado).
   reloadKey: number;
 }) {
+  const toast = useToast();
   const requestKey = `${weekStart}|${reloadKey}`;
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [kind, setKind] = useState<MarketKind>("fruver");
@@ -99,9 +101,11 @@ export default function AdminMarketConsolidated({
     setExportError(null);
     try {
       await exportConsolidatedToExcel({ weekStart, byKind, included, missing: notSent, changes });
+      toast.success("Excel consolidado descargado.");
     } catch (e) {
       console.error("Error exportando el consolidado:", e);
       setExportError("No se pudo generar el Excel. Inténtalo de nuevo.");
+      toast.error("No se pudo generar el Excel. Inténtalo de nuevo.");
     } finally {
       setIsExporting(false);
     }
