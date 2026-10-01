@@ -31,7 +31,7 @@ una **zona de cambios** a cada lista, que viaja con el pedido y que la nutricion
 
 ## Fases
 
-- [ ] **Fase A — Base de datos y pruebas** (SQL local con mutaciones + integración).
+- [x] **Fase A — Base de datos y pruebas.** *(Hecha el 2026-10-01: `supabase/market_changes_1..6.sql` (columnas `changes`/`sent_changes` con tope de 20 por tabla, `market_list_save_changes` y `market_list_load`, `market_list_submit`, `admin_market_overview` y `admin_market_list` actualizadas), `tests/db/market_changes.test.sql` con 15 mutaciones comprobadas, y `tests/integration/market-changes.test.ts`. **Falta correr los 6 SQL en Supabase** y `npm run test:integration`.)*
 - [ ] **Fase B — Formulario de la comunidad** (bloque de cambios + nota por producto + estados «modificada»).
 - [ ] **Fase C — Panel de la nutricionista y Excel** (bloque «Cambios solicitados», hoja y notas de celda).
 - [ ] **Fase D — Respuestas y campanita de la comunidad** (campo de respuesta en el panel de la nutricionista, campanita nueva en la barra de la comunidad con consulta periódica, respuesta visible junto a cada nota, marcar como leída). *Aceptación:* la nutricionista responde y la comunidad ve la campanita con la respuesta; al abrirla se marca leída y no vuelve a sumar.
@@ -45,6 +45,8 @@ SQL: límites (21.ª nota rechazada), aislamiento entre comunidades (una comunid
 SQL aditivo primero (`market_changes_N.sql`), luego la app. La app anterior sigue funcionando (ignora las columnas nuevas).
 
 ## Riesgos y pendientes
+
+- Una nota ligada a un producto que luego se **desactiva** se sigue leyendo, pero al reguardar la lista falla con «Producto inválido» (igual que las cantidades): la pantalla (Fase B) debe quitar la referencia al producto.
 
 - Un cambio escrito pero no enviado no llega a la nutricionista: el resumen «lo que voy a pedir» debe mostrar también los cambios para que se vean antes de enviar.
 - Las notas son texto libre: se pide no escribir nombres de personas (igual que el motivo de un ajuste).

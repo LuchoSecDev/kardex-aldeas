@@ -17,8 +17,8 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 | 004 | [Semana 6 de cierre (hallazgo H1)](004-semana-6-fin-de-mes.md) | ✅ **Desplegada** (`six_weeks_1..5.sql` corridos en Supabase, confirmado el 2026-10-01). Próximo caso real: lunes 30 nov 2026 | `57318b5` · `5b2618a` |
 | 005 | [Comunidades fijas (cierre de la creación libre)](005-comunidades-fijas.md) | ✅ **Desplegada el 2026-10-01** (SQL aplicado y pruebas de integración en verde) | `4bb3956` |
 | 006 | [Cambiar PIN](006-cambiar-pin.md) | ✅ **Desplegada el 2026-10-01** (`change_pin.sql` corrido, pruebas en verde) | `fcd1591` |
-| 007 | [Panel del desarrollador `/dev` (errores, alertas, diagnóstico)](007-panel-dev.md) | 📝 Propuesta: falta confirmar decisiones (acceso, alertas, acciones remotas) | — |
-| 008 | [Zona de cambios en la lista de mercado (notas del pedido, con respuesta de la nutricionista y campanita para las comunidades)](008-zona-de-cambios.md) | 📝 Decisiones confirmadas el 2026-10-01; falta programarla | — |
+| 007 | [Panel del desarrollador `/dev` (errores, alertas, diagnóstico)](007-panel-dev.md) | 📝 Decisiones confirmadas el 2026-10-01 (acceso en la base, alertas por correo y Telegram, acciones remotas con auditoría); falta programarla | — |
+| 008 | [Zona de cambios en la lista de mercado (notas del pedido, con respuesta de la nutricionista y campanita para las comunidades)](008-zona-de-cambios.md) | 🚧 Fase A (SQL y pruebas) lista en local; falta correr `market_changes_1..6.sql` y las Fases B–D | rama `feature/zona-de-cambios` |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)

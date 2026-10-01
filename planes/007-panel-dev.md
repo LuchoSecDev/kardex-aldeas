@@ -1,6 +1,6 @@
 # 007 — Panel del desarrollador (`/dev`): errores, alertas y diagnóstico
 
-**Estado:** 📝 Propuesta (2026-10-01) — falta que Lucho confirme las decisiones marcadas «por confirmar».
+**Estado:** 📝 Propuesta con las decisiones **confirmadas por Lucho el 2026-10-01** (cuenta en la base, alertas por correo y Telegram, acciones remotas con auditoría). Falta programarla (después de la zona de cambios).
 **Rama:** `feature/panel-dev` (cuando se programe)  **Fecha:** 2026-10-01
 Origen: `../diseno_panel_superusuario_dev.md` (diseño inicial, fuera del repositorio) revisado y corregido aquí.
 
@@ -25,13 +25,13 @@ Es también la forma concreta de cumplir la «vigilancia del servicio» que prom
 | Invariante 4 (PIN bloqueado) no es contable. | Pasa al monitor de comunidades. |
 | Estimación «1 día + 1 día». | Con el estándar de pruebas del proyecto (SQL con mutaciones, integración, manual) son ~4–6 días en total. |
 
-## Decisiones (por confirmar)
+## Decisiones (confirmadas)
 
 | Tema | Propuesta | Estado |
 |---|---|---|
-| Acceso | `dev_account` en la base (no variable de entorno). | por confirmar |
-| Alertas | **Correo** al desarrollador ante error crítico o servicio caído (Edge Function de Supabase + chequeo externo gratuito). Telegram opcional. | por confirmar |
-| Acciones remotas | Sí: **desbloquear** una comunidad y **asignar un PIN temporal** (se muestra una sola vez), con registro de auditoría. Nunca editar datos del kardex desde el panel. | por confirmar |
+| Acceso | `dev_account` en la base (no variable de entorno). | ✅ confirmada |
+| Alertas | **Correo y Telegram** al desarrollador ante error crítico o servicio caído: una Edge Function de Supabase manda los dos (el token del bot de Telegram y el chat van como *secretos* de la función, nunca en el repositorio ni en el navegador) + un chequeo externo gratuito de disponibilidad. | ✅ confirmada |
+| Acciones remotas | Sí: **desbloquear** una comunidad y **asignar un PIN temporal** (se muestra una sola vez), con registro de auditoría. Nunca editar datos del kardex desde el panel. | ✅ confirmada |
 | Sin datos personales | Los registros no llevan nombres de personas ni cantidades del kardex. | decidido |
 
 ## Diseño

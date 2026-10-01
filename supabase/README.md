@@ -27,6 +27,7 @@ pruebas: si agregas un script, agrégalo ahí también (y en este archivo).
 | 15 | `fixed_communities.sql` | Las 8 comunidades fijas (plan 005). **Muestra los PIN una sola vez.** |
 | 16 | `lock_down_community_creation_1.sql`, `_2.sql` | Cierra la creación libre (plan 005). Después de `_1` hay que definir la clave de aprovisionamiento (ver el comentario del archivo). |
 | 17 | `change_pin.sql` | La comunidad cambia su PIN (plan 006) |
+| 18 | `market_changes_1..6.sql` | Zona de cambios de la lista de mercado (plan 008): notas del pedido, enviar, y verlas la nutricionista |
 
 Sueltos (no son parte del orden): `admin_reset_password.sql` (reset de la cuenta de la nutricionista; el real va en
 `.env.admin-reset.sql`, que **no** se sube a git) y `cleanup_test_data.sql` (borra todo lo que empiece por `ZZZ_TEST_`).
