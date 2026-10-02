@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import CustomSelect from "@/components/CustomSelect";
 import { MAX_CHANGES, MAX_CHANGE_TEXT } from "@/lib/marketList";
 import type { MarketChange, MarketItem, MarketReply } from "@/types/market";
 
@@ -75,6 +76,8 @@ export default function MarketChanges({
     return () => clearTimeout(timer);
   }, [open, hasUnseen]);
 
+  // La lista de productos usa el mismo desplegable de toda la app (no el del navegador, que se abre enorme y sin estilo).
+  const productOptions = [{ value: "", label: "Sin producto (nota general)" }, ...items.map((i) => ({ value: i.id, label: i.name }))];
   const itemName = (id: string | null) => (id ? items.find((i) => i.id === id)?.name ?? "Producto" : null);
   const full = changes.length >= MAX_CHANGES;
 
@@ -125,18 +128,13 @@ export default function MarketChanges({
 
           <form className="market-changes-form" onSubmit={handleAdd}>
             <label htmlFor="change-item" className="market-changes-label">Producto (opcional)</label>
-            <select
+            <CustomSelect
               id="change-item"
-              className="input-field"
+              options={productOptions}
               value={itemId}
               disabled={disabled || full}
-              onChange={(e) => setItemId(e.target.value)}
-            >
-              <option value="">Sin producto (nota general)</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>{item.name}</option>
-              ))}
-            </select>
+              onChange={setItemId}
+            />
 
             <label htmlFor="change-text" className="market-changes-label">Cambio</label>
             <div className="market-changes-row">
