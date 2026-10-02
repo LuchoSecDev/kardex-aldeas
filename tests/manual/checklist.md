@@ -36,6 +36,10 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Al editar esa semana después, aparece "⚠ … cambió después" (aviso y botón de semana); "Volver a enviar" lo limpia.
 - [ ] El botón se bloquea mientras hay un guardado en curso.
 
+## Casillas numéricas del kardex
+- [ ] Con un computador: escribir un número en una entrada o salida y, SIN salir de la casilla, girar la rueda del mouse (o deslizar dos dedos en el panel táctil): el número NO cambia y la página se desplaza.
+- [ ] Lo mismo en «Saldo real (conteo físico)» de la corrección de saldo.
+
 ## Avisos de confirmación («toasts», plan 009)
 - [ ] Enviar la lista de mercado o la semana del kardex: arriba aparece un aviso verde con ✓ («¡Listo!…») que se va solo a los 5 segundos.
 - [ ] Tocar el aviso lo cierra al instante (no hay una «X»).
