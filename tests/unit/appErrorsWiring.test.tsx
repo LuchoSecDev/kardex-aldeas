@@ -32,9 +32,19 @@ describe("authedRpc avisa de los fallos sin cambiar lo que devuelve", () => {
     expect(result).toEqual({ data: null, error });
     expect(reportRpcError).toHaveBeenCalledTimes(1);
     // Solo la función y el error: nunca los argumentos de la llamada (llevan el token y las cantidades).
-    expect(reportRpcError).toHaveBeenCalledWith("market_list_save", error);
-    expect(JSON.stringify(reportRpcError.mock.calls)).not.toContain("tok-A");
+    expect(reportRpcError).toHaveBeenCalledWith("market_list_save", error, "tok-A");
     expect(JSON.stringify(reportRpcError.mock.calls)).not.toContain("carnes");
+    expect(JSON.stringify(reportRpcError.mock.calls)).not.toContain("p_quantities");
+  });
+
+  it("el aviso se atribuye a la sesión que tenía la llamada, aunque entre otra comunidad mientras espera", async () => {
+    rpc.mockImplementation(async () => {
+      session.set("tok-B"); // otra comunidad entra en el mismo equipo mientras la llamada de A sigue en vuelo
+      return { data: null, error: { code: "P0001", message: "Cantidades inválidas" } };
+    });
+    await authedRpc("market_list_save");
+    expect(rpc).toHaveBeenCalledWith("market_list_save", expect.objectContaining({ p_token: "tok-A" }));
+    expect(reportRpcError).toHaveBeenCalledWith("market_list_save", expect.anything(), "tok-A");
   });
 
   it("si todo sale bien no se reporta nada", async () => {

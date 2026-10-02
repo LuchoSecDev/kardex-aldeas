@@ -39,12 +39,13 @@ describe("registro de errores: acceso", () => {
     expect(res.error, JSON.stringify(res.error)).toBeNull();
   });
 
-  it("la tabla de errores está cerrada: no se lee, no se escribe y no se borra desde la app", async () => {
-    expect((await supabase.from("system_error_logs").select("*").limit(1)).error).not.toBeNull();
+  it("la tabla de errores está cerrada: no se lee, no se escribe y no se borra desde la app (permiso denegado, no «no existe»)", async () => {
+    // 42501 = permission denied. Exigir ESE código evita que la prueba pase por otra razón (p. ej. la tabla aún no existe).
+    expect((await supabase.from("system_error_logs").select("*").limit(1)).error?.code).toBe("42501");
     const insert = await supabase.from("system_error_logs").insert({
       community: "x", source: "rpc", level: "error", fn: "f", message: "m", app_version: "v",
     });
-    expect(insert.error).not.toBeNull();
-    expect((await supabase.from("system_error_logs").delete().eq("community", "x")).error).not.toBeNull();
+    expect(insert.error?.code).toBe("42501");
+    expect((await supabase.from("system_error_logs").delete().eq("community", "x")).error?.code).toBe("42501");
   });
 });

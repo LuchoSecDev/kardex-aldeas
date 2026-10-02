@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DEDUP_WINDOW_MS, MAX_QUEUED, createErrorReporter, isExpectedCondition, levelForRpcError } from "@/lib/errorReporter";
+import { DEDUP_WINDOW_MS, MAX_QUEUED, createErrorReporter, isExpectedCondition, levelForRpcError, levelForWindowMessage } from "@/lib/errorReporter";
 import type { ErrorReport, ErrorSender } from "@/lib/errorReporter";
 
 // Aviso de errores del navegador (plan 007, Fase A). Se prueba con un `send` falso: lo importante es que NUNCA estorbe, que
@@ -94,6 +94,23 @@ describe("cuándo es un error y cuándo un flujo normal", () => {
     expect(send.mock.calls[1][1]).toMatchObject({ source: "rpc", level: "warning", fn: "kardex_save_product" });
   });
 
+  it("el token con el que falló la llamada es el que se usa, aunque ya haya entrado otra comunidad", async () => {
+    const { reporter, send, token } = setup({ token: "tok-B" });
+    await reporter.reportRpcError("kardex_save_product", { code: "P0001", message: "Datos incompletos" }, "tok-A");
+    expect(send).toHaveBeenCalledWith("tok-A", expect.anything());
+    expect(token.value).toBe("tok-B");
+    // Una llamada que ya no tenía sesión (token nulo) no se reporta con la sesión de otra.
+    await reporter.reportRpcError("otra_funcion", { code: "P0001", message: "Datos incompletos" }, null);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it("los fallos de red de la página (Failed to fetch, cancelaciones) son advertencias; el resto, errores", () => {
+    for (const m of ["TypeError: Failed to fetch", "NetworkError when attempting to fetch resource.", "Load failed", "AbortError: The user aborted a request.", "The operation was aborted", "signal is aborted without reason"]) {
+      expect(levelForWindowMessage(m), m).toBe("warning");
+    }
+    for (const m of ["Cannot read properties of undefined", "x is not a function"]) expect(levelForWindowMessage(m), m).toBe("error");
+  });
+
   it("sin código de base de datos es una advertencia de red; con código, un error", () => {
     expect(levelForRpcError({ code: "" })).toBe("warning");
     expect(levelForRpcError({ code: undefined })).toBe("warning");
@@ -148,6 +165,31 @@ describe("sin red", () => {
     expect(reporter.pending()).toBe(0);
     const delivered = send.mock.calls.filter((_, i) => i >= 2).map((c) => c[1].message);
     expect(delivered).toEqual(["primero", "segundo"]);
+  });
+
+  it("REGRESIÓN: tras un envío que sí salió, una caída de red y el regreso de la conexión, la cola se vacía", async () => {
+    // El envío exitoso llama a flush() con la cola vacía; eso dejaba el flush «ocupado» para siempre y la cola no salía nunca.
+    let online = true;
+    const { reporter, send } = setup({ send: async () => (online ? OK : NETWORK) });
+    await reporter.report(report({ message: "uno" }));
+    online = false;
+    await reporter.report(report({ message: "dos" }));
+    expect(reporter.pending()).toBe(1);
+    online = true;
+    await reporter.flush();
+    expect(reporter.pending()).toBe(0);
+    expect(send).toHaveBeenLastCalledWith("tok-A", expect.objectContaining({ message: "dos" }));
+  });
+
+  it("un flush pedido con la cola vacía no deja nada atascado: el siguiente flush sí trabaja", async () => {
+    let online = false;
+    const { reporter } = setup({ send: async () => (online ? OK : NETWORK) });
+    await reporter.flush();            // cola vacía: termina de inmediato
+    await reporter.report(report());   // sin red: queda esperando
+    expect(reporter.pending()).toBe(1);
+    online = true;
+    await reporter.flush();
+    expect(reporter.pending()).toBe(0);
   });
 
   it("el evento «online» de la página vacía la cola", async () => {
@@ -221,6 +263,15 @@ describe("errores de la página", () => {
     await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(3));
     expect(send.mock.calls.map((c) => c[1].message)).toEqual(["fallo de red al guardar", "otro fallo", "Promesa rechazada"]);
     expect(send.mock.calls[0][1].fn).toBe("window.unhandledrejection");
+  });
+
+  it("un rechazo por red caída llega como advertencia y «Script error.» sin detalle no se reporta", async () => {
+    const { send, fire } = install();
+    fire("unhandledrejection", { reason: new Error("TypeError: Failed to fetch") });
+    fire("error", { message: "Script error." });
+    fire("error", { message: "Script error" });
+    await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1));
+    expect(send.mock.calls[0][1]).toMatchObject({ source: "window", level: "warning", fn: "window.unhandledrejection" });
   });
 
   it("al quitar los manejadores deja de escuchar", async () => {

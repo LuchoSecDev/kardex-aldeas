@@ -119,12 +119,24 @@ begin
   perform tst.report(a, msg => repeat('ab ', 200));
   perform tst.ok(char_length(tst.last('ZZZ_TEST_err_A') ->> 'message') <= 300, 'mensaje cortado a 300');
 
-  perform tst.report(a, msg => 'falló con abcdefghijklmnopqrstuvwx en x');   -- 24 caracteres seguidos: parece token
-  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'falló con [oculto] en x', 'una tira de 24 se tapa');
-  perform tst.report(a, msg => 'falló con abcdefghijklmnopqrstuvw en x');    -- 23: no
-  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'falló con abcdefghijklmnopqrstuvw en x', 'una de 23 no se toca');
+  -- Tapado de tokens: tira de 24 o más con 4 o más dígitos (los tokens de sesión son 64 hex).
+  perform tst.report(a, msg => 'falló con a1b2c3d4e5f6a1b2c3d4e5f6 en x');          -- 24 con dígitos: parece token
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'falló con [oculto] en x', 'una tira de 24 con dígitos se tapa');
+  perform tst.report(a, msg => 'falló con a1b2c3d4e5f6a1b2c3d4e5f en x');           -- 23: no
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'falló con a1b2c3d4e5f6a1b2c3d4e5f en x', 'una de 23 no se toca');
+  perform tst.report(a, msg => 'falló con abcdefghijklmnopqrstu123 en x');         -- 24 con solo 3 dígitos: no
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'falló con abcdefghijklmnopqrstu123 en x', 'con 3 dígitos no se toca');
+  perform tst.report(a, msg => 'falló con abcdefghijklmnopqrst1234 en x');         -- 24 con 4 dígitos: sí
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'falló con [oculto] en x', 'con 4 dígitos se tapa');
   perform tst.report(a, msg => 'token A1b2+C3d4/E5f6=G7h8-I9j0_K1l2M3n4 fin');
   perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'token [oculto] fin', 'también con + / = - _');
+  perform tst.report(a, msg => 'sesion ' || encode(sha256('x'::bytea), 'hex') || ' fin');   -- 64 hex, como un token real
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'sesion [oculto] fin', 'un token de 64 hex se tapa');
+  -- Lo que SÍ hay que ver para diagnosticar se conserva: nombres de función y rutas largos (sin dígitos o con un «v1» suelto).
+  perform tst.report(a, msg => 'Could not find the function public.market_replies_mark_seen(p_token)');
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'Could not find the function public.market_replies_mark_seen(p_token)', 'un nombre de función largo no se tapa');
+  perform tst.report(a, msg => 'POST co/rest/v1/rpc/market_list_save_changes falló');
+  perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'POST co/rest/v1/rpc/market_list_save_changes falló', 'una ruta larga con un «v1» no se tapa');
 
   perform tst.report(a, msg => '   ');
   perform tst.ok(tst.last('ZZZ_TEST_err_A') ->> 'message' = 'sin mensaje', 'mensaje en blanco');
@@ -151,6 +163,11 @@ begin
   perform tst.ok(tst.n('ZZZ_TEST_err_A') = 20, 'A se queda en 20 por minuto (hay ' || tst.n('ZZZ_TEST_err_A') || ')');
   perform tst.report(current_setting('tst.b'));
   perform tst.ok(tst.n('ZZZ_TEST_err_B') = 1, 'B no se ve afectada por el tope de A');
+  perform tst.wipe('ZZZ_TEST_err_A');
+  -- La ventana es de un minuto: 20 reportes de hace 90 segundos ya no cuentan para el tope por minuto.
+  perform tst.old('ZZZ_TEST_err_A', interval '90 seconds', 20);
+  perform tst.report(current_setting('tst.a'));
+  perform tst.ok(tst.n('ZZZ_TEST_err_A') = 21, 'lo de hace 90 segundos no cuenta para el tope por minuto');
   perform tst.wipe('ZZZ_TEST_err_A');
 end $$;
 

@@ -42,6 +42,8 @@ declare
   v_code      text;
   v_version   text;
   v_id        bigint;
+  v_minute    int;
+  v_day       int;
 begin
   -- Lo que el navegador manda como constantes se valida estricto; el texto libre se limpia (no se rechaza).
   if p_source is null or p_source not in ('rpc', 'window') or p_level is null or p_level not in ('warning', 'error')
@@ -50,15 +52,21 @@ begin
   end if;
 
   v_message := left(btrim(regexp_replace(coalesce(p_message, ''), '\s+', ' ', 'g')), 300);
-  -- Una tira larga sin espacios parece un token: se tapa por si se coló en el texto de un error.
-  v_message := regexp_replace(v_message, '[A-Za-z0-9_+/=-]{24,}', '[oculto]', 'g');
+  -- Una tira larga sin espacios con 4 o más dígitos parece un token (los de sesión son 64 hex): se tapa por si se coló en el
+  -- texto de un error. Los nombres de funciones y rutas largos (sin dígitos, o con un «v1» suelto) se conservan: son justo
+  -- lo que hay que ver para diagnosticar.
+  v_message := regexp_replace(v_message, '(?=([A-Za-z_+/=-]*[0-9]){4})[A-Za-z0-9_+/=-]{24,}', '[oculto]', 'g');
   if v_message = '' then v_message := 'sin mensaje'; end if;
   v_code    := case when p_code ~ '^[A-Za-z0-9_.-]{1,40}$' then p_code else null end;
   v_version := case when p_version ~ '^[A-Za-z0-9_.-]{1,40}$' then p_version else 'desconocida' end;
 
   -- Tope por comunidad: 20 por minuto y 300 por día. Pasado el tope se ignora sin error (un reporte nunca debe romper nada).
-  if (select count(*) from system_error_logs where community = v_community and created_at > now() - interval '1 minute') >= 20
-     or (select count(*) from system_error_logs where community = v_community and created_at > now() - interval '1 day') >= 300 then
+  -- Es un tope blando: dos reportes simultáneos pueden pasar ambos con 19; para una alarma de inundación basta.
+  select count(*) filter (where created_at > now() - interval '1 minute'), count(*)
+    into v_minute, v_day
+    from system_error_logs
+   where community = v_community and created_at > now() - interval '1 day';
+  if v_minute >= 20 or v_day >= 300 then
     return;
   end if;
 
