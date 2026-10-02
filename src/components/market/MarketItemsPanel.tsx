@@ -149,7 +149,7 @@ export default function MarketItemsPanel({
               {replies[k].some((r) => !r.seen) && (
                 <span className="market-tab-notes market-tab-reply" aria-label={`${replies[k].filter((r) => !r.seen).length} respuestas nuevas`}>💬{replies[k].filter((r) => !r.seen).length}</span>
               )}
-              {!kindsDue.includes(k) && <span className="market-tab-off" title="Este viernes no toca">·</span>}
+              {!kindsDue.includes(k) && <span className="market-tab-off" role="img" aria-label="Este viernes no toca" title="Este viernes no toca">⚠</span>}
             </button>
           );
         })}
@@ -159,7 +159,7 @@ export default function MarketItemsPanel({
         <p className={`market-due ${due ? "market-due--yes" : "market-due--no"}`}>
           {due
             ? `✓ Este viernes SÍ se pide ${MARKET_KIND_LABEL[kind].toLowerCase()}.`
-            : `Este viernes no toca pedir ${MARKET_KIND_LABEL[kind].toLowerCase()}. Déjalo en blanco; si necesitas pedir algo igual, puedes hacerlo.`}
+            : `⚠ Este viernes no toca pedir ${MARKET_KIND_LABEL[kind].toLowerCase()}. Déjalo en blanco; si necesitas pedir algo igual, puedes hacerlo.`}
         </p>
 
         <MarketChanges

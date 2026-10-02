@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { MarketChange, MarketItem, MarketWeek } from "@/types/market";
 
@@ -51,6 +52,12 @@ const row = (kind: MarketItem["kind"], extra: Record<string, unknown> = {}) => (
 });
 
 const note = (id: string, text: string, item_id: string | null = null): MarketChange => ({ id, item_id, text, at: "2026-09-30T15:00:00Z" });
+
+// El producto se elige en el desplegable de la app (no en un <select> del navegador): se abre y se toca la opción.
+const pickProduct = (name: string) => {
+  fireEvent.click(screen.getByLabelText("Producto (opcional)"));
+  fireEvent.click(screen.getByRole("option", { name }));
+};
 
 async function renderLoaded() {
   const view = render(<MarketListDashboard community="Maná" onLogout={vi.fn()} />);
@@ -112,7 +119,7 @@ describe("zona de cambios: agregar", () => {
   it("una nota con producto lo guarda y lo muestra", async () => {
     await renderLoaded();
     openZone();
-    fireEvent.change(screen.getByLabelText("Producto (opcional)"), { target: { value: "mf3" } });
+    pickProduct("PAPA PASTUSA");
     writeNote("Solo papa criolla");
     addNote();
     await advance(SAVE_DEBOUNCE_MS);
@@ -153,7 +160,7 @@ describe("zona de cambios: agregar", () => {
     await renderLoaded();
     tab(/Carnes/);
     openZone(/carnes/);
-    fireEvent.change(screen.getByLabelText("Producto (opcional)"), { target: { value: "mc2" } });
+    pickProduct("PESCADO FILETE");
     writeNote("Pescado por pechuga");
     addNote();
     await advance(SAVE_DEBOUNCE_MS);
@@ -165,7 +172,7 @@ describe("zona de cambios: el 📝 de cada producto", () => {
   it("abre la zona con ese producto elegido y el cursor en el campo de texto", async () => {
     await renderLoaded();
     fireEvent.click(screen.getAllByRole("button", { name: "Agregar un cambio" })[1]); // PAPA PASTUSA
-    expect((screen.getByLabelText("Producto (opcional)") as HTMLSelectElement).value).toBe("mf3");
+    expect(screen.getByLabelText("Producto (opcional)").textContent).toContain("PAPA PASTUSA");
     expect(document.activeElement).toBe(screen.getByLabelText("Cambio"));
   });
 
@@ -277,6 +284,7 @@ describe("zona de cambios: límite de 20", () => {
     await renderLoaded();
 
     expect((screen.getByLabelText("Cambio") as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByLabelText("Producto (opcional)") as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByRole("button", { name: "Agregar cambio" }) as HTMLButtonElement).disabled).toBe(true);
     expect(screen.getByRole("status").textContent).toContain("máximo de 20");
   });
@@ -335,5 +343,34 @@ describe("zona de cambios: guardado y envío", () => {
     fireEvent.click(send());
     await advance(0);
     expect(service.saveChanges.mock.invocationCallOrder[0]).toBeLessThan(service.submitWeek.mock.invocationCallOrder[0]);
+  });
+});
+
+describe("aviso de que ese tipo no se pide este viernes", () => {
+  it("en la pestaña de un tipo que no toca, el mensaje lleva ⚠ y la pestaña lo marca; en uno que toca, no", async () => {
+    await renderLoaded(); // la semana de prueba pide fruver, carnes y abarrotes; aseo no toca
+    expect(screen.getByText(/Este viernes SÍ se pide fruver/).className).toContain("market-due--yes");
+
+    tab(/Aseo/);
+    const warning = screen.getByText(/Este viernes no toca pedir aseo/);
+    expect(warning.className).toContain("market-due--no");
+    expect(warning.textContent).toMatch(/^⚠ /);
+    const aseoTab = within(screen.getByRole("tablist", { name: "Tipo de lista" })).getByRole("tab", { name: /Aseo/ });
+    expect(within(aseoTab).getByRole("img", { name: "Este viernes no toca" })).toBeTruthy();
+    const fruverTab = within(screen.getByRole("tablist", { name: "Tipo de lista" })).getByRole("tab", { name: /Fruver/ });
+    expect(within(fruverTab).queryByRole("img", { name: "Este viernes no toca" })).toBeNull();
+  });
+
+  it("los avisos van en rojo (no en el gris tenue, que pasaba desapercibido) y con borde, no solo con color", () => {
+    const market = readFileSync("src/app/market.css", "utf8");
+    const rule = (css: string, selector: string) => {
+      const start = css.indexOf(`${selector} {`);
+      expect(start, `no está la regla ${selector}`).toBeGreaterThanOrEqual(0);
+      return css.slice(start, css.indexOf("}", start));
+    };
+    expect(rule(market, ".market-due--no")).toContain("color: var(--color-accent-red)");
+    expect(rule(market, ".market-due--no")).toContain("border-left");
+    expect(rule(market, ".market-tab-off")).toContain("color: var(--color-accent-red)");
+    expect(rule(readFileSync("src/app/admin.css", "utf8"), ".admin-market-kind-note")).toContain("color: var(--color-accent-red)");
   });
 });

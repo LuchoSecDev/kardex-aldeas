@@ -567,8 +567,8 @@
 .admin-market-kind-count,
 .admin-market-kind-note {
   font-size: 0.85em;
-  font-weight: 400;
-  color: var(--color-text-muted);
+  font-weight: 600;
+  color: var(--color-accent-red);
 }
 
 .admin-market-items {
