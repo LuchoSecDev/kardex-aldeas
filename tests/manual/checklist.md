@@ -40,6 +40,13 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Con un computador: escribir un número en una entrada o salida y, SIN salir de la casilla, girar la rueda del mouse (o deslizar dos dedos en el panel táctil): el número NO cambia y la página se desplaza.
 - [ ] Lo mismo en «Saldo real (conteo físico)» de la corrección de saldo.
 
+## Botón «volver arriba»
+- [ ] Al inicio de cualquier pantalla NO se ve. Al bajar (más de unos 400 px, p. ej. en el kardex o en la lista de mercado) aparece una flecha redonda azul abajo a la derecha.
+- [ ] Tocarla sube suavemente al principio de la página y la flecha desaparece. En el celular se toca sin errar y no tapa los botones de abajo.
+- [ ] Con letra A++ y con alto contraste (fondo negro, borde blanco) se sigue viendo y la flecha crece con la letra.
+- [ ] Abrir un modal (corrección de saldo, historial): la flecha queda DETRÁS del modal. Un aviso verde nunca queda tapado por ella.
+- [ ] Con «reducir movimiento» activado en el sistema, sube de golpe, sin animación.
+
 ## Avisos de confirmación («toasts», plan 009)
 - [ ] Enviar la lista de mercado o la semana del kardex: arriba aparece un aviso verde con ✓ («¡Listo!…») que se va solo a los 5 segundos.
 - [ ] Tocar el aviso lo cierra al instante (no hay una «X»).

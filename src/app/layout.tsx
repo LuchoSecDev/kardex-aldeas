@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { A11yProvider } from "@/components/A11yProvider";
 import NumberWheelGuard from "@/components/NumberWheelGuard";
+import ScrollToTop from "@/components/ScrollToTop";
 import { ToastProvider } from "@/components/toast/ToastProvider";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
         <A11yProvider>
           <NumberWheelGuard />
           <ToastProvider>{children}</ToastProvider>
+          <ScrollToTop />
         </A11yProvider>
       </body>
     </html>
