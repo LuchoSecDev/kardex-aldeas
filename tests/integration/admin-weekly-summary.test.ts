@@ -119,7 +119,8 @@ describe.skipIf(!password)("resumen semanal (con sesión de administradora)", ()
   });
 
   it("rechaza semanas y meses fuera de rango", async () => {
-    for (const [week, month] of [[5, MONTH], [-1, MONTH], [0, 12]]) {
+    // Desde el plan 004 (semana 6 de cierre) el índice 5 es válido: el primero fuera de rango es el 6.
+    for (const [week, month] of [[6, MONTH], [-1, MONTH], [0, 12]]) {
       const { error } = await supabase.rpc("admin_weekly_totals", {
         p_token: adminToken, p_year: YEAR, p_month: month, p_week_index: week, p_only_sent: true,
       });
