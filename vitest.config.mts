@@ -13,5 +13,6 @@ export default defineConfig(({ mode }) => ({
     include: ["tests/**/*.test.{ts,tsx}"],
     env: loadEnv(mode, process.cwd(), ["NEXT_PUBLIC_", "ADMIN_TEST_", "PROVISION_"]),
     testTimeout: 30_000,
+    setupFiles: ["tests/setup.ts"],
   },
 }));
