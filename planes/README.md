@@ -21,6 +21,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 | 008 | [Zona de cambios en la lista de mercado (notas del pedido, con respuesta de la nutricionista y campanita para las comunidades)](008-zona-de-cambios.md) | 🚧 Fase A (SQL y pruebas) lista en local; falta correr `market_changes_1..6.sql` y las Fases B–D | rama `feature/zona-de-cambios` |
 | 009 | [Avisos de confirmación («toasts»)](009-avisos-de-confirmacion.md) | 🚧 Programada y probada en local (sin SQL); falta desplegar | rama `feature/toasts` |
 | 010 | [Sitio estático y migración a Cloudflare Pages](010-hosting-estatico-cloudflare.md) | 🚧 Código listo y probado en local; falta que Lucho cree el proyecto en Cloudflare (pasos en el plan) antes del primer cobro | rama `feature/hosting-estatico` |
+| 011 | [Minuta patrón: cumplimiento de gramajes, pedido sugerido y «Salida de hoy»](011-minuta-patron.md) | 📝 Borrador v2 (2026-10-02), **feature futura**: Lucho prefiere no complicar por ahora el trabajo de las «tías». Con los tres documentos del ICBF y sus respuestas; al reactivarlo falta completar los documentos y cerrar D4, D11 y D12. Función nueva, fuera de la suscripción | — |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)
