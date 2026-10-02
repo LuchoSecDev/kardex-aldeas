@@ -12,6 +12,7 @@
 
 delete from kardex_records where community like 'ZZZ\_TEST\_%';
 delete from ajustes where community like 'ZZZ\_TEST\_%';
+delete from system_error_logs where community like 'ZZZ\_TEST\_%';
 delete from communities where name like 'ZZZ\_TEST\_%';
 
 -- Quedó de una verificación anterior.

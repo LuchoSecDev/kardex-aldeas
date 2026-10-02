@@ -3,6 +3,7 @@ import "./globals.css";
 import { A11yProvider } from "@/components/A11yProvider";
 import NumberWheelGuard from "@/components/NumberWheelGuard";
 import ScrollToTop from "@/components/ScrollToTop";
+import ErrorReporter from "@/components/ErrorReporter";
 import { ToastProvider } from "@/components/toast/ToastProvider";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
       <body>
         <A11yProvider>
           <NumberWheelGuard />
+          <ErrorReporter />
           <ToastProvider>{children}</ToastProvider>
           <ScrollToTop />
         </A11yProvider>

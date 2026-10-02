@@ -148,6 +148,14 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Volver a dejar el número como estaba → deja de aparecer «modificada».
 - [ ] La campanita de la nutricionista sigue mostrando los envíos sin revisar y, al revisarlos, desaparecen.
 
+## Aviso de errores al desarrollador (plan 007, después de correr dev_errors_1.sql)
+- [ ] Con una comunidad de prueba, simular una caída de red (herramientas del navegador → Red → sin conexión) y editar un número del kardex: la pantalla muestra su aviso de «no se pudo guardar» como siempre y **no aparece ningún error nuevo** por el aviso.
+- [ ] Volver a conectar: en Supabase (Editor de tablas → `system_error_logs`) aparece una fila de la comunidad de prueba con nivel `warning`, función `kardex_save_product` y la versión; **sin** el token ni cantidades en el mensaje.
+- [ ] El mismo fallo repetido durante un minuto deja una sola fila.
+- [ ] Un error de la página (por ejemplo, forzar uno desde la consola) aparece como `window.onerror`.
+- [ ] Un flujo normal que el servidor rechaza a propósito (enviar la lista vacía, un PIN débil) **no** deja filas.
+- [ ] Antes de correr el SQL: la app funciona igual y no muestra errores (el aviso se apaga solo).
+
 ## Después de desplegar
 - [ ] El sitio en vivo carga y se puede entrar y guardar con una comunidad de prueba.
 - [ ] `npm run test:integration` en verde (confirma permisos de la base de datos).

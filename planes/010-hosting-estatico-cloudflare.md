@@ -32,6 +32,7 @@ Supabase. Se publica como **archivos estáticos** en un hosting gratuito.
 4. *Environment variables* (las mismas de `.env.local`; son públicas por diseño, la clave `anon`):
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_APP_VERSION` *(opcional, plan 007)*: el hash corto del commit o un número de versión (letras, números, `.`, `_` y `-`). Viaja en cada aviso de error para ligarlo a un despliegue; en Vercel se toma solo, en Cloudflare Pages hay que ponerlo a mano. Sin él queda «local».
    - `NODE_VERSION` = `22`
    (**No** pongas `PROVISION_KEY` ni ninguna contraseña: el sitio no las necesita y todo lo que empieza por `NEXT_PUBLIC_` queda visible en el navegador.)
 5. Esperar el primer despliegue y abrir la dirección `*.pages.dev` que te da Cloudflare. Probar con el checklist manual (entrar con una comunidad de prueba, enviar una lista, descargar un Excel, abrir `/admin`).

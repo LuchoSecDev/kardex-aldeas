@@ -1,6 +1,6 @@
 # 007 — Panel del desarrollador (`/dev`): errores, alertas y diagnóstico
 
-**Estado:** 📝 Propuesta con las decisiones **confirmadas por Lucho el 2026-10-01** (cuenta en la base, alertas por correo y Telegram, acciones remotas con auditoría). Falta programarla (después de la zona de cambios).
+**Estado:** 🚧 **Fase A, parte 1 construida en local el 2026-10-02 (sin commitear ni desplegar):** registro de errores (SQL `dev_errors_1.sql`, logger del cliente y pruebas). Decisiones confirmadas por Lucho el 2026-10-01 (cuenta en la base, alertas por correo y Telegram, acciones remotas con auditoría). Falta lo que necesita a Lucho en la PC (correr el SQL, correo y Telegram) y las Fases B y C.
 **Rama:** `feature/panel-dev` (cuando se programe)  **Fecha:** 2026-10-01
 Origen: `../diseno_panel_superusuario_dev.md` (diseño inicial, fuera del repositorio) revisado y corregido aquí.
 
@@ -45,7 +45,10 @@ Es también la forma concreta de cumplir la «vigilancia del servicio» que prom
 
 ## Fases
 
-- [ ] **Fase A — Errores y alertas** (valor alto, costo bajo): `dev_account`, tabla y reporte de errores, logger de cliente, correo de alerta, chequeo de disponibilidad externo. *Aceptación:* un error forzado en una comunidad de prueba aparece en la tabla con su versión y llega el correo; sin red se reporta al volver.
+- [ ] **Fase A — Errores y alertas** (valor alto, costo bajo). *Aceptación:* un error forzado en una comunidad de prueba aparece en la tabla con su versión y llega el correo; sin red se reporta al volver.
+  - [x] **A1 — Registro de errores** *(construido el 2026-10-02, sin desplegar)*: `supabase/dev_errors_1.sql` (tabla cerrada `system_error_logs` y `dev_report_client_error`: la comunidad sale del token, texto limpio y tiras largas tapadas, tope de 20 por minuto y 300 por día, limpieza de más de 30 días cada 50 reportes sin tareas programadas), `src/lib/errorReporter.ts` y `appErrors.ts` (no repite ni inunde, nunca manda argumentos, cola en memoria sin red, se apaga solo si la función aún no existe), `ErrorReporter` en el layout y la conexión en `authedRpc`. Pruebas: `tests/db/dev_errors.test.sql` (15 mutaciones), `tests/unit/errorReporter.test.ts` y `appErrorsWiring.test.tsx` (20 mutaciones), `tests/integration/dev-errors.test.ts`. **Falta correr `dev_errors_1.sql` en Supabase** y `npm run test:integration`.
+  - [ ] **A2 — Alertas** (necesita a Lucho en la PC): correo y Telegram con una Edge Function, y el chequeo de disponibilidad externo.
+  - [ ] **A3 — Cuenta del desarrollador** (`dev_account`, sesiones y bloqueo): **se movió a la Fase B**, que es donde hace falta (la pantalla `/dev`); mientras tanto los errores se ven en el Editor de tablas de Supabase. Así no se abre una superficie de autenticación nueva sin tener quién la use.
 - [ ] **Fase B — Pantalla `/dev` y acciones remotas:** login, monitor de comunidades, visor de errores, desbloquear / PIN temporal con auditoría.
 - [ ] **Fase C — Integridad contable** (solo los invariantes definidos y probados).
 
@@ -61,3 +64,12 @@ SQL aditivo primero, luego la app (el logger debe fallar en silencio si la funci
 
 - Un panel pull sin alertas no avisa de una caída total: por eso el correo y el chequeo externo van en la Fase A y no son opcionales.
 - Retención: purga automática (`pg_cron`) para que la tabla de errores no crezca sin límite.
+
+## Decisiones de la construcción (2026-10-02)
+
+- **Cola sin red solo en memoria**, no en `localStorage`: el token de sesión también vive solo en memoria, así que tras recargar la página un reporte guardado no se podría atribuir con seguridad a su comunidad. Cada reporte espera con la sesión con la que nació (si se cambia de comunidad en el mismo equipo no se mezcla).
+- **Qué es un fallo y qué no:** las condiciones esperadas del negocio se lanzan en MAYÚSCULAS (`LISTA_VACIA`, `PIN_DEBIL`, `SESION_INVALIDA`…) y no se reportan; un error de validación con frase («Cambios inválidos») sí, porque es un fallo del cliente. Sin código de base de datos = fallo de red = `warning`; con código = `error`.
+- **Limpieza sin `pg_cron`:** cada 50 reportes se borran los de más de 30 días; evita depender de una extensión.
+- **Sin `critical` desde el navegador:** ese nivel lo pondrá el sistema (umbrales) cuando existan las alertas.
+- **Versión:** `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` (Vercel); en Cloudflare Pages hay que definir `NEXT_PUBLIC_APP_VERSION` en las variables del build (se anota también en el plan 010). Sin ninguna queda «local».
+- **Datos que sí viajan:** el mensaje de error del servidor o del navegador (hasta 300 caracteres; puede traer un nombre de comunidad). No viajan los argumentos de las llamadas ni cantidades.
