@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# configuración local de Claude Code (de cada máquina)
+CLAUDE.local.md
+
 # vercel
 .vercel
 

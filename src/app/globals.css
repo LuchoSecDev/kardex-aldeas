@@ -466,6 +466,40 @@ tbody tr:hover {
   border: 4px solid #fff;
 }
 
+/* Botón «volver arriba»: fijo abajo a la derecha, grande para tocarlo sin atinar, debajo de los modales (z-index 1000) y de los avisos.
+   Usa em (no rem) para crecer con el tamaño de letra A+/A++ que fija el body. */
+.scroll-top-btn {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 900;
+  width: 3.5em;
+  height: 3.5em;
+  min-width: 56px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.scroll-top-btn:hover { background: var(--color-primary-light); }
+
+.scroll-top-btn:focus-visible {
+  outline: 4px solid #000;
+  outline-offset: 2px;
+}
+
+.high-contrast .scroll-top-btn {
+  background: #000;
+  border-color: #fff;
+}
+
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-12px); }
   to { opacity: 1; transform: translateY(0); }
