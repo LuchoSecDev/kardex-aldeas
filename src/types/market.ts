@@ -23,12 +23,29 @@ export type MarketChange = { id: string; item_id: string | null; text: string; a
 // Las notas de cada uno de los 4 tipos.
 export type KindChanges = Record<MarketKind, MarketChange[]>;
 
+// Respuesta de la nutricionista a una nota de cambio (plan 008, Fase D). `change_text` es el texto de la nota al responder
+// (si la comunidad la cambia después, se avisa); `seen` = la comunidad ya la vio.
+export type MarketReply = { change_id: string; text: string; change_text: string; at: string; seen: boolean };
+
+// Una respuesta sin leer en la campanita de la comunidad.
+export type MarketReplyNotification = {
+  week_start: string;
+  kind: MarketKind;
+  change_id: string;
+  change_text: string;
+  item_name: string | null;
+  reply_text: string;
+  replied_at: string;
+};
+
 // Lo que la comunidad ve de UNA de las 4 listas de una semana.
 export type MarketListRow = {
   kind: MarketKind;
   quantities: MarketQuantities;
   // Notas de cambio (copia de trabajo). Opcional: una respuesta del servidor anterior no las traía.
   changes?: MarketChange[];
+  // Respuestas de la nutricionista a las notas de este tipo. Opcional (servidor anterior).
+  replies?: MarketReply[];
   // Alguna vez se envió.
   sent: boolean;
   // Se editó después de enviarla (hay cambios sin enviar).
@@ -110,6 +127,8 @@ export type AdminMarketChange = {
   unit: string | null;
   text: string;
   at: string;
+  // Respuesta de la nutricionista (null/ausente = todavía sin respuesta).
+  reply?: { text: string; at: string } | null;
 };
 
 // Lo que envió UNA comunidad en una semana: solo los productos pedidos, sin precios.

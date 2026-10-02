@@ -2,7 +2,7 @@
 
 import "@/app/kardex.css";
 import "@/app/market.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import SaveStatus from "@/components/SaveStatus";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
@@ -12,16 +12,21 @@ import MarketSubmitBar from "@/components/market/MarketSubmitBar";
 import MarketWeekPicker from "@/components/market/MarketWeekPicker";
 import { useMarketList } from "@/hooks/useMarketList";
 import { useNow } from "@/hooks/useNow";
-import { upcomingOrderFriday, weekStartOfFriday } from "@/lib/marketCalendar";
+import { upcomingOrderFriday, weekStartOfFriday, type MarketKind } from "@/lib/marketCalendar";
+
+// La campanita de respuestas pide abrir una semana y un tipo (`nonce` cambia cada vez que se toca una respuesta).
+export type ReplyFocus = { weekStart: string; kind: MarketKind; nonce: number };
 
 // Lista de mercado de la comunidad (plan 003): la que antes se llenaba en un Excel
 // y se mandaba por correo los viernes antes de las 5 pm.
 export default function MarketListDashboard({
   community,
   onLogout,
+  focus,
 }: {
   community: string;
   onLogout: () => void;
+  focus?: ReplyFocus;
 }) {
   const market = useMarketList();
   const now = useNow();
@@ -35,6 +40,15 @@ export default function MarketListDashboard({
     else toast.error(message.text);
   }, [message, toast]);
   useSaveRecoveryToast(market.saveStatus);
+
+  // Si la campanita pide abrir una semana, se cambia a ella (el tipo lo abre el panel de productos).
+  const { changeWeek } = market;
+  const appliedFocus = useRef(0);
+  useEffect(() => {
+    if (!focus || focus.nonce === appliedFocus.current) return;
+    appliedFocus.current = focus.nonce;
+    changeWeek(focus.weekStart);
+  }, [focus, changeWeek]);
 
   // Con cambios sin guardar, el navegador pregunta antes de cerrar o recargar.
   useEffect(() => {
@@ -112,6 +126,9 @@ export default function MarketListDashboard({
           market.removeChange(kind, id);
           toast.success("Cambio quitado de la lista.");
         }}
+        replies={market.replies}
+        onRepliesSeen={market.markRepliesSeen}
+        focusKind={{ kind: focus?.kind ?? null, nonce: focus?.nonce ?? 0 }}
       />
 
       <MarketSubmitBar

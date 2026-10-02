@@ -52,6 +52,29 @@ export function useAdminMarket(focus: MarketFocus | null, onChanged?: () => void
     };
   }, [openCommunity, weekStart, detailKey]);
 
+  // Responde (o edita, o con texto vacío quita) la respuesta a una nota de cambio de una comunidad (plan 008, Fase D).
+  const [replying, setReplying] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
+  const reply = useCallback(
+    async (community: string, kind: string, changeId: string, text: string): Promise<boolean> => {
+      setReplying(true);
+      setReplyError(null);
+      const { error } = await adminService.marketReply(community, weekStart, kind, changeId, text);
+      setReplying(false);
+      if (error) {
+        if (!error.message?.includes("SESION_ADMIN_INVALIDA")) {
+          console.error("Error guardando la respuesta:", error);
+          setReplyError("No se pudo guardar la respuesta. Revisa tu conexión e inténtalo de nuevo.");
+        }
+        return false;
+      }
+      setReloadKey((k) => k + 1);
+      toast.success(text.trim() === "" ? "Respuesta quitada." : `Respuesta enviada a ${community}.`);
+      return true;
+    },
+    [weekStart, toast]
+  );
+
   const markReviewed = useCallback(
     async (community: string) => {
       setReviewing(true);
@@ -104,5 +127,8 @@ export function useAdminMarket(focus: MarketFocus | null, onChanged?: () => void
     markReviewed,
     reviewing,
     reviewError,
+    reply,
+    replying,
+    replyError,
   };
 }

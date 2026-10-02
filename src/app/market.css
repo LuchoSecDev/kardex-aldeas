@@ -443,3 +443,168 @@
   font-weight: 700;
   color: var(--color-primary-dark);
 }
+
+/* --- Respuestas de la nutricionista y su campanita (plan 008, Fase D) --- */
+.market-reply {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 5px solid var(--color-success);
+  border-radius: 8px;
+  background: rgba(83, 129, 60, 0.1);
+}
+
+.market-reply--new {
+  border-left-color: var(--color-warning);
+  background: rgba(187, 91, 3, 0.12);
+}
+
+.market-reply-label {
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.market-reply-new {
+  color: var(--color-warning);
+}
+
+.market-reply-text {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.market-reply-old {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+}
+
+.market-tab-reply {
+  color: var(--color-warning);
+}
+
+.reply-bell {
+  position: relative;
+}
+
+.reply-bell-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.reply-bell-btn:hover,
+.reply-bell-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.reply-bell-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.4rem;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--color-accent-red);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3rem;
+  text-align: center;
+}
+
+.reply-bell-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 2500;
+  width: min(26rem, calc(100vw - 2rem));
+  max-height: 70vh;
+  overflow-y: auto;
+  color: var(--color-text-main);
+  text-align: left;
+}
+
+.reply-bell-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.reply-bell-empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.reply-bell-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.reply-bell-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.reply-bell-where {
+  font-size: 0.85em;
+  color: var(--color-text-muted);
+}
+
+.reply-bell-note {
+  overflow-wrap: anywhere;
+}
+
+.reply-bell-answer {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* --- Respuesta de la nutricionista a una nota (panel) --- */
+.admin-reply {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0.25rem;
+}
+
+.admin-reply-text {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.admin-reply-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.admin-reply-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0.25rem;
+}
+
+.admin-reply-form .input-field {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.admin-reply-count {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}

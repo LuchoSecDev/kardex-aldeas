@@ -2,9 +2,13 @@
 
 import "@/app/market.css";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import ChangePinModal from "@/components/ChangePinModal";
 import KardexDashboard from "@/components/KardexDashboard";
-import MarketListDashboard from "@/components/market/MarketListDashboard";
+import MarketListDashboard, { type ReplyFocus } from "@/components/market/MarketListDashboard";
+import ReplyBell from "@/components/market/ReplyBell";
+import { useMarketReplies } from "@/hooks/useMarketReplies";
+import type { MarketReplyNotification } from "@/types/market";
 
 type View = "kardex" | "lista";
 
@@ -16,14 +20,27 @@ export default function CommunityShell({ community, onLogout }: { community: str
   const [view, setView] = useState<View>("kardex");
   const [listOpened, setListOpened] = useState(false);
   const [pinOpen, setPinOpen] = useState(false);
+  const [focus, setFocus] = useState<ReplyFocus | undefined>(undefined);
+  const { replies } = useMarketReplies();
 
   const select = (next: View) => {
     if (next === "lista") setListOpened(true);
     setView(next);
   };
 
+  // Al tocar una respuesta de la campanita: se abre la lista de mercado en esa semana y ese tipo.
+  const openReply = (reply: MarketReplyNotification) => {
+    setListOpened(true);
+    setView("lista");
+    setFocus((current) => ({ weekStart: reply.week_start, kind: reply.kind, nonce: (current?.nonce ?? 0) + 1 }));
+  };
+
+  // La campanita vive en la barra azul de arriba (junto a «Accesibilidad visual»), igual que la de la nutricionista.
+  const bellSlot = typeof document === "undefined" ? null : document.getElementById("a11y-bar-slot");
+
   return (
     <>
+      {bellSlot && createPortal(<ReplyBell replies={replies} onOpen={openReply} />, bellSlot)}
       <div className="market-switch-wrap">
         <div className="market-switch" role="tablist" aria-label="Sección">
           <button
@@ -57,7 +74,7 @@ export default function CommunityShell({ community, onLogout }: { community: str
       </div>
       {listOpened && (
         <div hidden={view !== "lista"}>
-          <MarketListDashboard community={community} onLogout={onLogout} />
+          <MarketListDashboard community={community} onLogout={onLogout} focus={focus} />
         </div>
       )}
     </>

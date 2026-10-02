@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { MAX_CHANGES, MAX_CHANGE_TEXT } from "@/lib/marketList";
-import type { MarketChange, MarketItem } from "@/types/market";
+import type { MarketChange, MarketItem, MarketReply } from "@/types/market";
 
 // Zona de cambios de un tipo de lista (plan 008): notas como «pescado por pechuga» que viajan con el pedido y que
 // la nutricionista ve junto a lo pedido. Cada nota puede ir ligada a un producto o ser general.
@@ -15,6 +15,8 @@ export default function MarketChanges({
   onToggle,
   prefillItemId,
   focusNonce,
+  replies,
+  onSeen,
   onAdd,
   onUpdate,
   onRemove,
@@ -28,6 +30,9 @@ export default function MarketChanges({
   // Producto que se eligió con el 📝 de una fila; `focusNonce` cambia cada vez que se pulsa uno.
   prefillItemId: string | null;
   focusNonce: number;
+  // Respuestas de la nutricionista a las notas de este tipo; `onSeen` se llama cuando la persona las tuvo a la vista.
+  replies: MarketReply[];
+  onSeen: () => void;
   // Devuelven un aviso si no se pudo (vacía, o ya hay 20), o null si quedó bien.
   onAdd: (itemId: string | null, text: string) => string | null;
   onUpdate: (id: string, text: string) => string | null;
@@ -57,6 +62,18 @@ export default function MarketChanges({
     inputRef.current?.focus();
     boxRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
   }, [focusNonce]);
+
+  // Si hay respuestas sin leer y la zona está abierta (se están viendo), se marcan como leídas tras un momento.
+  const hasUnseen = changes.some((c) => replies.some((r) => r.change_id === c.id && !r.seen));
+  const onSeenRef = useRef(onSeen);
+  useEffect(() => {
+    onSeenRef.current = onSeen;
+  });
+  useEffect(() => {
+    if (!open || !hasUnseen) return;
+    const timer = setTimeout(() => onSeenRef.current(), 1500);
+    return () => clearTimeout(timer);
+  }, [open, hasUnseen]);
 
   const itemName = (id: string | null) => (id ? items.find((i) => i.id === id)?.name ?? "Producto" : null);
   const full = changes.length >= MAX_CHANGES;
@@ -150,6 +167,7 @@ export default function MarketChanges({
             <ul className="market-changes-list" aria-label={`Cambios del pedido de ${kindLabel.toLowerCase()}`}>
               {changes.map((change) => {
                 const name = itemName(change.item_id);
+                const reply = replies.find((r) => r.change_id === change.id);
                 return (
                   <li key={change.id} className="market-change">
                     <span className="market-change-chip">{name ?? "General"}</span>
@@ -178,6 +196,18 @@ export default function MarketChanges({
                       </>
                     )}
                     {editingId === change.id && editError && <p role="alert" className="kardex-submit-error">{editError}</p>}
+                    {reply && (
+                      <div className={`market-reply ${reply.seen ? "" : "market-reply--new"}`}>
+                        <span className="market-reply-label">
+                          <span aria-hidden="true">💬</span> Respuesta de la nutricionista
+                          {!reply.seen && <span className="market-reply-new"> · nueva</span>}
+                        </span>
+                        <span className="market-reply-text">{reply.text}</span>
+                        {reply.change_text !== change.text && (
+                          <span className="market-reply-old">Respondió a una versión anterior de esta nota: «{reply.change_text}».</span>
+                        )}
+                      </div>
+                    )}
                   </li>
                 );
               })}

@@ -29,7 +29,8 @@ for f in communities community_pin pin_rate_limit products ajustes session_acces
          market_lists_1 market_lists_2 market_lists_3 market_lists_4 market_lists_5 \
          market_admin_1 market_admin_2 market_admin_3 market_admin_4 \
          fixed_communities lock_down_community_creation_1 lock_down_community_creation_2 change_pin \
-         market_changes_1 market_changes_2 market_changes_3 market_changes_4 market_changes_5 market_changes_6; do
+         market_changes_1 market_changes_2 market_changes_3 market_changes_4 market_changes_5 market_changes_6 \
+         market_replies_1 market_replies_2 market_replies_3 market_replies_4; do
   run "supabase/$f.sql"
 done
 

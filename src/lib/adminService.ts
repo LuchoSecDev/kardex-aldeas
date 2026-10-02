@@ -84,6 +84,17 @@ export const adminService = {
     return adminRpc<AdminMarketList>("admin_market_list", { p_community: community, p_week_start: weekStart });
   },
 
+  // Responde (o edita) la respuesta a una nota de cambio ENVIADA; un texto vacío la quita (plan 008, Fase D).
+  async marketReply(community: string, weekStart: string, kind: string, changeId: string, text: string) {
+    return adminRpc<null>("admin_market_reply", {
+      p_community: community,
+      p_week_start: weekStart,
+      p_kind: kind,
+      p_change_id: changeId,
+      p_text: text,
+    });
+  },
+
   async markMarketReviewed(community: string, weekStart: string) {
     return adminRpc<null>("admin_market_mark_reviewed", { p_community: community, p_week_start: weekStart });
   },

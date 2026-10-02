@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useState } from "react";
 import MarketChanges from "@/components/market/MarketChanges";
 import { MARKET_KINDS, MARKET_KIND_LABEL, type MarketKind } from "@/lib/marketCalendar";
 import { countOrdered, cleanQuantities, filterItems, type KindDrafts } from "@/lib/marketList";
-import type { KindChanges, MarketItem } from "@/types/market";
+import type { KindChanges, MarketItem, MarketReply } from "@/types/market";
 
 const Row = memo(function Row({
   item,
@@ -71,6 +71,9 @@ export default function MarketItemsPanel({
   onAddChange,
   onUpdateChange,
   onRemoveChange,
+  replies,
+  onRepliesSeen,
+  focusKind,
 }: {
   itemsByKind: Record<MarketKind, MarketItem[]>;
   drafts: KindDrafts;
@@ -81,12 +84,30 @@ export default function MarketItemsPanel({
   onAddChange: (kind: MarketKind, itemId: string | null, text: string) => string | null;
   onUpdateChange: (kind: MarketKind, id: string, text: string) => string | null;
   onRemoveChange: (kind: MarketKind, id: string) => void;
+  // Respuestas de la nutricionista por tipo, y qué hacer cuando la persona las vio.
+  replies: Record<MarketKind, MarketReply[]>;
+  onRepliesSeen: (kind: MarketKind) => void;
+  // La campanita pide abrir un tipo concreto (`nonce` cambia cada vez).
+  focusKind: { kind: MarketKind | null; nonce: number };
 }) {
-  const [kind, setKind] = useState<MarketKind>("fruver");
+  // Si se monta ya con una petición de la campanita (la lista de mercado se abre al tocar una respuesta), arranca en ese tipo.
+  const [kind, setKind] = useState<MarketKind>(() => focusKind.kind ?? "fruver");
   const [query, setQuery] = useState("");
   // La zona de cambios de un tipo se abre sola si ya tiene notas; con el 📝 de un producto se abre y se enfoca.
-  const [openOverride, setOpenOverride] = useState<Partial<Record<MarketKind, boolean>>>({});
+  const [openOverride, setOpenOverride] = useState<Partial<Record<MarketKind, boolean>>>(() => (focusKind.kind ? { [focusKind.kind]: true } : {}));
   const [noteTarget, setNoteTarget] = useState<{ itemId: string | null; nonce: number }>({ itemId: null, nonce: 0 });
+
+  // La campanita de respuestas abre un tipo y su zona de cambios (se ajusta durante el render, no en un efecto).
+  const [seenFocus, setSeenFocus] = useState(focusKind.nonce);
+  if (focusKind.nonce !== seenFocus) {
+    setSeenFocus(focusKind.nonce);
+    const target = focusKind.kind;
+    if (target) {
+      setKind(target);
+      setQuery("");
+      setOpenOverride((current) => ({ ...current, [target]: true }));
+    }
+  }
 
   const visible = useMemo(() => filterItems(itemsByKind[kind], query), [itemsByKind, kind, query]);
   const due = kindsDue.includes(kind);
@@ -125,6 +146,9 @@ export default function MarketItemsPanel({
               {MARKET_KIND_LABEL[k]}
               {count > 0 && <span className="market-tab-count" aria-label={`${count} pedidos`}>{count}</span>}
               {changes[k].length > 0 && <span className="market-tab-notes" aria-label={`${changes[k].length} cambios`}>📝{changes[k].length}</span>}
+              {replies[k].some((r) => !r.seen) && (
+                <span className="market-tab-notes market-tab-reply" aria-label={`${replies[k].filter((r) => !r.seen).length} respuestas nuevas`}>💬{replies[k].filter((r) => !r.seen).length}</span>
+              )}
               {!kindsDue.includes(k) && <span className="market-tab-off" title="Este viernes no toca">·</span>}
             </button>
           );
@@ -146,6 +170,8 @@ export default function MarketItemsPanel({
           disabled={disabled}
           open={changesOpen}
           onToggle={() => setOpenOverride((current) => ({ ...current, [kind]: !changesOpen }))}
+          replies={replies[kind]}
+          onSeen={() => onRepliesSeen(kind)}
           prefillItemId={noteTarget.itemId}
           focusNonce={noteTarget.nonce}
           onAdd={(itemId, text) => onAddChange(kind, itemId, text)}

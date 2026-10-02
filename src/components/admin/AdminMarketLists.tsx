@@ -3,6 +3,7 @@
 import "@/app/kardex.css";
 import "@/app/market.css";
 import { useState } from "react";
+import AdminChangeReply from "@/components/admin/AdminChangeReply";
 import AdminMarketConsolidated from "@/components/admin/AdminMarketConsolidated";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useNow } from "@/hooks/useNow";
@@ -144,11 +145,17 @@ export default function AdminMarketLists({
                     {(list.changes?.length ?? 0) > 0 && (
                       <div className="admin-market-notes" role="group" aria-label={`Cambios solicitados de ${MARKET_KIND_LABEL[list.kind]}`}>
                         <p className="admin-market-notes-title">📝 Cambios solicitados</p>
+                        {market.replyError && <p role="alert" className="admin-error">{market.replyError}</p>}
                         <ul className="admin-market-notes-list">
                           {(list.changes ?? []).map((change) => (
                             <li key={change.id}>
                               <span className="market-change-chip">{change.item_name ?? "General"}</span>{" "}
                               <span className="admin-market-note-text">{change.text}</span>
+                              <AdminChangeReply
+                                reply={change.reply ?? null}
+                                busy={market.replying}
+                                onSave={(text) => market.reply(market.openCommunity as string, list.kind, change.id, text)}
+                              />
                             </li>
                           ))}
                         </ul>

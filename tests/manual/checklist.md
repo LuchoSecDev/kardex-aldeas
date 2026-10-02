@@ -54,6 +54,13 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] En el Excel de una comunidad el producto lleva una nota de celda (triángulo rojo) y hay una hoja «CAMBIOS»; el consolidado trae la hoja «Cambios». Ábrelos en Excel.
 - [ ] Celular de 360 px: sin scroll horizontal y los botones se pueden tocar sin errar.
 
+## Respuestas de la nutricionista a los cambios (plan 008, Fase D — después de correr market_replies_1..4.sql)
+- [ ] Como nutricionista: en «Ver lista» de una comunidad, cada cambio tiene «Responder»; escribir y «Enviar respuesta»: aparece su respuesta con «Editar respuesta» y «Quitar», y un aviso verde.
+- [ ] Como comunidad: la campanita de la barra azul muestra un número; al abrirla se ve «Tu cambio» y la «Respuesta»; «Ver en la lista» abre la lista de mercado en esa semana y ese tipo.
+- [ ] La respuesta aparece bajo su nota con la etiqueta «nueva» y, a los pocos segundos, se marca leída (desaparece la etiqueta y baja el número de la campanita).
+- [ ] Si la nutricionista edita su respuesta, vuelve a salir «nueva». Si la comunidad cambia el texto de la nota después, la respuesta dice «Respondió a una versión anterior…».
+- [ ] Con letra A++ y con alto contraste el menú de la campanita se lee bien y no se sale de la pantalla.
+
 ## Semana 6 de cierre (meses que no caben en 5 semanas: marzo, agosto y noviembre de 2026)
 - [ ] Marzo 2026 muestra **Sem 6 (cierre)**; septiembre 2026 (y los demás meses que caben) **no** la muestran.
 - [ ] En la Sem 6 solo están habilitados el **30 y el 31** (y su **entrada**); los demás días y números salen deshabilitados, con el aviso de «Cierre del mes».

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { REPLIES_CHANGED_EVENT } from "@/hooks/useMarketReplies";
 import { marketService } from "@/lib/marketService";
 import { createSaveQueue, type QueueStatus, type SaveQueue } from "@/lib/saveQueue";
 import {
@@ -26,7 +27,7 @@ import {
   submitErrorMessage,
   type KindDrafts,
 } from "@/lib/marketList";
-import type { KindChanges, MarketChange, MarketItem, MarketQuantities, MarketWeek } from "@/types/market";
+import type { KindChanges, MarketChange, MarketItem, MarketQuantities, MarketReply, MarketWeek } from "@/types/market";
 
 // Lo que viaja por la cola de guardado: las cantidades de un tipo o sus notas de cambio (plan 008).
 type SavePayload =
@@ -328,6 +329,26 @@ export function useMarketList() {
     if (refreshed.data) setWeek(refreshed.data);
   }, [flushPending, queue]);
 
+  // --- Respuestas de la nutricionista a las notas (plan 008, Fase D) ---
+  const replies = useMemo(() => {
+    const grouped: Record<MarketKind, MarketReply[]> = { fruver: [], carnes: [], abarrotes: [], aseo: [] };
+    for (const list of week?.lists ?? []) grouped[list.kind] = list.replies ?? [];
+    return grouped;
+  }, [week]);
+
+  // La persona está viendo las respuestas de un tipo: se marcan como leídas, se refresca la semana y se avisa a la campanita.
+  const markRepliesSeen = useCallback(async (kind: MarketKind) => {
+    const forWeek = weekStartRef.current;
+    const { error } = await marketService.markRepliesSeen(forWeek, kind);
+    if (error) {
+      if (!error.message?.includes("SESION_INVALIDA")) console.error("Error marcando las respuestas como leídas:", error);
+      return;
+    }
+    const refreshed = await marketService.loadWeek(forWeek);
+    if (refreshed.data && refreshed.data.week_start === weekStartRef.current) setWeek(refreshed.data);
+    window.dispatchEvent(new Event(REPLIES_CHANGED_EVENT));
+  }, []);
+
   // --- Derivados ---
   const itemsByKind = useMemo(() => {
     const grouped: Record<MarketKind, MarketItem[]> = { fruver: [], carnes: [], abarrotes: [], aseo: [] };
@@ -357,6 +378,8 @@ export function useMarketList() {
     addChange,
     updateChange,
     removeChange,
+    replies,
+    markRepliesSeen,
     isLoading,
     loadError,
     reload: () => {
