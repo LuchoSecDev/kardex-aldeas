@@ -120,7 +120,7 @@ export default function ChangePinModal({ onClose }: { onClose: () => void }) {
               </div>
 
               {error && (
-                <p role="alert" style={{ color: "var(--color-accent-red)", fontWeight: 600, margin: 0 }}>
+                <p role="alert" style={{ color: "var(--color-accent-red-text)", fontWeight: 600, margin: 0 }}>
                   {error}
                 </p>
               )}

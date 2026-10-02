@@ -361,16 +361,16 @@ describe("aviso de que ese tipo no se pide este viernes", () => {
     expect(within(fruverTab).queryByRole("img", { name: "Este viernes no toca" })).toBeNull();
   });
 
-  it("los avisos van en rojo (no en el gris tenue, que pasaba desapercibido) y con borde, no solo con color", () => {
+  it("los avisos van en rojo (tono de texto con contraste AA; no el gris tenue que pasaba desapercibido) y con borde, no solo con color", () => {
     const market = readFileSync("src/app/market.css", "utf8");
     const rule = (css: string, selector: string) => {
       const start = css.indexOf(`${selector} {`);
       expect(start, `no está la regla ${selector}`).toBeGreaterThanOrEqual(0);
       return css.slice(start, css.indexOf("}", start));
     };
-    expect(rule(market, ".market-due--no")).toContain("color: var(--color-accent-red)");
+    expect(rule(market, ".market-due--no")).toContain("color: var(--color-accent-red-text)");
     expect(rule(market, ".market-due--no")).toContain("border-left");
-    expect(rule(market, ".market-tab-off")).toContain("color: var(--color-accent-red)");
-    expect(rule(readFileSync("src/app/admin.css", "utf8"), ".admin-market-kind-note")).toContain("color: var(--color-accent-red)");
+    expect(rule(market, ".market-tab-off")).toContain("color: var(--color-accent-red-text)");
+    expect(rule(readFileSync("src/app/admin.css", "utf8"), ".admin-market-kind-note")).toContain("color: var(--color-accent-red-text)");
   });
 });

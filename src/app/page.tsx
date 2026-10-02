@@ -136,8 +136,8 @@ export default function Home() {
       ) : (
         <div className="card" style={{ maxWidth: "500px", width: "100%", textAlign: "center" }}>
 
-          <h1 style={{ color: "var(--color-primary-light)", fontSize: "2rem", marginBottom: "2rem" }}>
-            <span style={{color: "var(--color-primary-dark)"}}>Aldeas Infantiles SOS</span><br/>
+          <h1 style={{ color: "var(--color-primary-text)", fontSize: "2rem", marginBottom: "2rem" }}>
+            <span style={{color: "var(--color-primary-text)"}}>Aldeas Infantiles SOS</span><br/>
             Kardex Digital
           </h1>
 
@@ -146,14 +146,14 @@ export default function Home() {
           </p>
 
           {sessionNotice && (
-            <p role="alert" style={{ marginBottom: "1.5rem", color: "var(--color-accent-red)", fontWeight: 600 }}>
+            <p role="alert" style={{ marginBottom: "1.5rem", color: "var(--color-accent-red-text)", fontWeight: 600 }}>
               {sessionNotice}
             </p>
           )}
 
           {loadFailed ? (
             <div role="alert" style={{ marginBottom: "1rem" }}>
-              <p style={{ color: "var(--color-accent-red)", fontWeight: 600, marginBottom: "1rem" }}>
+              <p style={{ color: "var(--color-accent-red-text)", fontWeight: 600, marginBottom: "1rem" }}>
                 No se pudo cargar la lista de comunidades. Revisa tu conexión a internet.
               </p>
               <button type="button" className="btn btn-primary" onClick={retryLoad} disabled={isLoadingCommunities}>
@@ -179,7 +179,7 @@ export default function Home() {
               </div>
 
               {selectionError && (
-                <p role="alert" style={{ color: "var(--color-accent-red)", fontWeight: 600, margin: 0 }}>
+                <p role="alert" style={{ color: "var(--color-accent-red-text)", fontWeight: 600, margin: 0 }}>
                   {selectionError}
                 </p>
               )}
