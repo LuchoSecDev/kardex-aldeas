@@ -79,14 +79,25 @@ SQL aditivo primero, luego la app (el logger debe fallar en silencio si la funci
 
 El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del panel no tiene control de versiones ni retroceso, así que **siempre se edita en el repositorio y se vuelve a pegar**.
 
-1. **SQL:** correr `supabase/dev_alerts_1.sql` en el SQL Editor (18 líneas, reejecutable).
-2. **Secretos** (panel → Edge Functions → Secrets; los nombres no pueden empezar por `SUPABASE_`): `ALERT_WEBHOOK_SECRET` (una clave larga y aleatoria que inventas tú, de 32 o más caracteres; la misma irá en el paso 5), `RESEND_API_KEY`, `ALERT_EMAIL_TO`, `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. Opcional: `ALERT_EMAIL_FROM`. `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya vienen puestos.
+**Por qué un trigger y no el formulario de «Database Webhooks»:** en el proyecto de Lucho el formulario falla con `schema "supabase_functions" does not exist` aunque `pg_net` figure como instalado. Se evita con un trigger propio (`supabase/dev_alerts_2.sql`) que llama a la función con `pg_net` y lee la URL y las claves de la **Vault** (así no quedan en el repositorio ni en el historial del SQL Editor). Manda el mismo formato que el webhook.
+
+1. **Clave compartida:** inventar UNA clave larga y guardarla en un gestor de contraseñas. Generar con `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`. Va en **dos** sitios y debe ser idéntica: el secreto `ALERT_WEBHOOK_SECRET` de la función (paso 2) y la Vault (paso 4).
+2. **Secretos de la función** (panel → Edge Functions → Secrets; no pueden empezar por `SUPABASE_`): `ALERT_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ALERT_EMAIL_TO`, `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. Opcional: `ALERT_EMAIL_FROM`. `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya vienen puestos.
 3. **Función:** Edge Functions → Deploy a new function → *Via Editor* → nombre `dev-alert` → pegar todo el archivo → *Deploy function* (10–30 s).
-4. **JWT (a comprobar en el panel; la documentación consultada no lo aclara):** si la función aparece con «Verify JWT» activo, hay que desactivarlo (la función se autentica sola con `x-alert-secret`) o agregar al webhook la cabecera `Authorization: Bearer <anon key>`.
-5. **Webhook:** Database → Webhooks → crear: tabla `system_error_logs`, evento **INSERT**, tipo Edge Function (o HTTP) hacia `dev-alert`, método POST, cabecera `x-alert-secret` con el MISMO valor del paso 2.
-6. **Probar los dos canales sin esperar una falla real:** en el probador del panel, método POST, cabeceras `x-alert-secret` (el valor del paso 2) y `x-alert-test: 1`, sin cuerpo. Responde `{"test":true,"email":"ok","telegram":"ok"}` y debes recibir el correo **y** el mensaje de Telegram de «prueba de alertas». Esta prueba no cuenta reportes ni toma el turno, así que se puede repetir. Si un canal dice `error` o `sin configurar`, revisar sus secretos.
-7. **Remitente de Resend:** `onboarding@resend.dev` es el remitente de pruebas; con él solo se puede enviar al correo de tu propia cuenta (INFERRED, confirmarlo en tu cuenta). Para otros destinatarios hace falta verificar un dominio.
-8. Ver `tests/manual/checklist.md` («Alertas al desarrollador»).
+4. **Vault** (Integrations → Vault → Secrets → *Add new secret*), tres secretos: `alert_function_url` = `https://<ID-DEL-PROYECTO>.supabase.co/functions/v1/dev-alert`; `alert_webhook_secret` = la clave del paso 1; `alert_anon_key` = la clave **anon** pública (Settings → API; solo hace falta si la función exige JWT, pero es inofensiva).
+5. **SQL:** correr `supabase/dev_alerts_1.sql` (si aún no) y `supabase/dev_alerts_2.sql` (60 líneas, reejecutable).
+6. **Probar los dos canales sin esperar una falla real:** en el probador de la función, POST con cabeceras `x-alert-secret` (la clave) y `x-alert-test: 1`, sin cuerpo. Responde `{"test":true,"email":"ok","telegram":"ok"}` y llegan un correo y un mensaje de Telegram.
+7. **Autoprueba del trigger de punta a punta** (SQL Editor):
+   ```sql
+   insert into system_error_logs (community, source, level, fn, message, app_version)
+   select 'ZZZ_TEST_alerta', 'rpc', 'error', 'autoprueba', 'prueba de alerta ' || g, 'manual' from generate_series(1, 3) g;
+   select * from net._http_response order by created desc limit 5;
+   ```
+   Deben llegar **un solo** correo y un solo mensaje (3 llamadas, pero solo una toma el turno) y `net._http_response` debe mostrar respuestas 200. Para repetirla antes de 30 minutos: `update dev_alert_state set last_alert_at = 'epoch' where id = 1;`. Al terminar, `supabase/cleanup_test_data.sql` borra esas filas.
+8. **Remitente de Resend:** `onboarding@resend.dev` es el remitente de pruebas; con él solo se puede enviar al correo de la propia cuenta (INFERRED, confirmarlo). Para otros destinatarios hace falta verificar un dominio.
+9. Ver `tests/manual/checklist.md` («Alertas al desarrollador»).
+
+**Si algo falla:** en la respuesta del probador, `401 Invalid JWT` = la puerta de Supabase (probar con la clave anon en `Authorization`); `{"error":"No autorizado"}` = la clave de la Vault y la del secreto no coinciden; `"sin configurar"` = falta o está mal escrito un secreto del canal; `net._http_response` con `status_code` vacío y un `error_msg` = el trigger no llegó a la función (revisar `alert_function_url`).
 
 ## Seguridad de las alertas
 

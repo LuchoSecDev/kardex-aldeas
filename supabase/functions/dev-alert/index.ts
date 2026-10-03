@@ -1,4 +1,4 @@
-// Alertas al desarrollador (plan 007, Fase A2). Edge Function de Supabase: un Database Webhook la llama cada vez que se guarda
+// Alertas al desarrollador (plan 007, Fase A2). Edge Function de Supabase: un trigger de la base (supabase/dev_alerts_2.sql; o un Database Webhook del panel) la llama cada vez que se guarda
 // una fila en `system_error_logs` (ver supabase/dev_errors_1.sql). Si hay una racha de errores, avisa por correo (Resend) y por
 // Telegram; si no, no hace nada.
 //

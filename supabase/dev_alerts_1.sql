@@ -1,4 +1,4 @@
--- Estado de las alertas al desarrollador (plan 007, Fase A2) — archivo 1 de 1. Es seguro repetirlo y no toca datos existentes.
+-- Estado de las alertas al desarrollador (plan 007, Fase A2) — archivo 1 de 2 (el 2 es el trigger: dev_alerts_2.sql). Es seguro repetirlo y no toca datos existentes.
 --
 -- La Edge Function `dev-alert` (supabase/functions/dev-alert/index.ts) avisa por correo y Telegram cuando hay una racha de
 -- errores, y como máximo UNA vez cada 30 minutos. Para no avisar dos veces cuando llegan reportes casi al mismo tiempo, guarda
