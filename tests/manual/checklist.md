@@ -24,6 +24,7 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Ajuste de saldo (lápiz): pide motivo, actualiza el saldo y aparece en Historial → Ajustes.
 - [ ] Historial → Meses: salta al mes elegido.
 - [ ] Cambiar de semana, de categoría y de mes/año funciona.
+- [ ] Buscador «Buscar producto»: escribir «leche» o «LECHE» deja solo los productos con ese nombre (sin importar tildes) y dice cuántos hay; al borrar vuelven todos; sin coincidencias sale un aviso rojo; combinado con una categoría busca solo dentro de ella; al cambiar de semana la búsqueda se conserva; el Excel y el PDF siguen llevando todos los productos.
 
 ## Fallos de red
 - [ ] Sin internet (modo avión) al escribir: tras unos segundos aparece el aviso rojo con **Reintentar**.
@@ -32,7 +33,7 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 
 ## Enviar semana (comunidad)
 - [ ] Debajo de la navegación aparece "Enviar semana N"; sin datos en esa semana avisa que no se puede enviar.
-- [ ] Con datos: pide confirmación, envía y muestra "✓ enviada el …"; el botón de la semana marca ✓.
+- [ ] Con datos: abre una ventana de confirmación de la app (no la del navegador; Esc o «Cancelar» no envía), envía con «Sí, enviar» y muestra "✓ enviada el …"; el botón de la semana marca ✓.
 - [ ] Al editar esa semana después, aparece "⚠ … cambió después" (aviso y botón de semana); "Volver a enviar" lo limpia.
 - [ ] El botón se bloquea mientras hay un guardado en curso.
 

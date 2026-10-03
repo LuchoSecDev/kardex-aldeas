@@ -15,7 +15,17 @@ export default function KardexNavigation({
   activeCategory,
   onCategoryChange,
   weekStates,
+  searchQuery,
+  onSearchChange,
+  resultCount,
+  noResultsMessage,
 }: {
+  // Buscador por nombre de producto; `resultCount` es cuántos productos quedan con la búsqueda y la categoría actuales.
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  resultCount: number;
+  // Qué decir cuando la búsqueda no deja ningún producto (solo se pasa mientras se busca).
+  noResultsMessage?: string;
   // Estado de envío de cada semana (índice 0..4); opcional (no se muestra en solo lectura).
   weekStates?: WeekState[];
   currentWeek: number;
@@ -63,6 +73,28 @@ export default function KardexNavigation({
             value={activeCategory}
             onChange={onCategoryChange}
           />
+        </div>
+      </div>
+
+      <div className="card kardex-nav-card">
+        <h3 className="kardex-nav-card-title">Buscar producto</h3>
+        <div className="kardex-search-wrap">
+          <input
+            type="search"
+            className="input-field kardex-search"
+            placeholder="Escribe el nombre…"
+            aria-label="Buscar producto"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+          {/* Se lee en voz alta al cambiar (lector de pantalla) y solo aparece mientras se busca. */}
+          <p role="status" className={resultCount === 0 && noResultsMessage ? "kardex-search-empty" : "kardex-search-count"}>
+            {!searchQuery.trim()
+              ? ""
+              : resultCount === 0 && noResultsMessage
+                ? noResultsMessage
+                : `${resultCount} ${resultCount === 1 ? "producto" : "productos"}`}
+          </p>
         </div>
       </div>
     </div>
