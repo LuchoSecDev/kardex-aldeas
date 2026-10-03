@@ -14,7 +14,7 @@ const scripts = readdirSync(path.join(ROOT, "supabase")).filter((f) => f.endsWit
 
 // Scripts que a propósito no carga run.sh: semillas (las carga aparte), operaciones manuales y catálogo completo.
 const FUERA_DE_LA_LISTA = new Set([
-  "admin_reset_password", "cleanup_test_data", "products_fruver", "products_panaderia_abarrotes",
+  "admin_reset_password", "dev_reset_password", "cleanup_test_data", "products_fruver", "products_panaderia_abarrotes",
 ]);
 
 describe("scripts SQL", () => {

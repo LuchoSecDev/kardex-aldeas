@@ -51,7 +51,9 @@ Es también la forma concreta de cumplir la «vigilancia del servicio» que prom
   - [ ] **A2b — Desplegar las alertas** (necesita a Lucho en la PC; pasos abajo) y el chequeo de disponibilidad externo.
   - [ ] **A3 — Cuenta del desarrollador** (`dev_account`, sesiones y bloqueo): **se movió a la Fase B**, que es donde hace falta (la pantalla `/dev`); mientras tanto los errores se ven en el Editor de tablas de Supabase. Así no se abre una superficie de autenticación nueva sin tener quién la use.
 - [ ] **Fase B — Pantalla `/dev` y acciones remotas.** Se entrega en dos partes (decisión de Lucho, 2026-10-03: primero **lo que se rompió**, el resto es secundario):
-  - [ ] **B1 — Problemas explicados** (diseño abajo, **pendiente del OK de Lucho**): cuenta del desarrollador, login y la lista de problemas agrupados, explicados en lenguaje natural, con botón «resuelto».
+  - [ ] **B1 — Problemas explicados** (diseño abajo, **aprobado por Lucho el 2026-10-03**): cuenta del desarrollador, login y la lista de problemas agrupados, explicados en lenguaje natural, con botón «resuelto».
+    - [x] **B1a — SQL y pruebas** *(construido el 2026-10-03, sin correr en Supabase)*: `dev_auth_1.sql`, `dev_auth_2.sql`, `dev_errors_2.sql`, `dev_errors_3.sql`, la plantilla `dev_reset_password.sql` y las pruebas `tests/db/dev_auth.test.sql` y `dev_errors_2.test.sql`.
+    - [ ] **B1b — Pantalla `/dev`:** `devService.ts`, `devSession.ts`, `errorExplanations.ts` (idéntico al de la función de alertas), componentes y página, con sus pruebas.
   - [ ] **B2 — Estado de las comunidades y acciones remotas:** PIN bloqueado, última actividad, semanas sin enviar; desbloquear y PIN temporal con auditoría.
 - [ ] **Fase C — Integridad contable** (solo los invariantes definidos y probados).
 
@@ -119,7 +121,7 @@ La función solo acepta al webhook con la clave compartida (comparación en tiem
 > *Qué pasó:* parece un problema de conexión a internet. *Riesgo:* lo que escribió la colaboradora podría no haberse guardado. *Qué hacer:* pedir que revisen que el cambio quedó…
 > [Ver detalle técnico] [Marcar como resuelto]
 
-- **Agrupación:** por (comunidad, función, origen, nivel, código): la misma falla repetida 12 veces es UNA línea con su contador. Un error nuevo después de «resuelto» reabre el grupo.
+- **Agrupación (confirmada por Lucho: dos líneas si son dos comunidades):** por (comunidad, función, origen, nivel, código): la misma falla repetida 12 veces en Maná es UNA línea con su contador, y la misma falla en Fortaleza es otra línea. Un error nuevo después de «resuelto» reabre el grupo.
 - **Filtros:** «Solo sin resolver» (por defecto) o «Todos»; periodo de 24 horas, 7 o 30 días. Botón «Actualizar» (y al volver a la pestaña); sin recarga automática constante.
 - **Arriba:** tarjetas con errores y advertencias sin resolver, comunidades afectadas y la hora del último reporte (hora de Colombia).
 - **Explicaciones:** el mismo diccionario del aviso (`src/lib/errorExplanations.ts`), con una prueba que comprueba que es **idéntico** al de la función de alertas.
@@ -134,7 +136,7 @@ La función solo acepta al webhook con la clave compartida (comparación en tiem
 | Bloqueo | 5 intentos fallidos = 15 minutos (igual que el PIN y la nutricionista). Compromiso conocido: alguien podría bloquear a propósito la pantalla `/dev`; dura 15 minutos y no afecta a las comunidades ni a los avisos (salen por otro lado) |
 | Sesión | `dev_sessions`: token de 8 h deslizante, guardado con SHA-256, tabla **aparte**; un token de comunidad o de la nutricionista no sirve aquí ni al revés (mensaje de error distinto: `SESION_DEV_INVALIDA`). El cliente lo guarda solo en memoria (`devSession.ts`) |
 | Funciones | `dev_login`, `dev_ping`, `dev_logout`, `dev_change_password`; todas `security definer` con `set search_path`; tablas cerradas (RLS + `revoke all`) |
-| Recuperación | **Propuesta: SIN código de recuperación**; si se olvida, se restablece con `dev_reset_password.sql` (la clave real va en un archivo que no se sube a git). Lucho es el único dueño de la base, así que no hace falta un camino público de recuperación, y es un punto menos de ataque. *Cambia lo escrito arriba en «Diseño» (`dev_recover_password`)* |
+| Recuperación | **Decisión de Lucho (2026-10-03): SIN código de recuperación.** La nutricionista sí tiene uno (la pantalla «Guarda tu código de recuperación», de un solo uso, y la de «Recuperar contraseña»; el script SQL es solo su último recurso si pierde contraseña Y código). Para `/dev` el único camino es ese último recurso: `dev_reset_password.sql` (la clave real va en `.env.dev-reset.sql`, que `.env*` deja fuera de git). Lucho es el único dueño de la base, así que no hace falta un camino de recuperación expuesto por internet: es un punto menos de ataque y un secreto menos que guardar. *Cambia lo escrito arriba en «Diseño» (`dev_recover_password`)* |
 
 **Lectura y acciones (SQL `dev_errors_2.sql`, todas exigen el token del desarrollador):**
 `dev_error_summary` (conteos para las tarjetas), `dev_error_groups(p_days, p_only_open)` (los grupos con su contador, primera y última vez, versión y último mensaje), `dev_error_group_detail` (los últimos reportes de un grupo, con tope) y `dev_resolve_group` (marca como resueltos los reportes abiertos de ese grupo hasta ese momento y lo anota en `dev_audit_log`). Se validan los rangos (días 1–90, tope de filas) y nunca se arma SQL con texto del usuario.

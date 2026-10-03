@@ -32,6 +32,8 @@ pruebas: si agregas un script, agrégalo ahí también (y en este archivo).
 | 20 | `dev_errors_1.sql` | Registro de errores del navegador (plan 007, Fase A): tabla `system_error_logs` y `dev_report_client_error`. Aditivo; la app falla en silencio si aún no está. Se ve en el Editor de tablas. |
 | 21 | `dev_alerts_1.sql` | Estado de las alertas al desarrollador (plan 007, Fase A2): una fila con la hora del último aviso, para avisar como máximo cada 30 minutos. Tabla cerrada; la usa la Edge Function `dev-alert`. |
 | 22 | `dev_alerts_2.sql` | El trigger que llama a la Edge Function `dev-alert` con pg_net cuando se guarda un reporte (plan 007, Fase A2). Lee la URL y las claves de la Vault. Alternativa a los Database Webhooks del panel. |
+| 23 | `dev_auth_1.sql`, `dev_auth_2.sql` | Cuenta y sesión del desarrollador para la pantalla `/dev` (plan 007, Fase B1): contraseña con bcrypt, bloqueo por intentos, token aparte, auditoría. La clave inicial la pone `dev_reset_password.sql` (plantilla; la real va en `.env.dev-reset.sql`, que no se sube a git). |
+| 24 | `dev_errors_2.sql`, `dev_errors_3.sql` | Lectura de los problemas agrupados (resumen y lista, luego detalle) y «marcar como resuelto» para `/dev` (plan 007, Fase B1). Todas las funciones exigen el token del desarrollador. |
 
 Sueltos (no son parte del orden): `admin_reset_password.sql` (reset de la cuenta de la nutricionista; el real va en
 `.env.admin-reset.sql`, que **no** se sube a git) y `cleanup_test_data.sql` (borra todo lo que empiece por `ZZZ_TEST_`).
