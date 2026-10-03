@@ -2,8 +2,9 @@
 
 import "@/app/kardex.css";
 import "@/app/market.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import SaveStatus from "@/components/SaveStatus";
+import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
 import MarketItemsPanel from "@/components/market/MarketItemsPanel";
@@ -58,9 +59,10 @@ export default function MarketListDashboard({
     return () => window.removeEventListener("beforeunload", warn);
   }, [market.hasUnsaved]);
 
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const handleLogout = () => {
-    if (market.hasUnsaved && !window.confirm("Hay cambios que todavía no se han guardado. Si sales ahora se perderán. ¿Salir de todos modos?")) return;
-    onLogout();
+    if (market.hasUnsaved) setConfirmingLogout(true);
+    else onLogout();
   };
 
   const isUpcoming = market.weekStart === weekStartOfFriday(upcomingOrderFriday(new Date(now)));
@@ -70,6 +72,7 @@ export default function MarketListDashboard({
 
   return (
     <div className="kardex-page market-page">
+      {confirmingLogout && <UnsavedChangesDialog onLeave={onLogout} onStay={() => setConfirmingLogout(false)} />}
       <div className="card kardex-header-card">
         <div>
           <h2 className="kardex-header-title">Lista de mercado · Comunidad {community}</h2>

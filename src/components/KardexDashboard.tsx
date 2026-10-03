@@ -8,6 +8,7 @@ import KardexNavigation from "@/components/KardexNavigation";
 import KardexTable from "@/components/KardexTable";
 import AjusteModal from "@/components/AjusteModal";
 import HistorialModal from "@/components/HistorialModal";
+import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
 import { useCalendar } from "@/hooks/useCalendar";
@@ -16,6 +17,7 @@ import { useErrorAlert } from "@/hooks/useErrorAlert";
 import { useKardexData } from "@/hooks/useKardexData";
 import { useProducts } from "@/hooks/useProducts";
 import { sumRange } from "@/lib/balanceEngine";
+import { filterProductsByName, noProductsMessage } from "@/lib/productSearch";
 import { kardexService } from "@/lib/kardexService";
 import type { KardexDataSource } from "@/lib/kardexDataSource";
 import WeekSubmitBar from "@/components/WeekSubmitBar";
@@ -51,6 +53,7 @@ export default function KardexDashboard({
   // abril), se usa la última que tenga ese mes.
   const [weekChoice, setCurrentWeek] = useState(initialWeek ?? 1);
   const [activeCategory, setActiveCategory] = useState("TODAS");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(initialMonth ?? new Date().getMonth()); // 0-indexado
   const [selectedYear, setSelectedYear] = useState(initialYear ?? new Date().getFullYear());
 
@@ -101,9 +104,10 @@ export default function KardexDashboard({
     return () => window.removeEventListener("beforeunload", warn);
   }, [hasUnsavedChanges]);
 
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const handleLogout = () => {
-    if (hasUnsavedChanges && !window.confirm("Hay cambios que todavía no se han guardado. Si sales ahora se perderán. ¿Salir de todos modos?")) return;
-    onLogout();
+    if (hasUnsavedChanges) setConfirmingLogout(true);
+    else onLogout();
   };
 
   const handleExitChange = (productId: string, dayIndex: number, value: string) => {
@@ -294,9 +298,12 @@ export default function KardexDashboard({
 
   const categories = ["TODAS", ...Array.from(new Set(products.map(p => p.category)))];
 
-  const filteredProducts = activeCategory === "TODAS"
-    ? products
-    : products.filter(p => p.category === activeCategory);
+  // Categoría elegida Y nombre buscado (la búsqueda solo afecta lo que se ve: las descargas siguen llevando todos los productos).
+  const filteredProducts = filterProductsByName(
+    activeCategory === "TODAS" ? products : products.filter(p => p.category === activeCategory),
+    searchQuery
+  );
+  const searching = searchQuery.trim() !== "";
 
   // Options for custom selects
   const monthOptions = MONTH_NAMES.map((m, i) => ({ value: String(i), label: m }));
@@ -307,6 +314,7 @@ export default function KardexDashboard({
 
   return (
     <div className="kardex-page">
+      {confirmingLogout && <UnsavedChangesDialog onLeave={onLogout} onStay={() => setConfirmingLogout(false)} />}
 
       <KardexHeader
         community={community}
@@ -333,6 +341,10 @@ export default function KardexDashboard({
         categoryOptions={categoryOptions}
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        resultCount={filteredProducts.length}
+        noResultsMessage={searching ? noProductsMessage(searchQuery, activeCategory) : undefined}
         weekStates={readOnly ? undefined : weekStates}
       />
 

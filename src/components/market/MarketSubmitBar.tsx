@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { MARKET_KIND_LABEL } from "@/lib/marketCalendar";
 import { LIST_STATE_LABEL, getListState, summarizeByKind, summarizeChangesByKind, type KindDrafts } from "@/lib/marketList";
 import { formatDateTime } from "@/lib/weekStatus";
@@ -36,17 +38,17 @@ export default function MarketSubmitBar({
   const late = lists.some((l) => l.late);
   const busy = saveStatus === "saving" || saveStatus === "error";
 
-  const handleClick = () => {
-    const lines = summary
-      .map((s, i) => {
-        const notes = changeCounts[i].count;
-        return `• ${s.label}: ${s.count > 0 ? `${s.count} productos` : "no pedí"}${notes > 0 ? ` · ${notes} ${notes === 1 ? "cambio" : "cambios"}` : ""}`;
-      })
-      .join("\n");
-    const question = everSent
-      ? `¿Volver a enviar la lista de la semana?\n\n${lines}\n\nLa nutricionista recibirá el aviso otra vez.`
-      : `¿Enviar la lista de la semana a la nutricionista?\n\n${lines}\n\nPodrás volver a enviarla si haces cambios.`;
-    if (window.confirm(question)) onSubmit();
+  const [confirming, setConfirming] = useState(false);
+
+  // Una línea por tipo de lista: cuántos productos pidió y cuántos cambios lleva.
+  const lines = summary.map((s, i) => {
+    const notes = changeCounts[i].count;
+    return `${s.label}: ${s.count > 0 ? `${s.count} productos` : "no pedí"}${notes > 0 ? ` · ${notes} ${notes === 1 ? "cambio" : "cambios"}` : ""}`;
+  });
+
+  const handleConfirm = () => {
+    setConfirming(false);
+    onSubmit();
   };
 
   // Estado de la lista ya enviada (todas se envían juntas: basta mirar la primera enviada).
@@ -54,6 +56,21 @@ export default function MarketSubmitBar({
 
   return (
     <section className="card market-submit" aria-label="Enviar la lista">
+      {confirming && (
+        <ConfirmDialog
+          title={everSent ? "¿Volver a enviar la lista de la semana?" : "¿Enviar la lista de la semana a la nutricionista?"}
+          confirmLabel={everSent ? "Sí, volver a enviar" : "Sí, enviar"}
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirming(false)}
+        >
+          <ul className="market-confirm-list">
+            {lines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p>{everSent ? "La nutricionista recibirá el aviso otra vez." : "Podrás volver a enviarla si haces cambios."}</p>
+        </ConfirmDialog>
+      )}
       <div className="market-submit-info">
         <p className="market-submit-total">
           <strong>Esta semana vas a pedir {total} {total === 1 ? "producto" : "productos"}.</strong>
@@ -82,7 +99,7 @@ export default function MarketSubmitBar({
       <button
         type="button"
         className={`btn ${!everSent || anyModified ? "btn-primary" : "btn-outline"}`}
-        onClick={handleClick}
+        onClick={() => setConfirming(true)}
         disabled={isSubmitting || busy || !week}
         title={busy ? "Espera a que termine de guardarse" : undefined}
       >

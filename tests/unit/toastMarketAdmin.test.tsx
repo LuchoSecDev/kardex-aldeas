@@ -80,12 +80,12 @@ describe("lista de mercado de la comunidad: toasts", () => {
     market.saveChanges.mockResolvedValue(ok(null));
     market.setParticipants.mockResolvedValue(ok(null));
     market.submitWeek.mockResolvedValue(ok({ submitted_at: NOW.toISOString(), late: false, changed_after_deadline: false }));
-    vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
   it("enviar la lista avisa «Lista enviada a la nutricionista.» con un toast verde", async () => {
     await renderLoaded();
     fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" }));
     await flush();
     expect(toasts()).toContain("Lista enviada a la nutricionista.");
     expect(document.querySelector(".toast--success")).not.toBeNull();
@@ -95,6 +95,7 @@ describe("lista de mercado de la comunidad: toasts", () => {
     market.submitWeek.mockResolvedValue(ok({ submitted_at: NOW.toISOString(), late: true, changed_after_deadline: false }));
     await renderLoaded();
     fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" }));
     await flush();
     expect(toasts().join()).toContain("después del plazo");
   });
@@ -104,6 +105,7 @@ describe("lista de mercado de la comunidad: toasts", () => {
     market.submitWeek.mockResolvedValue({ data: null, error: { message: "LISTA_VACIA" } as never });
     await renderLoaded();
     fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" }));
     await flush();
     await advance(60_000);
     expect(toasts()).toContain("La lista está vacía: escribe la cantidad de al menos un producto.");

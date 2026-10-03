@@ -63,7 +63,6 @@ beforeEach(() => {
   service.submitWeek.mockResolvedValue(ok({ submitted_at: "2026-03-08T00:00:00Z", submit_count: 1 }));
   excel.mockResolvedValue(undefined);
   pdf.mockResolvedValue(undefined);
-  vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 
 afterEach(() => {
@@ -128,6 +127,7 @@ describe("kardex: toast al corregir un saldo", () => {
 describe("kardex: toast al enviar la semana", () => {
   const clickSend = async () => {
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: /Enviar semana 1/ })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" })); });
     await act(async () => { await Promise.resolve(); });
   };
 

@@ -80,7 +80,6 @@ beforeEach(() => {
   service.saveChanges.mockResolvedValue({ data: null, error: null });
   service.setParticipants.mockResolvedValue({ data: null, error: null });
   service.submitWeek.mockResolvedValue({ data: { submitted_at: NOW.toISOString(), late: false, changed_after_deadline: false }, error: null });
-  vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 
 afterEach(() => {
@@ -321,9 +320,10 @@ describe("zona de cambios: guardado y envío", () => {
 
     expect(screen.getByText(/Con 1 cambio para la nutricionista/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" }));
-    const question = vi.mocked(window.confirm).mock.calls[0][0] as string;
-    expect(question).toContain("• Carnes: 1 productos · 1 cambio");
-    expect(question).toContain("• Fruver y lácteos: no pedí\n");
+    const question = screen.getByRole("alertdialog").textContent ?? "";
+    expect(question).toContain("Carnes: 1 productos · 1 cambio");
+    expect(question).toContain("Fruver y lácteos: no pedí");
+    fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" }));
     await advance(0);
     expect(service.submitWeek).toHaveBeenCalledWith(WEEK);
   });
@@ -341,6 +341,7 @@ describe("zona de cambios: guardado y envío", () => {
     await advance(SAVE_DEBOUNCE_MS);
     expect(send().disabled).toBe(false);
     fireEvent.click(send());
+    fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" }));
     await advance(0);
     expect(service.saveChanges.mock.invocationCallOrder[0]).toBeLessThan(service.submitWeek.mock.invocationCallOrder[0]);
   });
