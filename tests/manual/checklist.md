@@ -27,8 +27,10 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Buscador «Buscar producto»: escribir «leche» o «LECHE» deja solo los productos con ese nombre (sin importar tildes) y dice cuántos hay; al borrar vuelven todos; sin coincidencias sale un aviso rojo; combinado con una categoría busca solo dentro de ella; al cambiar de semana la búsqueda se conserva; el Excel y el PDF siguen llevando todos los productos.
 
 ## Fallos de red
-- [ ] Sin internet (modo avión) al escribir: tras unos segundos aparece el aviso rojo con **Reintentar**.
-- [ ] Al volver la red, **Reintentar** guarda y el aviso desaparece.
+- [ ] Sin internet (modo avión, o «Sin conexión» en las herramientas del navegador) al escribir en el kardex y en la lista de mercado: tras unos segundos aparece el aviso rojo «Sin conexión a internet… se guardarán solos». Lo escrito sigue en pantalla.
+- [ ] Al volver la red NO hace falta pulsar nada: el aviso desaparece solo, sale «Listo: tus cambios se guardaron» y, al recargar la página, los datos están.
+- [ ] Con internet pero el servidor sin responder, el aviso dice que «se volverá a intentar solo» y no parpadea mientras reintenta; **Reintentar** sigue disponible.
+- [ ] Escribir varias casillas sin internet, volver la red y comprobar que quedó el **último** valor de cada una.
 - [ ] Con el aviso visible, cerrar/recargar la pestaña pide confirmación.
 
 ## Enviar semana (comunidad)
