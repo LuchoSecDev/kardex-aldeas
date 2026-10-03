@@ -10,11 +10,12 @@ const read = (rel: string) => readFileSync(path.join(ROOT, rel), "utf8");
 
 const runSh = read("tests/db/run.sh");
 const enLista = new Set((runSh.match(/for f in([\s\S]*?); do/)?.[1] ?? "").split(/[\s\\]+/).filter(Boolean));
-const scripts = readdirSync(path.join(ROOT, "supabase")).filter((f) => f.endsWith(".sql")).map((f) => f.replace(/\.sql$/, ""));
+// Sin los archivos que empiezan por punto (.env.admin-reset.sql, .env.dev-reset.sql): son copias locales con claves, que git ignora.
+const scripts = readdirSync(path.join(ROOT, "supabase")).filter((f) => f.endsWith(".sql") && !f.startsWith(".")).map((f) => f.replace(/\.sql$/, ""));
 
 // Scripts que a propósito no carga run.sh: semillas (las carga aparte), operaciones manuales y catálogo completo.
 const FUERA_DE_LA_LISTA = new Set([
-  "admin_reset_password", "cleanup_test_data", "products_fruver", "products_panaderia_abarrotes",
+  "admin_reset_password", "dev_reset_password", "cleanup_test_data", "products_fruver", "products_panaderia_abarrotes",
 ]);
 
 describe("scripts SQL", () => {

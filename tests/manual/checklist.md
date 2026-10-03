@@ -149,6 +149,23 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Volver a dejar el número como estaba → deja de aparecer «modificada».
 - [ ] La campanita de la nutricionista sigue mostrando los envíos sin revisar y, al revisarlos, desaparecen.
 
+## Aviso de errores al desarrollador (plan 007, después de correr dev_errors_1.sql)
+- [ ] Con una comunidad de prueba, simular una caída de red (herramientas del navegador → Red → sin conexión) y editar un número del kardex: la pantalla muestra su aviso de «no se pudo guardar» como siempre y **no aparece ningún error nuevo** por el aviso.
+- [ ] Volver a conectar: en Supabase (Editor de tablas → `system_error_logs`) aparece una fila de la comunidad de prueba con nivel `warning`, función `kardex_save_product` y la versión; **sin** el token ni cantidades en el mensaje.
+- [ ] El mismo fallo repetido durante un minuto deja una sola fila.
+- [ ] Un error de la página (por ejemplo, forzar uno desde la consola) aparece como `window.onerror`.
+- [ ] Un flujo normal que el servidor rechaza a propósito (enviar la lista vacía, un PIN débil) **no** deja filas.
+- [ ] Antes de correr el SQL: la app funciona igual y no muestra errores (el aviso se apaga solo).
+
+## Alertas al desarrollador (plan 007, A2; después de desplegar la función y el webhook)
+- [ ] Modo prueba (`x-alert-secret` + `x-alert-test: 1` en el probador del panel): llegan el correo **y** el mensaje de Telegram de «prueba de alertas».
+- [ ] Autoprueba de punta a punta (paso 7 del plan 007: tres filas `ZZZ_TEST_alerta` insertadas desde el SQL Editor): llegan **un** correo y **un** mensaje, y `net._http_response` muestra 200.
+- [ ] Sin la cabecera `x-alert-secret`, o con una equivocada, la función responde 401 y no manda nada.
+- [ ] Racha real: con una comunidad de prueba y la red cortada, 3 guardados fallidos distintos en 10 minutos dejan 1 aviso (no 3).
+- [ ] Un segundo aviso no llega antes de 30 minutos aunque sigan los errores.
+- [ ] Con el correo mal configurado (clave de Resend falsa) el aviso de Telegram sale igual, y viceversa.
+- [ ] En ningún mensaje aparece un token, una clave ni cantidades del kardex.
+
 ## Después de desplegar
 - [ ] El sitio en vivo carga y se puede entrar y guardar con una comunidad de prueba.
 - [ ] `npm run test:integration` en verde (confirma permisos de la base de datos).
