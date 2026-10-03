@@ -1,6 +1,6 @@
 # 012 — Control de versión al guardar (que nadie pise lo de otra persona)
 
-**Estado:** 🚧 **Decisiones D1–D5 aprobadas por Lucho el 2026-10-03.** Fases 1 y 2 construidas y probadas en local (SQL con mutaciones, cliente, integración escrita); **falta que Lucho corra `kardex_version_1.sql` y `npm run test:integration`** (Fase 3) y la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
+**Estado (2026-10-03):** 🚧 **SQL corrido en Supabase por Lucho y verificado; falta la prueba manual antes de empujar la app.** Decisiones D1–D5 aprobadas. Fases 1 y 2 construidas y probadas (SQL con 9 mutaciones y la suite SQL completa; cliente con 24 pruebas y 10 mutaciones; 747 pruebas unitarias). Lucho comprobó que `kardex_records.updated_at` es `timestamptz`, corrió `kardex_version_1.sql` y `tests/integration/kardex-version.test.ts` pasó **5 de 5 contra Supabase real**; la suite de integración completa pasó 117 (69 saltadas por ser opt-in). **Regla de Lucho: no se empuja la app (`feature/control-de-version`, sin push) hasta probar todo a mano** con el checklist «Dos computadores» (`tests/manual/checklist.md`). Falta además la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
 **Rama:** `feature/control-de-version`  **Origen:** hallazgo H2 de [`README.md`](README.md)
 
 ## Objetivo
@@ -14,9 +14,9 @@ borre, sin avisar, lo que otra persona ya guardó**. Hoy el último guardado gan
 |---|---|---|
 | **H2** | `kardex_save_product` hace `insert … on conflict … do update` y **reemplaza la fila completa** del producto en ese mes (todas las salidas, entradas y saldos) sin comprobar qué versión conocía quien guarda. Dos computadores de la misma comunidad, una vista vieja o un guardado pendiente que se reenvía tras un corte de internet pueden pisar datos ajenos. | `supabase/session_access.sql`, `six_weeks_2.sql` |
 | **H2b** | La lista de mercado tiene el mismo patrón (`market_list_save`, notas y participantes: `on conflict … do update`). | `market_lists_4.sql`, `market_changes_2.sql` |
-| **H3** | Los **saldos anteriores guardados** (`prev_balances`) son un dato derivado del cierre del mes anterior, pero se guardan por fila. Si alguien corrige un mes pasado, los meses siguientes quedan con el saldo anterior viejo **en la base** hasta que se vuelva a guardar cada producto en ese mes. La pantalla y el Excel lo recalculan al abrir, pero `admin_weekly_totals` (el resumen para el pedido a proveedores) y la «foto» de la semana enviada **leen el guardado**. | `six_weeks_5.sql`, `week_submissions.sql`, `admin_weekly_summary.sql` |
+| **H3** | Los **saldos anteriores guardados** (`prev_balances`) son un dato derivado del cierre del mes anterior, pero se guardan por fila. Si alguien corrige un mes pasado, los meses siguientes quedan con el saldo anterior viejo **en la base** hasta que se vuelva a guardar cada producto en ese mes. **Corrección del 2026-10-03 (plan 013, C1):** la pantalla y el Excel lo recalculan bien solo para el mes inmediatamente posterior; a partir del segundo mes posterior **también se ve mal en pantalla**, porque la herencia de un mes sale de los `prev_balances` GUARDADOS del mes previo (`finalBalanceOfMonth`). Además `admin_weekly_totals` (el resumen para el pedido a proveedores) y la «foto» de la semana enviada **leen el guardado**. | `six_weeks_5.sql`, `week_submissions.sql`, `admin_weekly_summary.sql` |
 
-H3 no se arregla con este plan (ver «Fuera de alcance»), pero se anota aquí porque es el mismo tipo de error de papel: arrastrar mal un saldo.
+H3 no se arregla con este plan (se diseña en el [plan 013](013-correccion-de-meses.md)), pero se anota aquí porque es el mismo tipo de error de papel: arrastrar mal un saldo.
 
 ## Diseño
 
@@ -61,15 +61,19 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
 
 - [x] **Fase 1 — SQL y pruebas** *(hecha el 2026-10-03)*. `kardex_version_1.sql` (< 98 líneas), `tests/db/kardex_version.test.sql` con mutaciones: conflicto con versión vieja, fila nueva esperada pero ya creada, fila borrada, cliente viejo sin versión (sigue guardando), aislamiento entre comunidades, validaciones intactas, devuelve la versión nueva, `for update` presente. Se agrega a `tests/db/run.sh` y a `supabase/README.md`.
 - [x] **Fase 2 — Cliente** *(hecha el 2026-10-03: `useSaveQueue(versioning)`, `useKardexData`, `kardexService`, `monthState`, `ConflictDialog`)*. Versión por producto en `monthState` / `useKardexData`, `useSaveQueue`, `kardexService`, manejo del conflicto y la ventana. Pruebas unitarias con mutaciones, incluido el escenario «dos pantallas» y el de «reenvío tras corte de internet».
-- [ ] **Fase 3 — Integración y producción** *(escrita `tests/integration/kardex-version.test.ts`; falta correr el SQL y la prueba)*. `tests/integration/kardex-version.test.ts` (comunidad `ZZZ_TEST_`), checklist manual con **dos navegadores**, Lucho corre el SQL **antes** de desplegar la app, y luego `npm run test:integration`.
+- [ ] **Fase 3 — Integración y producción** *(en curso)*.
+  - [x] Lucho corrió `kardex_version_1.sql` en Supabase y confirmó que `updated_at` es `timestamptz` (2026-10-03).
+  - [x] `tests/integration/kardex-version.test.ts` (comunidad `ZZZ_TEST_`): **5 de 5 contra Supabase real**; suite de integración completa: 117 pasan, 69 saltadas (opt-in).
+  - [ ] Prueba manual con **dos navegadores** (checklist «Dos computadores»), incluido el caso de un navegador sin internet que se reconecta. **Hasta que no se haga, no se empuja.**
+  - [ ] Push de `feature/control-de-version` a `main` en los dos remotos (aprobación aparte, después de la prueba manual).
 - [ ] **Fase 4 — Lista de mercado (H2b).** Mismo patrón para `market_list_save`, notas y participantes.
 
 ## Despliegue
 
-1. SQL primero (no rompe a la app actual: sin versión se comporta como hoy).
-2. Después la app.
+1. SQL primero (no rompe a la app actual: sin versión se comporta como hoy). **Hecho el 2026-10-03.**
+2. Después la app (**pendiente**: depende de la prueba manual).
 3. Pestañas viejas abiertas durante el cambio siguen sin protección hasta que recarguen.
-4. Opcional, una semana después: exigir versión (D4).
+4. Opcional, una semana después: exigir versión (D4). **Ojo:** el plan 013 volverá a reemplazar `kardex_save_product` (regla de meses cerrados, bloqueo por producto y recálculo de saldos en el servidor); si se decide exigir versión, conviene hacerlo en ese mismo script para no reemplazar la función dos veces.
 
 ## Riesgos
 
@@ -80,7 +84,7 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
 
 ## Fuera de alcance (se anota para decidir después)
 
-- **H3, saldos anteriores guardados que quedan viejos** al corregir un mes pasado: se arreglaría haciendo que los resúmenes del servidor recalculen el encadenado en vez de leer el guardado, o recalculando los meses siguientes al guardar. Es otra decisión (toca el resumen para proveedores y la «foto» de la semana enviada).
+- **H3, saldos anteriores guardados que quedan viejos** al corregir un mes pasado: ahora tiene su propio [plan 013](013-correccion-de-meses.md) (ventana aislada de corrección, el servidor como única autoridad de los saldos que se guardan, bloqueo por producto y auditoría). Este plan 012 deja la base que necesita: la versión por fila y el aviso de conflicto.
 - **Aviso de presencia** («otra persona está guardando ahora»): cortesía opcional encima del control de versión, solo si en la práctica hay choques frecuentes.
 
 ## Cómo se construyó (2026-10-03)
@@ -89,5 +93,6 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
 - **Dos guardados a la vez (VERIFICADO a mano con dos conexiones y dos tokens distintos):** el segundo espera al primero y sale con `CONFLICTO_VERSION`; quitando el `for update` el segundo **pisaba** al primero sin avisar. Ojo: con el MISMO token los dos se serializaban por casualidad (cada llamada actualiza la fila de su sesión), por eso la prueba se hizo con dos tokens, que es lo que pasa con dos computadores.
 - **Cliente:** la versión viaja como TEXTO (pasarla por `Date` recorta los microsegundos y rompe la comparación). Se pregunta al **enviar**. Una lectura lenta del mes no puede devolver una versión a una más vieja (orden por contador). Un conflicto no se reintenta, descarta lo pendiente de ese producto, espera a que no haya un guardado fallido por red, recarga el mes y muestra `ConflictDialog`. `CONFLICTO_VERSION` es una condición esperada (todo en mayúsculas): no se reporta al desarrollador como error.
 - **Salvaguarda de despliegue:** si el servidor responde `PGRST202` (todavía no tiene la función nueva), `kardexService.saveProductData` guarda como antes en vez de dejar de guardar. Aun así, el orden correcto es SQL primero.
-- **Pendiente de comprobar en Supabase:** que `kardex_records.updated_at` sea `timestamptz` (la tabla se creó a mano): `select data_type from information_schema.columns where table_name = 'kardex_records' and column_name = 'updated_at';`.
+- **Comprobado en Supabase (2026-10-03):** `kardex_records.updated_at` es `timestamp with time zone` (la tabla se creó a mano; la consulta fue `select data_type from information_schema.columns where table_name = 'kardex_records' and column_name = 'updated_at';`). El resto del esquema real sigue sin documentarse; el plan 013 lo comprueba en su Fase 0.
+- **Dónde NO protege este plan:** los guardados de otra comunidad no se tocan (cada una tiene sus filas); los de la lista de mercado siguen con el patrón anterior hasta la Fase 4; y la versión es por producto y mes completos (dos personas editando días distintos del mismo producto también chocan, a propósito).
 - **Límite conocido:** los saldos anteriores (`prev_balances`) siguen siendo un dato derivado; ver H3 (plan 013).
