@@ -34,6 +34,7 @@ pruebas: si agregas un script, agrégalo ahí también (y en este archivo).
 | 22 | `dev_alerts_2.sql` | El trigger que llama a la Edge Function `dev-alert` con pg_net cuando se guarda un reporte (plan 007, Fase A2). Lee la URL y las claves de la Vault. Alternativa a los Database Webhooks del panel. |
 | 23 | `dev_auth_1.sql`, `dev_auth_2.sql` | Cuenta y sesión del desarrollador para la pantalla `/dev` (plan 007, Fase B1): contraseña con bcrypt, bloqueo por intentos, token aparte, auditoría. La clave inicial la pone `dev_reset_password.sql` (plantilla; la real va en `.env.dev-reset.sql`, que no se sube a git). |
 | 24 | `dev_errors_2.sql`, `dev_errors_3.sql` | Lectura de los problemas agrupados (resumen y lista, luego detalle) y «marcar como resuelto» para `/dev` (plan 007, Fase B1). Todas las funciones exigen el token del desarrollador. |
+| 25 | `kardex_version_1.sql` | Control de versión al guardar un producto del kardex (plan 012, hallazgo H2): `kardex_save_product` rechaza con `CONFLICTO_VERSION` un guardado hecho sobre datos que otra persona ya cambió, y devuelve la versión nueva. **Correrlo ANTES de desplegar la app nueva**; con la app anterior se comporta igual que antes. Antes de correrlo, comprobar que `kardex_records.updated_at` es `timestamptz`. |
 
 Sueltos (no son parte del orden): `admin_reset_password.sql` (reset de la cuenta de la nutricionista; el real va en
 `.env.admin-reset.sql`, que **no** se sube a git), `dev_reset_password.sql` (crea o resetea la cuenta del desarrollador; se corre
