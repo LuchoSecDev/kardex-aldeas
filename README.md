@@ -16,7 +16,7 @@ correrlo y dónde está cada cosa. El detalle de cada decisión vive en [`planes
   caben, como el 30 y 31 de marzo de 2026). El saldo se recalcula solo, avisa cuando una salida supera el saldo y permite corregir
   un saldo con motivo (queda en el historial). Catálogo de **240 productos** en 5 categorías.
 - **Buscador de productos** por nombre (sin importar tildes ni mayúsculas), combinable con la categoría.
-- **Guardado automático** con indicador, reintentos y aviso si no se pudo guardar; descarga a **Excel y PDF**.
+- **Guardado automático** con indicador y aviso si no se pudo guardar. Si se cae el internet, lo escrito se conserva en la página y se envía **solo** al volver la conexión (no se pierde mientras no se cierre ni recargue la pestaña). Descarga a **Excel y PDF**.
 - **Enviar semana** a la nutricionista, con confirmación; la semana queda marcada y avisa si cambia después.
 - **Lista de mercado semanal** (fruver y lácteos, carnes, abarrotes, aseo): cantidades por producto, número de participantes,
   plazo del viernes, **notas de cambios** para la nutricionista y sus respuestas (con campanita).
@@ -88,6 +88,7 @@ que se corre a mano en el SQL Editor, **en el orden de ese README**. Los datos d
 
 ## Lo que hay que tener presente
 
+- **Un solo computador por comunidad a la vez:** si dos equipos de la misma casa editan el mismo mes, el último guardado pisa al otro sin avisar (hallazgo H2 en [`planes/README.md`](planes/README.md); la mitigación está propuesta, no hecha).
 - **PIN de 4 dígitos:** es una desviación consciente respecto a un mínimo de 8 caracteres, por la comodidad de las colaboradoras;
   se compensa con el bloqueo por intentos y con que los datos solo se leen con el token de sesión.
 - **Copias de seguridad:** el plan gratuito de Supabase no tiene copias automáticas. Está pendiente decidir entre una copia

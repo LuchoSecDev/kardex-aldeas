@@ -44,6 +44,7 @@ Problemas encontrados que todavía no se corrigen (con su prueba marcada como fa
 | # | Hallazgo | Estado | Prueba |
 |---|---|---|---|
 | H1 | **Meses que no caben en 5 semanas** | ✅ **Resuelto y desplegado** (plan 004; SQL aplicado) | `tests/unit/calendar.test.ts` (ya no es `it.fails`) |
+| H2 | **Dos equipos de la misma comunidad pueden pisarse: el último guardado gana** | ⚠️ **Abierto** (encontrado el 2026-10-03; sin cambios, requiere SQL y tu aprobación) | — |
 
 **H1 — detalle.** El kardex tiene 5 semanas (lunes a domingo). Un mes de 30/31 días que empieza en sábado o domingo pierde sus últimos 1–2 días: **no se pueden registrar**. En 2026: 30 y 31 de marzo, 31 de agosto y 30 de noviembre; en 2027: 31 de mayo y 30–31 de agosto.
 
@@ -97,3 +98,5 @@ Orden exacto: qué SQL corre, cuándo se hace push, cómo se revierte.
 
 ## Riesgos y pendientes
 ```
+
+**H2 — detalle (VERIFICADO leyendo `supabase/session_access.sql`, `kardex_save_product`).** Cada guardado reescribe la fila COMPLETA del producto (`on conflict … do update` de salidas, entradas y saldos anteriores) sin comprobar qué versión tenía quien guarda. Si dos computadores de la misma comunidad (comparten PIN) tienen abierto el mismo mes y editan el mismo producto, o si uno de ellos se reconecta con cambios viejos, **el último en guardar borra lo del otro sin avisar**: es el equivalente digital de dos personas escribiendo sobre la misma hoja de papel. Es un riesgo que ya existía; la recuperación automática tras un corte de internet (2026-10-03) lo hace algo más probable porque un guardado pendiente puede esperar más tiempo. **Mitigación propuesta (no hecha):** control de versión optimista: `kardex_save_product` recibe la `updated_at` que el cliente leyó y rechaza el guardado (`CONFLICTO_VERSION`) si la fila cambió; la pantalla avisa, recarga ese producto y deja elegir. Toca SQL de producción y el flujo de guardado: hay que diseñarlo y probarlo (SQL con mutaciones, integración y manual) antes de desplegar. Mientras tanto, la práctica segura es **un solo computador por comunidad a la vez**.

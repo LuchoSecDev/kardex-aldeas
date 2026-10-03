@@ -11,6 +11,7 @@ import HistorialModal from "@/components/HistorialModal";
 import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
+import { useSaveAutoRetry } from "@/hooks/useSaveAutoRetry";
 import { useCalendar } from "@/hooks/useCalendar";
 import { DAYS_PER_WEEK, isExtraWeek, weekCountOf } from "@/lib/calendar";
 import { useErrorAlert } from "@/hooks/useErrorAlert";
@@ -85,6 +86,7 @@ export default function KardexDashboard({
     if (errorToast) toast.warning(errorToast);
   }, [errorToast, toast]);
   useSaveRecoveryToast(saveStatus);
+  const { offline: saveOffline, recovering: saveRecovering } = useSaveAutoRetry(saveStatus, retrySave);
 
   // Envío de semana a la nutricionista (solo en el modo de la comunidad).
   const weekSubmissions = useWeekSubmissions(selectedYear, selectedMonth, saveStatus, !readOnly);
@@ -330,6 +332,8 @@ export default function KardexDashboard({
         onLogout={handleLogout}
         saveStatus={saveStatus}
         onRetrySave={retrySave}
+        saveRecovering={saveRecovering}
+        saveOffline={saveOffline}
         readOnly={readOnly}
         logoutLabel={logoutLabel}
       />

@@ -7,6 +7,7 @@ import SaveStatus from "@/components/SaveStatus";
 import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
+import { useSaveAutoRetry } from "@/hooks/useSaveAutoRetry";
 import MarketItemsPanel from "@/components/market/MarketItemsPanel";
 import MarketParticipants from "@/components/market/MarketParticipants";
 import MarketSubmitBar from "@/components/market/MarketSubmitBar";
@@ -41,6 +42,7 @@ export default function MarketListDashboard({
     else toast.error(message.text);
   }, [message, toast]);
   useSaveRecoveryToast(market.saveStatus);
+  const autoRetry = useSaveAutoRetry(market.saveStatus, market.retrySave);
 
   // Si la campanita pide abrir una semana, se cambia a ella (el tipo lo abre el panel de productos).
   const { changeWeek } = market;
@@ -76,7 +78,7 @@ export default function MarketListDashboard({
       <div className="card kardex-header-card">
         <div>
           <h2 className="kardex-header-title">Lista de mercado · Comunidad {community}</h2>
-          <SaveStatus status={market.saveStatus} onRetry={market.retrySave} />
+          <SaveStatus status={market.saveStatus} onRetry={market.retrySave} recovering={autoRetry.recovering} offline={autoRetry.offline} />
         </div>
         <div className="kardex-header-actions">
           <button className="btn btn-outline" onClick={handleLogout}>Cambiar Comunidad</button>

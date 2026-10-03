@@ -20,6 +20,8 @@ export default function KardexHeader({
   onLogout,
   saveStatus,
   onRetrySave,
+  saveRecovering,
+  saveOffline,
   readOnly = false,
   logoutLabel = "Cambiar Comunidad",
 }: {
@@ -38,6 +40,9 @@ export default function KardexHeader({
   onLogout: () => void;
   saveStatus: SaveStatusValue;
   onRetrySave: () => void;
+  // Ver SaveStatus: aviso sin parpadeo mientras se reintenta, y texto de «sin conexión».
+  saveRecovering?: boolean;
+  saveOffline?: boolean;
 }) {
   return (
     <div className="card kardex-header-card">
@@ -61,7 +66,7 @@ export default function KardexHeader({
           {readOnly ? (
             <p className="kardex-save-status">Solo lectura: no se puede modificar el kardex desde este panel.</p>
           ) : (
-            <SaveStatus status={saveStatus} onRetry={onRetrySave} />
+            <SaveStatus status={saveStatus} onRetry={onRetrySave} recovering={saveRecovering} offline={saveOffline} />
           )}
         </div>
       </div>
