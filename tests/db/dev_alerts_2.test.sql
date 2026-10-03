@@ -88,7 +88,7 @@ begin
   select * into c from tst.calls;
   perform tst.ok(c.url = 'https://x.supabase.co/functions/v1/dev-alert', 'llama a la URL de la Vault');
   perform tst.ok(c.headers ->> 'x-alert-secret' = 's3creto' and c.headers ->> 'Content-Type' = 'application/json', 'manda la clave compartida');
-  perform tst.ok(not (c.headers ? 'Authorization'), 'sin clave anon no manda Authorization');
+  perform tst.ok(not (c.headers ? 'apikey') and not (c.headers ? 'Authorization'), 'sin clave publicable no manda apikey ni Authorization');
   perform tst.ok(c.timeout_ms = 5000, 'espera hasta 5 s');
   perform tst.ok(c.body ->> 'type' = 'INSERT' and c.body ->> 'table' = 'system_error_logs' and c.body ->> 'schema' = 'public'
                  and c.body -> 'old_record' = 'null'::jsonb, 'mismo formato que el webhook de Supabase');
@@ -96,15 +96,21 @@ begin
                  and c.body -> 'record' ->> 'fn' = 'kardex_save_product' and c.body -> 'record' ->> 'message' = 'Datos incompletos'
                  and c.body -> 'record' ->> 'app_version' = 'abc1234' and c.body -> 'record' ->> 'code' = 'P0001', 'el registro viaja completo');
 
-  -- Con la clave anon (opcional) manda Authorization; vacía, no.
+  -- Con la clave publicable (Supabase la exige en `apikey`) la manda tal cual, sin Authorization; vacía, no manda nada.
   perform tst.reset();
-  insert into vault.decrypted_secrets values ('alert_anon_key', 'anon-publica');
+  insert into vault.decrypted_secrets values ('alert_api_key', 'sb_publishable_prueba');
   perform tst.row_();
-  perform tst.ok((select headers ->> 'Authorization' from tst.calls) = 'Bearer anon-publica', 'con clave anon manda Authorization');
-  update vault.decrypted_secrets set decrypted_secret = '' where name = 'alert_anon_key';
+  perform tst.ok((select headers ->> 'apikey' from tst.calls) = 'sb_publishable_prueba', 'con clave publicable manda la cabecera apikey');
+  perform tst.ok(not (select headers ? 'Authorization' from tst.calls), 'y no manda Authorization (la clave publicable no es un JWT)');
+  update vault.decrypted_secrets set decrypted_secret = '' where name = 'alert_api_key';
   perform tst.reset();
   perform tst.row_();
-  perform tst.ok(not (select headers ? 'Authorization' from tst.calls), 'clave anon vacía: sin Authorization');
+  perform tst.ok(not (select headers ? 'apikey' from tst.calls), 'clave publicable vacía: sin apikey');
+  -- Un secreto viejo `alert_anon_key` ya no se usa.
+  insert into vault.decrypted_secrets values ('alert_anon_key', 'eyJ-vieja');
+  perform tst.reset();
+  perform tst.row_();
+  perform tst.ok(not (select headers ? 'Authorization' from tst.calls), 'la clave anon vieja ya no se manda');
 
   -- Una llamada por fila; actualizar o borrar no avisa.
   perform tst.reset();

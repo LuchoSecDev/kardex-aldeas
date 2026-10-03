@@ -84,9 +84,9 @@ El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del pane
 1. **Clave compartida:** inventar UNA clave larga y guardarla en un gestor de contraseñas. Generar con `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`. Va en **dos** sitios y debe ser idéntica: el secreto `ALERT_WEBHOOK_SECRET` de la función (paso 2) y la Vault (paso 4).
 2. **Secretos de la función** (panel → Edge Functions → Secrets; no pueden empezar por `SUPABASE_`): `ALERT_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ALERT_EMAIL_TO`, `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. Opcional: `ALERT_EMAIL_FROM`. `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya vienen puestos.
 3. **Función:** Edge Functions → Deploy a new function → *Via Editor* → nombre `dev-alert` → pegar todo el archivo → *Deploy function* (10–30 s).
-4. **Vault** (Integrations → Vault → Secrets → *Add new secret*), tres secretos: `alert_function_url` = `https://<ID-DEL-PROYECTO>.supabase.co/functions/v1/dev-alert`; `alert_webhook_secret` = la clave del paso 1; `alert_anon_key` = la clave **anon** pública (Settings → API; solo hace falta si la función exige JWT, pero es inofensiva).
+4. **Vault** (Integrations → Vault → Secrets → *Add new secret*), tres secretos: `alert_function_url` = `https://<ID-DEL-PROYECTO>.supabase.co/functions/v1/dev-alert`; `alert_webhook_secret` = la clave del paso 1; `alert_api_key` = la clave **publicable** (`sb_publishable_…`, Settings → API Keys; es pública). **Hace falta:** Supabase exige esa clave en la cabecera `apikey` para llamar a una Edge Function; sin ella responde `401 INVALID_CREDENTIALS` (VERIFIED en el proyecto de Lucho el 2026-10-03: la clave anon vieja `eyJ…` en `Authorization` NO se acepta). Si ya existe un secreto `alert_anon_key`, ya no se usa: se puede borrar.
 5. **SQL:** correr `supabase/dev_alerts_1.sql` (si aún no) y `supabase/dev_alerts_2.sql` (60 líneas, reejecutable).
-6. **Probar los dos canales sin esperar una falla real:** en el probador de la función, POST con cabeceras `x-alert-secret` (la clave) y `x-alert-test: 1`, sin cuerpo. Responde `{"test":true,"email":"ok","telegram":"ok"}` y llegan un correo y un mensaje de Telegram.
+6. **Probar los dos canales sin esperar una falla real:** con `curl.exe` (PowerShell) o `curl` (Git Bash): POST a `https://<ID>.supabase.co/functions/v1/dev-alert` con las cabeceras `apikey` (la clave publicable), `x-alert-secret` (la clave compartida) y `x-alert-test: 1`, sin cuerpo. Responde `{"test":true,"email":"ok","telegram":"ok"}` y llegan un correo y un mensaje de Telegram.
 7. **Autoprueba del trigger de punta a punta** (SQL Editor):
    ```sql
    insert into system_error_logs (community, source, level, fn, message, app_version)
@@ -97,7 +97,7 @@ El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del pane
 8. **Remitente de Resend:** `onboarding@resend.dev` es el remitente de pruebas; con él solo se puede enviar al correo de la propia cuenta (INFERRED, confirmarlo). Para otros destinatarios hace falta verificar un dominio.
 9. Ver `tests/manual/checklist.md` («Alertas al desarrollador»).
 
-**Si algo falla:** en la respuesta del probador, `401 Invalid JWT` = la puerta de Supabase (probar con la clave anon en `Authorization`); `{"error":"No autorizado"}` = la clave de la Vault y la del secreto no coinciden; `"sin configurar"` = falta o está mal escrito un secreto del canal; `net._http_response` con `status_code` vacío y un `error_msg` = el trigger no llegó a la función (revisar `alert_function_url`).
+**Si algo falla:** en la respuesta del probador, `401 INVALID_CREDENTIALS` = falta la cabecera `apikey` con la clave publicable (la puerta de Supabase, antes de llegar a la función); `{"error":"No autorizado"}` = la clave de la Vault y la del secreto no coinciden; `"sin configurar"` = falta o está mal escrito un secreto del canal; `net._http_response` con `status_code` vacío y un `error_msg` = el trigger no llegó a la función (revisar `alert_function_url`).
 
 ## Seguridad de las alertas
 
