@@ -23,6 +23,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 | 010 | [Sitio estático y migración a Cloudflare Pages](010-hosting-estatico-cloudflare.md) | 🚧 Sitio estático y `_headers` en `main` (`4e76947`); falta que Lucho cree el proyecto en Cloudflare (pasos en el plan) antes del primer cobro | `4e76947` |
 | 011 | [Minuta patrón: cumplimiento de gramajes, pedido sugerido y «Salida de hoy»](011-minuta-patron.md) | 📝 Borrador v2 (2026-10-02), **feature futura**: Lucho prefiere no complicar por ahora el trabajo de las «tías». Con los tres documentos del ICBF y sus respuestas; al reactivarlo falta completar los documentos y cerrar D4, D11 y D12. Función nueva, fuera de la suscripción | — |
 | 012 | [Control de versión al guardar (nadie pisa lo de otra persona)](012-control-de-version.md) | 🚧 Decisiones aprobadas el 2026-10-03; SQL y cliente construidos y probados en local. **Falta que Lucho corra `kardex_version_1.sql`** y las pruebas de integración; después, la lista de mercado (H2b). Cierra el hallazgo H2 | — |
+| 013 | [Corregir un mes anterior en una ventana aislada («Guardar corrección»)](013-correccion-de-meses.md) | 📝 Propuesta del 2026-10-03 (idea de Lucho); depende del plan 012; pendiente de decisiones D1–D5. Cierra el hallazgo H3 | — |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)
@@ -47,7 +48,7 @@ Problemas encontrados que todavía no se corrigen (con su prueba marcada como fa
 | H1 | **Meses que no caben en 5 semanas** | ✅ **Resuelto y desplegado** (plan 004; SQL aplicado) | `tests/unit/calendar.test.ts` (ya no es `it.fails`) |
 | H2 | **Dos equipos de la misma comunidad pueden pisarse: el último guardado gana** | ⚠️ **Abierto**; plan [012](012-control-de-version.md) propuesto (requiere SQL y la aprobación de Lucho) | — |
 | H2b | **La lista de mercado tiene el mismo patrón** (`market_list_save`, notas y participantes reemplazan lo guardado sin comprobar versión) | ⚠️ **Abierto** (2026-10-03); fase 4 del plan 012 | — |
-| H3 | **Saldos anteriores guardados que quedan viejos al corregir un mes pasado**: el resumen para proveedores (`admin_weekly_totals`) y la «foto» de la semana enviada leen el guardado, no el encadenado recalculado | ⚠️ **Abierto** (2026-10-03, VERIFICADO leyendo el SQL; que ocurra en la práctica es INFERIDO); fuera del plan 012, falta decidir | — |
+| H3 | **Saldos anteriores guardados que quedan viejos al corregir un mes pasado**: el resumen para proveedores (`admin_weekly_totals`) y la «foto» de la semana enviada leen el guardado, no el encadenado recalculado | ⚠️ **Abierto** (2026-10-03, VERIFICADO leyendo el SQL; que ocurra en la práctica es INFERIDO); plan [013](013-correccion-de-meses.md) propuesto (ventana aislada de corrección) | — |
 
 **H1 — detalle.** El kardex tiene 5 semanas (lunes a domingo). Un mes de 30/31 días que empieza en sábado o domingo pierde sus últimos 1–2 días: **no se pueden registrar**. En 2026: 30 y 31 de marzo, 31 de agosto y 30 de noviembre; en 2027: 31 de mayo y 30–31 de agosto.
 
