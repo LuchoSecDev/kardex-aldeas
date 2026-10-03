@@ -117,7 +117,19 @@ export function createHandler(deps: Deps) {
     apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json", ...extra,
   });
 
+  // Cualquier excepción inesperada queda escrita en el log (solo el nombre y el mensaje, nunca la petición ni las variables) y la
+  // respuesta es un JSON claro en vez del «Internal Server Error» en texto plano de Supabase.
   return async function handle(req: Request): Promise<Response> {
+    try {
+      return await handleRequest(req);
+    } catch (error) {
+      const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      log(`Error interno: ${detail.slice(0, 300)}`);
+      return json(500, { error: "Error interno" });
+    }
+  };
+
+  async function handleRequest(req: Request): Promise<Response> {
     if (req.method !== "POST") return json(405, { error: "Método no permitido" });
 
     // Sin la clave compartida configurada, NADIE entra (nunca se acepta una llamada sin autenticar).
@@ -195,7 +207,7 @@ export function createHandler(deps: Deps) {
       return json(502, { alerted: false, email: emailResult, telegram: telegramResult });
     }
     return json(200, { alerted: true, email: emailResult, telegram: telegramResult, counts });
-  };
+  }
 }
 
 type Channel = "ok" | "sin configurar" | "error";

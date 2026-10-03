@@ -28,6 +28,7 @@ type Plan = {
   rows?: { level: string }[];            // lo que devuelve el conteo de reportes
   claimed?: unknown[];                    // filas que devuelve la actualización del turno
   countStatus?: number;
+  countThrows?: boolean;                  // una excepción inesperada al consultar Supabase
   claimStatus?: number;
   resend?: number | "throw";
   telegram?: number | "throw";
@@ -42,7 +43,10 @@ function setup(plan: Plan = {}, env: Record<string, string | undefined> = ENV) {
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
     calls.push({ url, method: init?.method ?? "GET", headers, body });
     const reply = (status: number, data: unknown = {}) => new Response(JSON.stringify(data), { status });
-    if (url.includes("/rest/v1/system_error_logs")) return reply(plan.countStatus ?? 200, plan.rows ?? []);
+    if (url.includes("/rest/v1/system_error_logs")) {
+      if (plan.countThrows) throw new Error("fallo inesperado de red");
+      return reply(plan.countStatus ?? 200, plan.rows ?? []);
+    }
     if (url.includes("/rest/v1/dev_alert_state")) {
       if (init?.method === "PATCH" && url.includes("last_alert_at=eq.")) return reply(200, []); // devolver el turno
       return reply(plan.claimStatus ?? 200, plan.claimed ?? [{ id: 1 }]);
@@ -213,6 +217,24 @@ describe("un solo aviso por turno (enfriamiento de 30 minutos)", () => {
       expect((await call()).status).toBe(502);
       expect(sent(calls, "https://api.")).toHaveLength(0);
     }
+  });
+});
+
+describe("una excepción inesperada", () => {
+  it("queda en el log (nombre y mensaje) y la respuesta es un JSON claro sin la causa, no el «Internal Server Error» en texto plano", async () => {
+    const { call, logs } = setup({ rows: errors(3), countThrows: true });
+    const res = await call();
+    expect(res.status).toBe(500);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(await res.json()).toEqual({ error: "Error interno" });
+    expect(logs).toEqual(["Error interno: Error: fallo inesperado de red"]);
+  });
+
+  it("el log tampoco lleva secretos ni lo que mandó quien llamó", async () => {
+    const { call, logs } = setup({ rows: errors(3), countThrows: true });
+    await call(payload({ record: { ...record, message: "texto-del-cuerpo" } }));
+    const seen = logs.join(" | ");
+    for (const s of [SECRET, ENV.SUPABASE_SERVICE_ROLE_KEY, ENV.RESEND_API_KEY, ENV.TELEGRAM_BOT_TOKEN, "texto-del-cuerpo"]) expect(seen).not.toContain(s as string);
   });
 });
 

@@ -97,6 +97,8 @@ El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del pane
 8. **Remitente de Resend:** `onboarding@resend.dev` es el remitente de pruebas; con él solo se puede enviar al correo de la propia cuenta (INFERRED, confirmarlo). Para otros destinatarios hace falta verificar un dominio.
 9. Ver `tests/manual/checklist.md` («Alertas al desarrollador»).
 
+**Si la respuesta es `500 Internal Server Error` en texto plano** (cabecera `sb-error-code: EDGE_FUNCTION_ERROR`): la función se cayó con una excepción; el motivo está en Edge Functions → `dev-alert` → **Logs**. Desde el 2026-10-03 la función captura esas excepciones, escribe `Error interno: <nombre>: <mensaje>` en el log y responde `{"error":"Error interno"}`; pegar de nuevo el archivo para tener esa versión.
+
 **Si algo falla:** en la respuesta del probador, `401 INVALID_CREDENTIALS` = falta la cabecera `apikey` con la clave publicable (la puerta de Supabase, antes de llegar a la función); `{"error":"No autorizado"}` = la clave de la Vault y la del secreto no coinciden; `"sin configurar"` = falta o está mal escrito un secreto del canal; `net._http_response` con `status_code` vacío y un `error_msg` = el trigger no llegó a la función (revisar `alert_function_url`).
 
 ## Seguridad de las alertas
