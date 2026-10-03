@@ -1,6 +1,6 @@
 # 007 — Panel del desarrollador (`/dev`): errores, alertas y diagnóstico
 
-**Estado:** 🚧 **Fase A, parte 1 construida en local el 2026-10-02 (sin commitear ni desplegar):** registro de errores (SQL `dev_errors_1.sql`, logger del cliente y pruebas). Decisiones confirmadas por Lucho el 2026-10-01 (cuenta en la base, alertas por correo y Telegram, acciones remotas con auditoría). Falta lo que necesita a Lucho en la PC (correr el SQL, correo y Telegram) y las Fases B y C.
+**Estado (2026-10-03):** 🚧 **Fase A (registro de errores y alertas) y Fase B1 (pantalla `/dev`) en `main`.** Lucho corrió `dev_auth_1/2`, `dev_errors_2/3` y `dev_reset_password.sql` en Supabase, la cuenta del desarrollador ya funciona y las pruebas de integración (`dev-account.test.ts`) pasan contra el Supabase real. La barra de accesibilidad se oculta en `/dev` (decisión de Lucho). Falta: B2 (estado de comunidades y acciones remotas), B3 (copias de seguridad, sin decidir) y la Fase C. Decisiones confirmadas por Lucho el 2026-10-01 (cuenta en la base, alertas por correo y Telegram, acciones remotas con auditoría).
 **Rama:** `feature/panel-dev` (cuando se programe)  **Fecha:** 2026-10-01
 Origen: `../diseno_panel_superusuario_dev.md` (diseño inicial, fuera del repositorio) revisado y corregido aquí.
 
