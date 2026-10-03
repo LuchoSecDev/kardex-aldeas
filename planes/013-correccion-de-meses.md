@@ -1,6 +1,6 @@
 # 013 — Corrección histórica de un producto: ventana aislada, servidor como única autoridad y «Guardar corrección»
 
-**Estado:** 📝 Propuesta **revisada el 2026-10-03** con las decisiones y condiciones de Lucho. Es solo diseño: **no hay código ni SQL de este plan, y nada se corre en Supabase sin su OK.** Depende del plan 012 (control de versión), cuyo SQL ya está corrido en producción (`kardex_version_1.sql`, comprobado por Lucho el 2026-10-03; `kardex_records.updated_at` es `timestamptz`).
+**Estado:** 📝 Propuesta **revisada el 2026-10-03** con las decisiones y condiciones de Lucho. **Lucho confirmó el 2026-10-03 las recomendaciones Q1, Q2, Q3, Q4, Q6 y Q7** (ver sección 8); **Q5 está en aclaración** (sección 5.4: el tope no limita la lectura). Es solo diseño: **no hay código ni SQL de este plan, y nada se corre en Supabase sin su OK.** Depende del plan 012 (control de versión), cuyo SQL ya está corrido en producción (`kardex_version_1.sql`, comprobado por Lucho el 2026-10-03; `kardex_records.updated_at` es `timestamptz`).
 **Rama:** `feature/correccion-de-meses` (cuando se programe)  **Origen:** hallazgo H3 de [`README.md`](README.md)
 
 ## 1. Qué se revisó para esta versión
@@ -19,6 +19,7 @@ Instrucciones del proyecto (`CLAUDE.md`, `.claude/rules/sql.md`: zonas de aproba
 | C5 | **Zona horaria.** La lista de mercado usa `America/Bogota` explícita (`bogotaDate` en `marketCalendar.ts`, `at time zone 'America/Bogota'` en `market_lists_2.sql`). El kardex **no declara ninguna convención**: elige el mes y año iniciales con `new Date()` del navegador (`KardexDashboard.tsx`). No es una contradicción con la decisión (no hay una convención del kardex distinta), pero es una **discrepancia**: con el reloj o la zona horaria mal configurados en un computador, la pantalla mostraría otro «mes actual» que el servidor. | La regla usa `America/Bogota` en el servidor; la pantalla debe usar `bogotaDate` para saber cuándo mostrar la ventana. Pregunta Q3. |
 | C6 | **Plan 012 y este plan se tocan.** Para serializar las escrituras normales y las correcciones hace falta que `kardex_save_product` tome el mismo bloqueo que la corrección y aplique la regla de meses cerrados. `kardex_version_1.sql` **ya está corrido**, así que no se edita: hace falta un script nuevo que la reemplace. | Nuevo script (sección 9) y secuencia de despliegue cuidadosa. |
 | C7 | **Una escritura que no cambia valores igual cambia `updated_at`.** `_week_modified` usa `updated_at` como atajo (si ninguna fila del mes cambió después del envío, no compara). | La corrección reescribe solo las filas que realmente cambian, para no marcar «modificadas» semanas enviadas que no cambiaron. |
+| C8 | **Un límite que sí existe hoy en la auditoría de ajustes:** `kardex_load_ajustes_history` devuelve solo los **últimos 200** ajustes por defecto y nunca más de 1000 en el servidor (`p_limit`; la pantalla y `adminService` piden 200). Para «ver todo» con fines de auditoría eso es un tope real de lectura. | No bloquea este plan, pero la Fase 4 (lectura de la auditoría) debe prever **paginación o filtro por mes y producto** en vez de un tope fijo, tanto para `kardex_corrections` como para el historial de ajustes. |
 
 ## 3. Objetivo y alcance
 
@@ -97,7 +98,9 @@ Se evalúa **en el servidor** con la fecha de `America/Bogota` (`(now() at time 
 ### 5.4 Atomicidad, tope y errores
 
 - `kardex_save_months` es **una sola función** (una transacción): cualquier excepción (conflicto, validación, tope, fallo de la auditoría) revierte **todo**, incluida la auditoría. Nunca queda una parte de la cadena.
-- **Tope de meses en el servidor** (propuesta: 24 meses desde el mes corregido, Q5): si el alcance lo supera, `CORRECCION_FUERA_DE_TOPE`, explícito, sin truncar ni guardar parcialmente; la pantalla lo explica.
+- **Tope de meses en el servidor, solo para la ESCRITURA de una corrección** (Q5): si la cadena que una corrección tendría que reescribir (desde el mes corregido hasta el último mes con datos de ese producto) supera el tope, `CORRECCION_FUERA_DE_TOPE`, explícito, sin truncar ni guardar parcialmente; la pantalla lo explica. **Es una protección contra una escritura desmesurada; no limita en nada cuánto historial se puede ver.**
+- **Lectura sin tope (aclaración de Lucho, 2026-10-03):** ver meses anteriores, abrir cualquier mes, el Excel y el PDF, el historial de meses con datos (`kardex_months_with_data`), la vista de solo lectura de la nutricionista y la futura lectura de la auditoría **no pasan por el tope y no se limitan por antigüedad**. Hoy el selector de años cubre 10 años hacia atrás y 10 hacia adelante (`KardexDashboard.tsx`) y los meses sin registros se ven en ceros. La auditoría (`kardex_corrections`) es append-only y se leerá completa, con paginación, sin descartar registros viejos.
+- **Valor del tope, revisado tras la pregunta de Lucho:** de 24 pasa a **120 meses (10 años)**, para que **todo lo que se puede ver (el rango del selector) se pueda corregir**. Con 24, a los dos años de uso un mes antiguo se podría ver pero no corregir. 120 no tiene costo real (una corrección toca como mucho 120 filas de un solo producto, milisegundos de bloqueo) y sigue protegiendo de lo desmesurado. **Pendiente de su confirmación** y cambiable con un script.
 - Los códigos nuevos van en mayúsculas (`MES_CERRADO`, `CONFLICTO_VERSION`, `ALCANCE_INCOMPLETO`, `CORRECCION_FUERA_DE_TOPE`): son condiciones esperadas y no se reportan al desarrollador como fallos (`isExpectedCondition`); la cola de guardado **no** debe tratarlos como «fallo de red» ni reintentarlos.
 
 ### 5.5 Autorización
@@ -136,18 +139,20 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
 | D7 | Base del cálculo | Propuesto ★: el cierre del mes previo **guardado** (como hoy). Alternativa: recalcular desde el primer mes con datos, ignorando lo guardado; es más robusto ante datos viejos inconsistentes, pero **cambiaría cifras que la nutricionista ya vio** |
 | D8 | Escrituras en el mes actual o futuros cuando hay filas posteriores | Ver Q2 |
 | D9 | `kardex_insert_ajuste` | Propuesto ★: atómico con el recálculo; en meses cerrados, solo dentro de una corrección |
-| D10 | Tope de meses | Propuesto: 24 (Q5) |
+| D10 | Tope de meses de una corrección (escritura) | Propuesto **120** (era 24); la lectura no tiene tope. Pendiente de confirmar (Q5) |
 | D11 | Reparar datos históricos ya inconsistentes | Después del diagnóstico solo lectura (sección 11) |
 | D12 | El kardex deja de usar el reloj del navegador | Propuesto ★ (Q3) |
 | D13 | Precisión y redondeo al guardar | Por definir (Q6) |
 
-**Preguntas concretas para Lucho:**
+**Respuestas de Lucho (2026-10-03):** de acuerdo con las recomendaciones de Q1 (se mantiene la regla; se revisa tras un mes de uso cuántas correcciones hubo entre el día 1 y el 5), Q2 (también por la ventana cuando hay meses posteriores con datos), Q3 (el kardex pasa a la hora de Bogotá), Q4 (motivo de 5 a 500 caracteres, con al menos una letra o dígito, sin caracteres de control), Q6 (se redondean a 4 decimales solo los saldos calculados; entradas y salidas tal como se escribieron) y Q7 (el servidor recalcula los saldos en todo guardado y la base es el cierre del mes previo guardado, **después del diagnóstico y como paso de despliegue separado**). Q5 en aclaración.
+
+**Preguntas concretas para Lucho (se conservan como registro):**
 
 - **Q1.** Con tu regla, el día 1 a 5, si el producto **ya tiene fila en el mes actual**, editar el mes anterior pasa por la ventana. ¿Es lo que quieres, aun sabiendo que será frecuente (por ejemplo, el 2 de octubre al registrar los últimos días de septiembre de un producto con fila de octubre)?
 - **Q2.** «El mes calendario actual se edita normalmente» **contradice** la garantía de «saldos guardados consistentes» si ese producto ya tiene filas en meses **posteriores** al actual (alguien llenó por adelantado). ¿Los meses con filas posteriores también pasan por la ventana aunque sean el mes actual, o aceptamos esa excepción?
 - **Q3.** El kardex hoy usa la hora del navegador para elegir el mes inicial; la lista de mercado usa Bogotá. ¿Confirmas que el kardex debe pasar a `America/Bogota` (cambio pequeño y visible)?
 - **Q4.** Motivo: ¿mínimo 5 caracteres, máximo 500 y al menos una letra o dígito, o prefieres exactamente el patrón de los ajustes (1 a 500)?
-- **Q5.** Tope de meses por corrección: ¿24 está bien (dos años)?
+- **Q5.** *(Aclarada.)* Lucho preguntó si un tope de 24 meses afectaría ver meses anteriores para la auditoría. **No: el tope solo limita cuántos meses reescribe UNA corrección, no la lectura.** Con 24, sin embargo, un mes de hace más de dos años se podría ver pero no corregir; por eso se propone **120 meses** (el rango del selector). ¿Confirmas 120?
 - **Q6.** Precisión: ¿redondeamos lo guardado a 4 decimales? (Hoy el navegador guarda los decimales tal cual salen del cálculo.)
 - **Q7 (D6/D7).** ¿Apruebas que el servidor recalcule los saldos en **todo** guardado y que la base sea el cierre del mes previo guardado, o prefieres recalcular desde el origen? Antes de decidir conviene ver el diagnóstico de la sección 11.
 
@@ -162,7 +167,7 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
   *Aceptación:* pasan las pruebas de la sección 10, `npm run test:db` completo y la prueba de paridad.
 - [ ] **Fase 2 — Cliente:** `useMonthCorrection`, `MonthCorrectionModal` (mismo estilo y teclado que las demás ventanas), `bogotaDate` para decidir cuándo ofrecer «Corregir» (D12), manejo de `MES_CERRADO` y de los demás códigos sin tratarlos como falla de red, bloqueo de la edición directa. *Aceptación:* pruebas unitarias con los vectores compartidos y con mutaciones; verificación en navegador (escritorio y 360 px, alto contraste).
 - [ ] **Fase 3 — Integración y producción:** prueba de integración con comunidades `ZZZ_TEST_`, checklist manual completo (sección 12), despliegue en orden: SQL, comprobación con `npm run test:integration`, después la app. Con la app antigua abierta el RPC normal rechaza meses cerrados: avisar a las colaboradoras que recarguen.
-- [ ] **Fase 4 (opcional):** lectura de la auditoría en `/admin` y `/dev`; varios productos a la vez.
+- [ ] **Fase 4 (opcional):** lectura de la auditoría en `/admin` y `/dev`, **completa y con paginación o filtro por mes y producto** (nada de topes fijos, ver C8); varios productos a la vez.
 
 ## 10. Pruebas
 
@@ -173,6 +178,7 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
 - **Aislamiento entre comunidades:** una sesión no lee ni escribe historial de otra; el token falso se rechaza.
 - **RPC antiguo:** `kardex_save_product` con 7 y con 9 parámetros rechaza meses cerrados (`MES_CERRADO`) y acepta los abiertos; límites de fecha de la sección 4 con la fecha simulada (días 1, 5 y 6, cambio de año, con y sin meses posteriores, y el borde UTC).
 - **Auditoría:** una fila por corrección con antes y después; no se puede actualizar ni borrar; si falla, la corrección no se guarda; la comunidad no la lee.
+- **La lectura no tiene tope:** con más meses que el tope, abrir cualquier mes, `kardex_months_with_data`, el Excel y la vista de solo lectura de la nutricionista siguen funcionando igual; solo la corrección se rechaza (`CORRECCION_FUERA_DE_TOPE`).
 - **Tope y validaciones:** tope explícito sin truncar; tamaños 35/5 y 42/6; entradas y salidas negativas rechazadas; **saldos negativos calculados aceptados**; motivo (vacío, corto, solo símbolos, con caracteres de control, de 501 caracteres).
 - **Paridad:** el archivo de vectores compartido pasa por `computeCascade` (Vitest) y por la función SQL (resultado persistido), con tolerancia definida, incluidos ajustes que cortan la propagación y filas de 5 semanas.
 - **Resumen semanal y semanas enviadas tras corregir un mes anterior:** `admin_weekly_totals` de un mes posterior devuelve el **saldo anterior corregido**; `_week_snapshot`/`kardex_week_submissions` marcan «modificadas» **solo** las semanas enviadas cuyos valores cambiaron (no las demás); reenviar actualiza la foto; y filas que no cambian no se reescriben (C7).
