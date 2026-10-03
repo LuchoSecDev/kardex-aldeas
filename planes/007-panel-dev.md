@@ -47,7 +47,8 @@ Es también la forma concreta de cumplir la «vigilancia del servicio» que prom
 
 - [ ] **Fase A — Errores y alertas** (valor alto, costo bajo). *Aceptación:* un error forzado en una comunidad de prueba aparece en la tabla con su versión y llega el correo; sin red se reporta al volver.
   - [x] **A1 — Registro de errores** *(construido el 2026-10-02, sin desplegar)*: `supabase/dev_errors_1.sql` (tabla cerrada `system_error_logs` y `dev_report_client_error`: la comunidad sale del token, texto limpio y tiras largas tapadas, tope de 20 por minuto y 300 por día, limpieza de más de 30 días cada 50 reportes sin tareas programadas), `src/lib/errorReporter.ts` y `appErrors.ts` (no repite ni inunde, nunca manda argumentos, cola en memoria sin red, se apaga solo si la función aún no existe), `ErrorReporter` en el layout y la conexión en `authedRpc`. Pruebas: `tests/db/dev_errors.test.sql` (16 mutaciones detectadas y una equivalente: quitar el `grant` a `anon`), `tests/unit/errorReporter.test.ts` y `appErrorsWiring.test.tsx` (25 detectadas y una equivalente), `tests/integration/dev-errors.test.ts`. Una revisión de código (2026-10-02) encontró y corrigió un bug del reintento sin red (la cola quedaba atascada tras el primer envío exitoso), el tapado de tokens demasiado ancho (ahora exige 4 o más dígitos), el nivel de los errores de red de la página, y la atribución del error a la sesión de la propia llamada. **Falta correr `dev_errors_1.sql` en Supabase** y `npm run test:integration`.
-  - [ ] **A2 — Alertas** (necesita a Lucho en la PC): correo y Telegram con una Edge Function, y el chequeo de disponibilidad externo.
+  - [x] **A2a — Función de alertas** *(construida el 2026-10-02, sin desplegar)*: `supabase/functions/dev-alert/index.ts` (un solo archivo, para pegarlo en el editor del panel), `supabase/dev_alerts_1.sql` (una fila cerrada con la hora del último aviso) y sus pruebas (`tests/db/dev_alerts.test.sql`, `tests/unit/devAlertFunction.test.ts`). Avisa por correo (Resend) y Telegram cuando hay **3 errores o 10 advertencias en 10 minutos** de cualquier comunidad, **un aviso cada 30 minutos como máximo**. Los umbrales se pueden cambiar con variables (`ALERT_ERRORS`, `ALERT_WARNINGS`, `ALERT_WINDOW_MIN`, `ALERT_COOLDOWN_MIN`).
+  - [ ] **A2b — Desplegar las alertas** (necesita a Lucho en la PC; pasos abajo) y el chequeo de disponibilidad externo.
   - [ ] **A3 — Cuenta del desarrollador** (`dev_account`, sesiones y bloqueo): **se movió a la Fase B**, que es donde hace falta (la pantalla `/dev`); mientras tanto los errores se ven en el Editor de tablas de Supabase. Así no se abre una superficie de autenticación nueva sin tener quién la use.
 - [ ] **Fase B — Pantalla `/dev` y acciones remotas:** login, monitor de comunidades, visor de errores, desbloquear / PIN temporal con auditoría.
 - [ ] **Fase C — Integridad contable** (solo los invariantes definidos y probados).
@@ -73,3 +74,20 @@ SQL aditivo primero, luego la app (el logger debe fallar en silencio si la funci
 - **Sin `critical` desde el navegador:** ese nivel lo pondrá el sistema (umbrales) cuando existan las alertas.
 - **Versión:** `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` (Vercel); en Cloudflare Pages hay que definir `NEXT_PUBLIC_APP_VERSION` en las variables del build (se anota también en el plan 010). Sin ninguna queda «local».
 - **Datos que sí viajan:** el mensaje de error del servidor o del navegador (hasta 300 caracteres; puede traer un nombre de comunidad). No viajan los argumentos de las llamadas ni cantidades.
+
+## Despliegue de las alertas (A2b) — pasos para Lucho
+
+El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del panel no tiene control de versiones ni retroceso, así que **siempre se edita en el repositorio y se vuelve a pegar**.
+
+1. **SQL:** correr `supabase/dev_alerts_1.sql` en el SQL Editor (18 líneas, reejecutable).
+2. **Secretos** (panel → Edge Functions → Secrets; los nombres no pueden empezar por `SUPABASE_`): `ALERT_WEBHOOK_SECRET` (una clave larga y aleatoria que inventas tú, de 32 o más caracteres; la misma irá en el paso 5), `RESEND_API_KEY`, `ALERT_EMAIL_TO`, `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`. Opcional: `ALERT_EMAIL_FROM`. `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` ya vienen puestos.
+3. **Función:** Edge Functions → Deploy a new function → *Via Editor* → nombre `dev-alert` → pegar todo el archivo → *Deploy function* (10–30 s).
+4. **JWT (a comprobar en el panel; la documentación consultada no lo aclara):** si la función aparece con «Verify JWT» activo, hay que desactivarlo (la función se autentica sola con `x-alert-secret`) o agregar al webhook la cabecera `Authorization: Bearer <anon key>`.
+5. **Webhook:** Database → Webhooks → crear: tabla `system_error_logs`, evento **INSERT**, tipo Edge Function (o HTTP) hacia `dev-alert`, método POST, cabecera `x-alert-secret` con el MISMO valor del paso 2.
+6. **Probar los dos canales sin esperar una falla real:** en el probador del panel, método POST, cabeceras `x-alert-secret` (el valor del paso 2) y `x-alert-test: 1`, sin cuerpo. Responde `{"test":true,"email":"ok","telegram":"ok"}` y debes recibir el correo **y** el mensaje de Telegram de «prueba de alertas». Esta prueba no cuenta reportes ni toma el turno, así que se puede repetir. Si un canal dice `error` o `sin configurar`, revisar sus secretos.
+7. **Remitente de Resend:** `onboarding@resend.dev` es el remitente de pruebas; con él solo se puede enviar al correo de tu propia cuenta (INFERRED, confirmarlo en tu cuenta). Para otros destinatarios hace falta verificar un dominio.
+8. Ver `tests/manual/checklist.md` («Alertas al desarrollador»).
+
+## Seguridad de las alertas
+
+La función solo acepta al webhook con la clave compartida (comparación en tiempo constante; sin clave configurada rechaza todo), usa la clave de servicio solo del lado del servidor (nunca llega al navegador), manda texto plano a Telegram (sin `parse_mode`) y no escribe secretos en los logs ni en las respuestas. Lleva el último reporte ya limpiado por el servidor (sin argumentos de llamadas ni cantidades del kardex).

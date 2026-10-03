@@ -156,6 +156,14 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Un flujo normal que el servidor rechaza a propósito (enviar la lista vacía, un PIN débil) **no** deja filas.
 - [ ] Antes de correr el SQL: la app funciona igual y no muestra errores (el aviso se apaga solo).
 
+## Alertas al desarrollador (plan 007, A2; después de desplegar la función y el webhook)
+- [ ] Modo prueba (`x-alert-secret` + `x-alert-test: 1` en el probador del panel): llegan el correo **y** el mensaje de Telegram de «prueba de alertas».
+- [ ] Sin la cabecera `x-alert-secret`, o con una equivocada, la función responde 401 y no manda nada.
+- [ ] Racha real: con una comunidad de prueba y la red cortada, 3 guardados fallidos distintos en 10 minutos dejan 1 aviso (no 3).
+- [ ] Un segundo aviso no llega antes de 30 minutos aunque sigan los errores.
+- [ ] Con el correo mal configurado (clave de Resend falsa) el aviso de Telegram sale igual, y viceversa.
+- [ ] En ningún mensaje aparece un token, una clave ni cantidades del kardex.
+
 ## Después de desplegar
 - [ ] El sitio en vivo carga y se puede entrar y guardar con una comunidad de prueba.
 - [ ] `npm run test:integration` en verde (confirma permisos de la base de datos).
