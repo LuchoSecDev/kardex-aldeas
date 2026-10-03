@@ -56,6 +56,22 @@ async function renderDashboard() {
   await waitFor(() => expect(screen.queryByText(/Cargando datos desde la nube/)).toBeNull());
 }
 
+// Espera a que la carga inicial termine del todo: los productos pueden llegar después de la primera lectura y recargar el mes una vez
+// más; una prueba que cuenta lecturas no debe medir antes de que eso se estabilice.
+async function settleLoads() {
+  let last = -1;
+  await waitFor(
+    () => {
+      const now = service.loadKardexMonth.mock.calls.length;
+      const stable = now === last;
+      last = now;
+      expect(stable).toBe(true);
+      expect(screen.queryByText(/Cargando datos desde la nube/)).toBeNull();
+    },
+    { interval: 80 }
+  );
+}
+
 const rowOf = (name: string) => screen.getAllByRole("row").find((r) => within(r).queryByText(name))!;
 const inputs = (name: string) => within(rowOf(name)).getAllByRole("spinbutton") as HTMLInputElement[]; // [entrada, L, M, …]
 const type = async (name: string, index: number, value: string) => {
@@ -201,6 +217,7 @@ describe("conflicto combinado con otros casos", () => {
         ? new Promise((resolve) => { answerArroz = resolve as never; })
         : Promise.resolve({ data: null, error: { code: "P0001", message: "Cantidades inválidas" } as never }));
     await renderDashboard();
+    await settleLoads();
     const loadsBefore = service.loadKardexMonth.mock.calls.length;
     await type("Arroz", 1, "1");
     await type("Lentejas", 1, "1");

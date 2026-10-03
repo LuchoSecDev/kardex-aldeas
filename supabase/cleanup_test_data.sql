@@ -15,6 +15,16 @@ delete from ajustes where community like 'ZZZ\_TEST\_%';
 delete from system_error_logs where community like 'ZZZ\_TEST\_%';
 -- Las anotaciones de «resolver problema» de /dev que quedaron de comunidades de prueba (requiere dev_auth_1.sql).
 delete from dev_audit_log where detail->>'community' like 'ZZZ\_TEST\_%';
+-- La auditoría de correcciones es append-only (disparador): solo para esta limpieza se desactiva y se vuelve a activar (requiere
+-- kardex_chain_5.sql; si todavía no está corrido, no hace nada).
+do $$
+begin
+  if to_regclass('public.kardex_corrections') is not null then
+    alter table kardex_corrections disable trigger kardex_corrections_no_update;
+    delete from kardex_corrections where community like 'ZZZ\_TEST\_%';
+    alter table kardex_corrections enable trigger kardex_corrections_no_update;
+  end if;
+end $$;
 delete from communities where name like 'ZZZ\_TEST\_%';
 
 -- Quedó de una verificación anterior.

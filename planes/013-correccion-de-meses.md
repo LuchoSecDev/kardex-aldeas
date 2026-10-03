@@ -162,12 +162,21 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
 ## 9. Fases (cada una en su rama y con aprobación de push aparte)
 
 - [x] **Fase 0 — Diagnóstico solo lectura** (sin cambiar nada): ver sección 11. **Hecha el 2026-10-03: Lucho corrió los cinco diagnósticos en producción y entregó los resultados (sección 11.1): los datos reales están limpios.** *Aceptación:* informe entregado a Lucho antes de escribir SQL; no se ejecutó ninguna escritura.
-- [ ] **Fase 1 — SQL** (varios scripts de menos de 98 líneas, en este orden de dependencia; Lucho los corre antes de desplegar la app):
-  1. función interna de cálculo del encadenado (única autoridad) y de «hoy en Bogotá» (`_kardex_today`, reemplazable en las pruebas locales);
-  2. `kardex_save_product` nueva (regla de meses cerrados, bloqueo por producto, recálculo en servidor, versión del plan 012);
-  3. `kardex_insert_ajuste` atómico con el recálculo y el mismo bloqueo;
-  4. tabla `kardex_corrections` (cerrada, append-only), `kardex_product_history` y `kardex_save_months` (con simulacro, tope, token de cadena).
-  *Aceptación:* pasan las pruebas de la sección 10, `npm run test:db` completo y la prueba de paridad.
+- [x] **Fase 1 — SQL** *(construida y probada en local el 2026-10-03; **NO corrida en Supabase**: la corre Lucho)*. Seis scripts en `supabase/` (todos < 98 líneas):
+  1. `kardex_chain_1.sql`: tabla cerrada `kardex_settings` con **dos interruptores que nacen APAGADOS** (`closed_month_rule` y `server_chain`), `_kardex_today()` / `_kardex_today_at()` (Bogotá), el bloqueo por producto, `_kardex_cascade` (única autoridad del encadenado, saldos a 4 decimales) y `_kardex_closing`;
+  2. `kardex_chain_2.sql`: ajustes vigentes, **base heredada del último cierre existente (D14)**, regla de meses cerrados y la validación compartida de filas;
+  3. `kardex_chain_3.sql`: `kardex_save_product` con bloqueo, `MES_CERRADO` y saldos calculados por el servidor (mismos 9 parámetros del plan 012);
+  4. `kardex_chain_4.sql`: `kardex_insert_ajuste` atómico (recalcula la fila en la misma transacción y devuelve la versión nueva; cambia lo que devuelve, de nada a `timestamptz`);
+  5. `kardex_chain_5.sql`: `kardex_corrections` (append-only con disparador), token de cadena, `kardex_product_history` y `kardex_inherited_bases`;
+  6. `kardex_chain_6.sql`: `kardex_save_months` (corrección con simulacro, tope de 120, todo o nada, motivo validado, auditoría).
+  **Con los interruptores apagados el comportamiento no cambia** (solo se agrega el bloqueo por producto y funciones nuevas). Pruebas: `tests/db/kardex_chain.test.sql` (paridad con 50 vectores compartidos, matriz de fechas, RPC antiguo, conflictos, alcance, tope, atomicidad, motivo, aislamiento, auditoría, resumen semanal y semanas enviadas; **46 mutaciones** detectadas, y las 3 de bloqueo verificadas con dos sesiones reales), `tests/unit/cascadeVectors.test.ts` y la suite SQL completa (`run.sh`) en verde.
+  **Orden de despliegue y condiciones (importante):**
+  - **a)** Correr `kardex_chain_1.sql` a `_6.sql` **en orden** (cada uno es reejecutable). Después `npm run test:integration` debe seguir en verde: con los interruptores apagados todo se comporta como antes.
+  - **b)** `server_chain` **no debe encenderse hasta que la app nueva (Fase 2) use la versión que ahora devuelve `kardex_insert_ajuste`**: con el cliente actual (plan 012), un ajuste cambiaría la versión de la fila y el siguiente guardado de la pantalla chocaría con un falso `CONFLICTO_VERSION`.
+  - **c)** `closed_month_rule` **no debe encenderse hasta que la app nueva ofrezca la ventana «Corregir»**, y **antes hay que adaptar las pruebas de integración**: varias guardan en meses pasados fijos (marzo y agosto de 2026) y empezarían a fallar con `MES_CERRADO`; deben usar meses del presente o del futuro calculados con la fecha de hoy.
+  - **d)** Se encienden a mano, uno por uno: `update kardex_settings set enabled = true where key = 'server_chain';` (y luego `'closed_month_rule'`), y se pueden apagar igual si algo falla.
+  - **e)** `cleanup_test_data.sql` ya borra también la auditoría de pruebas (desactiva el disparador solo durante la limpieza).
+  *Hallazgo:* una prueba del plan 012 (`kardexVersioning.test.tsx`) resultó inestable (falló 1 de unas 5 corridas): medía el conteo de lecturas antes de que terminara la carga inicial; ya está corregida y se verificó con 10 corridas en paralelo.
 - [ ] **Fase 2 — Cliente:** `useMonthCorrection`, `MonthCorrectionModal` (mismo estilo y teclado que las demás ventanas), `bogotaDate` para decidir cuándo ofrecer «Corregir» (D12), manejo de `MES_CERRADO` y de los demás códigos sin tratarlos como falla de red, bloqueo de la edición directa. *Aceptación:* pruebas unitarias con los vectores compartidos y con mutaciones; verificación en navegador (escritorio y 360 px, alto contraste).
 - [ ] **Fase 3 — Integración y producción:** prueba de integración con comunidades `ZZZ_TEST_`, checklist manual completo (sección 12), despliegue en orden: SQL, comprobación con `npm run test:integration`, después la app. Con la app antigua abierta el RPC normal rechaza meses cerrados: avisar a las colaboradoras que recarguen.
 - [ ] **Fase 4 (opcional):** lectura de la auditoría en `/admin` y `/dev`, **completa y con paginación o filtro por mes y producto** (nada de topes fijos, ver C8); varios productos a la vez.
