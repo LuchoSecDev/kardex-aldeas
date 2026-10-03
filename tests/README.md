@@ -96,6 +96,13 @@ Una contraseña equivocada suma un intento fallido (5 bloquean la cuenta 15 minu
 
 Sin `RUN_ADMIN_LIFECYCLE=1` esas pruebas se saltan y aparecen como "skipped".
 
+## Pruebas opt-in de la cuenta del desarrollador (`/dev`)
+
+Siguen el mismo patrón que las de la nutricionista y necesitan haber corrido `dev_auth_1/2.sql` y `dev_errors_1/2/3.sql`:
+
+- `integration/dev-account.test.ts` solo **inicia sesión** (no cambia la contraseña): comprueba que las tablas están cerradas, que los tokens de comunidad y de la nutricionista no sirven en `/dev` ni al revés, y la lista agrupada, el detalle, los rangos, «resuelto» (solo el grupo pedido) y la reapertura con un reporte nuevo (con reportes de una comunidad `ZZZ_TEST_BORRAR_AUTO_*`). Se corre con la contraseña **vigente**: `$env:DEV_LOGIN_PASSWORD = "<contraseña actual>"; npm run test:integration`. Una contraseña equivocada suma un intento fallido (5 bloquean 15 minutos), por eso se detiene en el primer inicio de sesión si falla. Si la cuenta aún tiene la contraseña temporal, solo comprueba que esa sesión no deja hacer nada más que cambiarla y salta el resto.
+- `integration/dev-lifecycle.test.ts` **cambia la contraseña real** y termina bloqueando la cuenta 15 minutos (no hay código de recuperación). Úsalo solo con la cuenta recién creada: (1) `DEV_TEST_PASSWORD=<temporal de prueba, mín. 12 caracteres>` en `.env.local`; (2) corre `supabase/dev_reset_password.sql` con esa misma contraseña, desde una **copia local `.env.dev-reset.sql`** (los `.env*` no se suben a git; no guardes la real en la plantilla ni dejes la clave pegada en el SQL Editor); (3) `$env:RUN_DEV_LIFECYCLE=1; npx vitest run tests/integration/dev-lifecycle.test.ts` (solo ese archivo, para que `dev-account` no compita por la cuenta); (4) **antes de usar la cuenta**, vuelve a correr `dev_reset_password.sql` con la contraseña temporal real.
+
 ## Cómo agregar pruebas
 
 - **Cada feature nueva** trae sus pruebas en el mismo commit (el plan de la feature, en [`planes/`](../planes/README.md), lista cuáles).

@@ -13,6 +13,8 @@
 delete from kardex_records where community like 'ZZZ\_TEST\_%';
 delete from ajustes where community like 'ZZZ\_TEST\_%';
 delete from system_error_logs where community like 'ZZZ\_TEST\_%';
+-- Las anotaciones de «resolver problema» de /dev que quedaron de comunidades de prueba (requiere dev_auth_1.sql).
+delete from dev_audit_log where detail->>'community' like 'ZZZ\_TEST\_%';
 delete from communities where name like 'ZZZ\_TEST\_%';
 
 -- Quedó de una verificación anterior.

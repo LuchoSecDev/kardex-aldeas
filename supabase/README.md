@@ -36,7 +36,9 @@ pruebas: si agregas un script, agrégalo ahí también (y en este archivo).
 | 24 | `dev_errors_2.sql`, `dev_errors_3.sql` | Lectura de los problemas agrupados (resumen y lista, luego detalle) y «marcar como resuelto» para `/dev` (plan 007, Fase B1). Todas las funciones exigen el token del desarrollador. |
 
 Sueltos (no son parte del orden): `admin_reset_password.sql` (reset de la cuenta de la nutricionista; el real va en
-`.env.admin-reset.sql`, que **no** se sube a git) y `cleanup_test_data.sql` (borra todo lo que empiece por `ZZZ_TEST_`).
+`.env.admin-reset.sql`, que **no** se sube a git), `dev_reset_password.sql` (crea o resetea la cuenta del desarrollador; se corre
+**después** de `dev_auth_1/2.sql`; el real va en `.env.dev-reset.sql`, que tampoco se sube, y la clave se borra del SQL Editor al
+terminar) y `cleanup_test_data.sql` (borra todo lo que empiece por `ZZZ_TEST_`).
 
 ## Cuidados
 

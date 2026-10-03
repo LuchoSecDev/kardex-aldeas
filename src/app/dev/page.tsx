@@ -21,6 +21,13 @@ export default function DevPage() {
   // «contraseña actual»).
   const [tempPassword, setTempPassword] = useState("");
 
+  // Esta pantalla es solo para el desarrollador: no necesita la barra de accesibilidad visual (dev.css la oculta mientras esta clase
+  // esté en el body; se quita al salir para no afectar a las otras pantallas).
+  useEffect(() => {
+    document.body.classList.add("dev-screen");
+    return () => document.body.classList.remove("dev-screen");
+  }, []);
+
   // Sesión vencida o cerrada desde otro lugar: volver al inicio con un aviso.
   useEffect(() => {
     return devSession.onExpired(() => {

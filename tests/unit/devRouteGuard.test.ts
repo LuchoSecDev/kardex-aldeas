@@ -70,4 +70,12 @@ describe("la sesión del desarrollador no se mezcla con las otras", () => {
     expect(css).not.toMatch(/(^|[^-a-zA-Z])color:\s*var\(--color-(accent-red|success|warning|primary-dark|primary-light)\)/m);
     expect(css).toContain("--color-accent-red-text");
   });
+
+  it("oculta la barra de accesibilidad solo mientras la pantalla está abierta (clase en el body, que se quita al salir)", () => {
+    const css = readFileSync("src/app/dev.css", "utf8");
+    expect(css).toMatch(/body\.dev-screen\s+\.a11y-panel\s*\{\s*display:\s*none/);
+    const page = readFileSync("src/app/dev/page.tsx", "utf8");
+    expect(page).toContain('classList.add("dev-screen")');
+    expect(page).toContain('classList.remove("dev-screen")');
+  });
 });

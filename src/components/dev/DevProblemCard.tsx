@@ -140,7 +140,7 @@ export default function DevProblemCard({
               {detail.map((r) => (
                 <li key={r.id}>
                   <span className="dev-detail-time">{colombiaTime(r.created_at)}</span>
-                  <span>{r.message}</span>
+                  <span className="dev-detail-message">{r.message}</span>
                   <span className="dev-detail-version">
                     v{r.app_version}
                     {r.resolved ? " · resuelto" : ""}
