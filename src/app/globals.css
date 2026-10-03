@@ -15,7 +15,16 @@
   --color-bg-body: #F3F5F8; /* Fondo gris claro oficial del sitio */
   --color-bg-card: #FFFFFF;
   --color-text-main: #5E6468; /* Gris de texto de cuerpo oficial del sitio (6:1 con blanco) */
-  --color-text-muted: #83888C;
+  /* Texto secundario. Antes #83888C (3,6:1 sobre blanco y 3,3:1 sobre el fondo de la página: bajo el mínimo AA de 4,5:1, difícil de
+     leer para adultas mayores). Con #63686C: 5,6:1 sobre blanco, 5,2:1 sobre el fondo y 4,8:1 sobre las etiquetas grises. */
+  --color-text-muted: #63686C;
+  /* Colores de marca para TEXTO: 7-9 % más oscuros que los de fondo/botón. Los de arriba cumplen 4,5:1 solo sobre blanco
+     (con texto blanco encima); como texto dan ~4,2:1 sobre el fondo gris de la página y ~3,9:1 sobre las etiquetas grises o azul
+     claro. Estos cumplen AA (4,5:1) sobre todos esos fondos. Usar SIEMPRE estos para `color:`. */
+  --color-primary-text: #00739D;
+  --color-accent-red-text: #B94055;
+  --color-success-text: #4C7537;
+  --color-warning-text: #AA5303;
   --color-border: #E2E8F0;
   --color-success: #53813C; /* bg-sos-green oscurecido: 4.59:1 con blanco */
   --color-warning: #BB5B03; /* bg-sos-orange oscurecido: 4.55:1 con blanco */
@@ -149,7 +158,7 @@ html, body {
 
 /* Typography */
 h1, h2, h3 {
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   margin-top: 0;
 }
 
@@ -224,7 +233,7 @@ h1, h2, h3 {
 }
 
 .custom-select__arrow {
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   transition: transform 0.25s ease;
   flex-shrink: 0;
 }
@@ -310,7 +319,7 @@ h1, h2, h3 {
 
 .custom-select__option--selected {
   background-color: rgba(0, 133, 202, 0.12);
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   font-weight: 600;
 }
 
@@ -393,7 +402,7 @@ tbody tr:hover {
 
 .a11y-btn:hover, .a11y-btn.active {
   background: white;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
 }
 
 /* Avisos de confirmación (toasts): arriba y al centro, encima de todo, con letra grande que sigue el tamaño A+/A++ (por eso usa em: el tamaño lo fija el body, no el html, y rem no cambiaría).

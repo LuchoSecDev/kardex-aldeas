@@ -37,7 +37,7 @@ export default function PinGate({
 
   return (
     <div className="card" style={{ maxWidth: "500px", width: "100%", textAlign: "center" }}>
-      <h2 style={{ color: "var(--color-primary-dark)", marginBottom: "0.5rem" }}>Ingresa el PIN</h2>
+      <h2 style={{ color: "var(--color-primary-text)", marginBottom: "0.5rem" }}>Ingresa el PIN</h2>
 
       <p style={{ marginBottom: "1.5rem", color: "var(--color-text-muted)" }}>
         Comunidad <strong>{community}</strong> — escribe su PIN de 4 dígitos para entrar.
@@ -63,7 +63,7 @@ export default function PinGate({
         </div>
 
         {error && (
-          <p role="alert" style={{ color: "var(--color-accent-red)", fontWeight: 600, margin: 0 }}>
+          <p role="alert" style={{ color: "var(--color-accent-red-text)", fontWeight: 600, margin: 0 }}>
             {error}
           </p>
         )}

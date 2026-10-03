@@ -69,7 +69,7 @@
 }
 
 .market-week-deadline--late {
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
 }
 
 /* --- Participantes --- */
@@ -107,7 +107,7 @@
   border: none;
   padding: 0;
   font: inherit;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -157,7 +157,7 @@
 
 /* Marca en la pestaña de un tipo que ese viernes NO se pide: en rojo para que no pase desapercibida. */
 .market-tab-off {
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
   font-weight: 700;
 }
 
@@ -172,13 +172,13 @@
 }
 
 .market-due--yes {
-  color: var(--color-success);
+  color: var(--color-success-text);
 }
 
 /* Advertencia: ese tipo no se pide este viernes. Rojo, con borde y símbolo (no solo color) y sin fondo de color
    (el rojo sobre un fondo tintado baja del contraste mínimo). */
 .market-due--no {
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
   padding-left: 0.6rem;
   border-left: 4px solid var(--color-accent-red);
 }
@@ -396,7 +396,7 @@
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
   background: rgba(0, 133, 202, 0.12);
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   font-size: 0.85rem;
   font-weight: 700;
 }
@@ -451,7 +451,7 @@
 
 .admin-market-notes-flag {
   font-weight: 700;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
 }
 
 /* --- Respuestas de la nutricionista y su campanita (plan 008, Fase D) --- */
@@ -477,7 +477,7 @@
 }
 
 .market-reply-new {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
 }
 
 .market-reply-text {
@@ -491,7 +491,7 @@
 }
 
 .market-tab-reply {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
 }
 
 .reply-bell {

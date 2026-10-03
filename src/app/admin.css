@@ -16,7 +16,7 @@
 }
 
 .admin-title {
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   margin-bottom: 0.5rem;
 }
 
@@ -49,13 +49,13 @@
 
 .admin-error {
   margin: 0;
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
   font-weight: 600;
 }
 
 .admin-notice {
   margin: 0 0 1.5rem;
-  color: var(--color-success);
+  color: var(--color-success-text);
   font-weight: 600;
 }
 
@@ -63,7 +63,7 @@
   background: none;
   border: none;
   padding: 0.25rem;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
@@ -220,7 +220,7 @@
 .admin-week-chip--filling {
   background: #fff;
   border-color: var(--color-primary-dark);
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
 }
 
 /* Enviada, por revisar */
@@ -283,7 +283,7 @@
 .admin-summary-title {
   margin: 0 0 0.75rem;
   font-size: 1.15rem;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
 }
 
 .admin-summary-toggle {
@@ -298,7 +298,7 @@
 }
 
 .admin-summary-missing {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
 }
 
 .admin-summary-search {
@@ -311,7 +311,7 @@
 }
 
 .admin-num--negative {
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
   font-weight: 700;
 }
 
@@ -371,7 +371,7 @@
 .admin-bell-btn:hover,
 .admin-bell-btn[aria-expanded="true"] {
   background: #fff;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
 }
 
 .admin-bell-badge {
@@ -407,7 +407,7 @@
 .admin-bell-title {
   margin: 0 0 0.75rem;
   font-size: 1.1rem;
-  color: var(--color-primary-dark);
+  color: var(--color-primary-text);
 }
 
 .admin-bell-empty {
@@ -439,7 +439,7 @@
 }
 
 .admin-bell-sub--warn {
-  color: var(--color-warning);
+  color: var(--color-warning-text);
   font-weight: 600;
 }
 
@@ -521,7 +521,7 @@
 
 .admin-market-late,
 .admin-market-missing {
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
   font-weight: 600;
 }
 
@@ -551,7 +551,7 @@
 
 .admin-market-warn {
   margin: 0;
-  color: var(--color-warning);
+  color: var(--color-warning-text);
   font-weight: 600;
 }
 
@@ -568,7 +568,7 @@
 .admin-market-kind-note {
   font-size: 0.85em;
   font-weight: 600;
-  color: var(--color-accent-red);
+  color: var(--color-accent-red-text);
 }
 
 .admin-market-items {
