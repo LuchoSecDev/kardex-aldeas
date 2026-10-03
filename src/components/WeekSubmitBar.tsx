@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { formatDateTime, getWeekState } from "@/lib/weekStatus";
 import type { SaveStatus } from "@/hooks/useSaveQueue";
 import type { WeekSubmission } from "@/types/submissions";
@@ -24,16 +26,29 @@ export default function WeekSubmitBar({
   const state = getWeekState(submission);
   const isSaving = saveStatus === "saving" || saveStatus === "error";
 
-  const handleClick = () => {
-    const question =
-      state === "pendiente"
-        ? `¿Enviar la semana ${currentWeek} a la nutricionista? Podrás volver a enviarla si haces cambios.`
-        : `¿Volver a enviar la semana ${currentWeek}? La nutricionista recibirá el aviso otra vez.`;
-    if (window.confirm(question)) onSubmit();
+  const [confirming, setConfirming] = useState(false);
+
+  const handleConfirm = () => {
+    setConfirming(false);
+    onSubmit();
   };
 
   return (
     <div className="card kardex-submit-bar">
+      {confirming && (
+        <ConfirmDialog
+          title={state === "pendiente" ? `¿Enviar la semana ${currentWeek}?` : `¿Volver a enviar la semana ${currentWeek}?`}
+          confirmLabel={state === "pendiente" ? "Sí, enviar" : "Sí, volver a enviar"}
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirming(false)}
+        >
+          <p>
+            {state === "pendiente"
+              ? "Se la mandas a la nutricionista. Podrás volver a enviarla si haces cambios."
+              : "La nutricionista recibirá el aviso otra vez."}
+          </p>
+        </ConfirmDialog>
+      )}
       <div className="kardex-submit-info">
         <strong>Semana {currentWeek}:</strong>{" "}
         {state === "pendiente" && <span>aún no la has enviado a la nutricionista.</span>}
@@ -58,7 +73,7 @@ export default function WeekSubmitBar({
       <button
         type="button"
         className={`btn ${state === "pendiente" || state === "modificada" ? "btn-primary" : "btn-outline"}`}
-        onClick={handleClick}
+        onClick={() => setConfirming(true)}
         disabled={isSubmitting || isSaving}
         title={isSaving ? "Espera a que termine de guardarse" : undefined}
       >

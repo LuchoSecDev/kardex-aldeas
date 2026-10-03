@@ -8,6 +8,7 @@ import KardexNavigation from "@/components/KardexNavigation";
 import KardexTable from "@/components/KardexTable";
 import AjusteModal from "@/components/AjusteModal";
 import HistorialModal from "@/components/HistorialModal";
+import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
 import { useCalendar } from "@/hooks/useCalendar";
@@ -101,9 +102,10 @@ export default function KardexDashboard({
     return () => window.removeEventListener("beforeunload", warn);
   }, [hasUnsavedChanges]);
 
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const handleLogout = () => {
-    if (hasUnsavedChanges && !window.confirm("Hay cambios que todavía no se han guardado. Si sales ahora se perderán. ¿Salir de todos modos?")) return;
-    onLogout();
+    if (hasUnsavedChanges) setConfirmingLogout(true);
+    else onLogout();
   };
 
   const handleExitChange = (productId: string, dayIndex: number, value: string) => {
@@ -307,6 +309,7 @@ export default function KardexDashboard({
 
   return (
     <div className="kardex-page">
+      {confirmingLogout && <UnsavedChangesDialog onLeave={onLogout} onStay={() => setConfirmingLogout(false)} />}
 
       <KardexHeader
         community={community}

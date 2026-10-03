@@ -78,7 +78,6 @@ beforeEach(() => {
   service.saveChanges.mockResolvedValue({ data: null, error: null });
   service.setParticipants.mockResolvedValue({ data: null, error: null });
   service.submitWeek.mockResolvedValue({ data: { submitted_at: NOW.toISOString(), late: false, changed_after_deadline: false }, error: null });
-  vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 
 afterEach(() => {
@@ -267,22 +266,27 @@ describe("lista de mercado: enviar", () => {
 
     await advance(SAVE_DEBOUNCE_MS);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" })); });
-    expect(calls).toEqual(["save", "submit"]);
-    const question = (window.confirm as ReturnType<typeof vi.fn>).mock.calls[0][0] as string;
+    // Antes de enviar pide confirmar, con el resumen por tipo (diálogo propio de la app, no el del navegador).
+    const question = screen.getByRole("alertdialog").textContent ?? "";
     expect(question).toContain("Fruver y lácteos: 1 productos");
     expect(question).toContain("Carnes: no pedí");
+    expect(service.submitWeek).not.toHaveBeenCalled();
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" })); });
+    expect(calls).toEqual(["save", "submit"]);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
     expect(service.submitWeek).toHaveBeenCalledWith(WEEK);
     expect(screen.getByRole("status").textContent).toContain("Lista enviada a la nutricionista.");
   });
 
   it("si la persona cancela la confirmación no se envía nada", async () => {
-    vi.spyOn(window, "confirm").mockReturnValue(false);
     await renderLoaded();
     type(/ACELGA/, "2");
     await advance(SAVE_DEBOUNCE_MS);
     fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
     await advance(0);
     expect(service.submitWeek).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
   it("avisa cuando el envío llegó tarde", async () => {
@@ -291,6 +295,7 @@ describe("lista de mercado: enviar", () => {
     type(/ACELGA/, "2");
     await advance(SAVE_DEBOUNCE_MS);
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" })); });
     expect(screen.getByRole("status").textContent).toContain("marcada como tardía");
   });
 
@@ -302,6 +307,7 @@ describe("lista de mercado: enviar", () => {
     service.submitWeek.mockResolvedValue({ data: null, error: { message: serverMessage } as never });
     await renderLoaded();
     await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Enviar lista de la semana" })); });
+    await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Sí, enviar" })); });
     expect(screen.getByRole("alert").textContent).toMatch(expected);
   });
 

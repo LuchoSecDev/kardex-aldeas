@@ -447,6 +447,16 @@
   margin-bottom: 1rem;
 }
 
+/* Título del diálogo de confirmación (ConfirmDialog): con aire antes del texto y sin romper nombres largos. */
+.kardex-confirm-title {
+  margin: 0 0 0.75rem;
+  overflow-wrap: break-word;
+}
+
+.kardex-modal-desc > :last-child {
+  margin-bottom: 0;
+}
+
 .kardex-form {
   display: flex;
   flex-direction: column;
