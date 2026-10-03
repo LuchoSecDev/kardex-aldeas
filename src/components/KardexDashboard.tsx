@@ -9,6 +9,7 @@ import KardexTable from "@/components/KardexTable";
 import AjusteModal from "@/components/AjusteModal";
 import HistorialModal from "@/components/HistorialModal";
 import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
+import ConflictDialog from "@/components/ConflictDialog";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useSaveRecoveryToast } from "@/hooks/useSaveRecoveryToast";
 import { useSaveAutoRetry } from "@/hooks/useSaveAutoRetry";
@@ -78,7 +79,9 @@ export default function KardexDashboard({
     retrySave,
     saveProductData,
     updateLocalState,
-    applyAjuste
+    applyAjuste,
+    conflictNotice,
+    dismissConflictNotice
   } = useKardexData(community, selectedYear, selectedMonth, products, dataSource);
 
   // El aviso de «saldo negativo» (error de digitación) y el de «ya se guardó» tras una falla salen como toast.
@@ -317,6 +320,7 @@ export default function KardexDashboard({
   return (
     <div className="kardex-page">
       {confirmingLogout && <UnsavedChangesDialog onLeave={onLogout} onStay={() => setConfirmingLogout(false)} />}
+      {conflictNotice && <ConflictDialog productNames={conflictNotice.map(getProductName)} onClose={dismissConflictNotice} />}
 
       <KardexHeader
         community={community}

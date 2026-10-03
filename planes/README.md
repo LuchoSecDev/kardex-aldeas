@@ -22,7 +22,7 @@ antes de programarse y se mantiene actualizado hasta que se despliega. Sirve par
 | 009 | [Avisos de confirmación («toasts»)](009-avisos-de-confirmacion.md) | ✅ **Desplegada** (`9990ea4`, 2026-10-02) | `9990ea4` |
 | 010 | [Sitio estático y migración a Cloudflare Pages](010-hosting-estatico-cloudflare.md) | 🚧 Sitio estático y `_headers` en `main` (`4e76947`); falta que Lucho cree el proyecto en Cloudflare (pasos en el plan) antes del primer cobro | `4e76947` |
 | 011 | [Minuta patrón: cumplimiento de gramajes, pedido sugerido y «Salida de hoy»](011-minuta-patron.md) | 📝 Borrador v2 (2026-10-02), **feature futura**: Lucho prefiere no complicar por ahora el trabajo de las «tías». Con los tres documentos del ICBF y sus respuestas; al reactivarlo falta completar los documentos y cerrar D4, D11 y D12. Función nueva, fuera de la suscripción | — |
-| 012 | [Control de versión al guardar (nadie pisa lo de otra persona)](012-control-de-version.md) | 📝 Propuesta del 2026-10-03; pendiente de que Lucho apruebe las decisiones D1–D5. Cierra el hallazgo H2 | — |
+| 012 | [Control de versión al guardar (nadie pisa lo de otra persona)](012-control-de-version.md) | 🚧 Decisiones aprobadas el 2026-10-03; SQL y cliente construidos y probados en local. **Falta que Lucho corra `kardex_version_1.sql`** y las pruebas de integración; después, la lista de mercado (H2b). Cierra el hallazgo H2 | — |
 | — | Historial anterior a esta carpeta (ver abajo) | ✅ Desplegado | — |
 
 ### Historial anterior (antes de existir `planes/`)

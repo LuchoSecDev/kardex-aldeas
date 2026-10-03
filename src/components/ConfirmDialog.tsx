@@ -5,6 +5,7 @@ import { useEffect, useRef, useId } from "react";
 // Confirmación con el estilo de la app (reemplaza al window.confirm del navegador, que sale con otro diseño, otro idioma según el
 // navegador y letra pequeña). Reutiliza el overlay y la tarjeta de los otros modales (kardex.css).
 //
+// - Con `cancelLabel={null}` es un aviso de un solo botón (Esc y el botón hacen lo mismo que «cancelar»).
 // - Esc cancela; tocar fuera NO cierra (un toque sin querer no debe cancelar ni confirmar nada).
 // - El foco empieza en el botón SEGURO: «Cancelar» si la acción pierde algo (`danger`), el de confirmar si no; Tab da la vuelta entre
 //   los dos botones y, al cerrar, el foco vuelve al botón que abrió el diálogo.
@@ -20,7 +21,7 @@ export default function ConfirmDialog({
   title: string;
   children?: React.ReactNode;
   confirmLabel: string;
-  cancelLabel?: string;
+  cancelLabel?: string | null;
   danger?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -42,8 +43,8 @@ export default function ConfirmDialog({
         return;
       }
       if (e.key !== "Tab") return;
-      const first = cancelRef.current;
       const last = confirmRef.current;
+      const first = cancelRef.current ?? last;
       if (!first || !last) return;
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
@@ -67,9 +68,11 @@ export default function ConfirmDialog({
           {children}
         </div>
         <div className="kardex-form-actions">
-          <button ref={cancelRef} type="button" className="btn btn-outline" onClick={onCancel}>
-            {cancelLabel}
-          </button>
+          {cancelLabel !== null && (
+            <button ref={cancelRef} type="button" className="btn btn-outline" onClick={onCancel}>
+              {cancelLabel}
+            </button>
+          )}
           <button ref={confirmRef} type="button" className={`btn ${danger ? "btn-danger" : "btn-primary"}`} onClick={onConfirm}>
             {confirmLabel}
           </button>

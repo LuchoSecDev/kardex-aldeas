@@ -33,6 +33,14 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Escribir varias casillas sin internet, volver la red y comprobar que quedó el **último** valor de cada una.
 - [ ] Con el aviso visible, cerrar/recargar la pestaña pide confirmación.
 
+## Dos computadores de la misma comunidad (control de versión, plan 012 — después de correr kardex_version_1.sql)
+- [ ] Abrir la MISMA comunidad y el MISMO mes en dos navegadores (A y B). En A escribir una salida de «Arroz» y esperar «✓ Todos los cambios guardados».
+- [ ] En B (que no ha recargado) escribir otra salida del mismo producto: aparece la ventana «Otra persona cambió estos datos» con «Arroz», el cambio de B **no** se guarda, y la pantalla de B muestra lo que escribió A.
+- [ ] Al pulsar «Entendido» y volver a escribir en B, el cambio sí se guarda (no vuelve a chocar). En A, al recargar, están los dos cambios.
+- [ ] Editar productos DISTINTOS en A y en B no produce ningún aviso.
+- [ ] Con B sin internet (modo avión): escribir en B, mientras A cambia el mismo producto; al volver la conexión de B sale la ventana de conflicto en vez de pisar lo de A.
+- [ ] Ninguno de los dos muestra el aviso rojo «No se pudo guardar» por un conflicto.
+
 ## Enviar semana (comunidad)
 - [ ] Debajo de la navegación aparece "Enviar semana N"; sin datos en esa semana avisa que no se puede enviar.
 - [ ] Con datos: abre una ventana de confirmación de la app (no la del navegador; Esc o «Cancelar» no envía), envía con «Sí, enviar» y muestra "✓ enviada el …"; el botón de la semana marca ✓.

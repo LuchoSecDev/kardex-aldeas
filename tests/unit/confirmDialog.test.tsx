@@ -6,6 +6,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import UnsavedChangesDialog from "@/components/UnsavedChangesDialog";
+import ConflictDialog from "@/components/ConflictDialog";
 
 afterEach(cleanup);
 
@@ -107,6 +108,41 @@ describe("UnsavedChangesDialog (salir con cambios sin guardar)", () => {
     expect(onLeave).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Salir de todos modos" }));
     expect(onLeave).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("aviso de un solo botón (cancelLabel={null}) y ConflictDialog", () => {
+  it("sin botón de cancelar: Esc y «Entendido» hacen lo mismo y Tab no se sale", () => {
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+    render(<ConfirmDialog title="Aviso" confirmLabel="Entendido" cancelLabel={null} onConfirm={onConfirm} onCancel={onCancel} />);
+    expect(screen.queryByRole("button", { name: "Cancelar" })).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    const ok = screen.getByRole("button", { name: "Entendido" });
+    expect(document.activeElement).toBe(ok);
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(ok);
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(ok);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    fireEvent.click(ok);
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("ConflictDialog nombra uno, dos o varios productos y explica que el cambio no se guardó", () => {
+    const onClose = vi.fn();
+    const text = (names: string[]) => {
+      cleanup();
+      render(<ConflictDialog productNames={names} onClose={onClose} />);
+      return screen.getByRole("alertdialog").textContent ?? "";
+    };
+    expect(text(["Arroz"])).toContain("cambió Arroz.");
+    expect(text(["Arroz", "Leche"])).toContain("cambió Arroz y Leche.");
+    expect(text(["Arroz", "Leche", "Pan"])).toContain("cambió Arroz, Leche y Pan.");
+    expect(text(["Arroz"])).toContain("no se guardó");
+    fireEvent.click(screen.getByRole("button", { name: "Entendido" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 

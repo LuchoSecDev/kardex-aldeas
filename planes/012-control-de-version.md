@@ -1,7 +1,7 @@
 # 012 — Control de versión al guardar (que nadie pise lo de otra persona)
 
-**Estado:** 📝 Propuesta del 2026-10-03, **pendiente de que Lucho apruebe las decisiones de abajo**. Nada de SQL se corre en Supabase sin su OK.
-**Rama:** `feature/control-de-version` (cuando se programe)  **Origen:** hallazgo H2 de [`README.md`](README.md)
+**Estado:** 🚧 **Decisiones D1–D5 aprobadas por Lucho el 2026-10-03.** Fases 1 y 2 construidas y probadas en local (SQL con mutaciones, cliente, integración escrita); **falta que Lucho corra `kardex_version_1.sql` y `npm run test:integration`** (Fase 3) y la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
+**Rama:** `feature/control-de-version`  **Origen:** hallazgo H2 de [`README.md`](README.md)
 
 ## Objetivo
 
@@ -47,7 +47,7 @@ H3 no se arregla con este plan (ver «Fuera de alcance»), pero se anota aquí p
 
 Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mientras tú escribías. Ya cargamos lo último; revisa y vuelve a escribir tu cambio.» Lo que escribió no se aplica (en vez de borrar lo de la otra persona), y la pantalla muestra los datos reales.
 
-## Decisiones por confirmar (propuesta marcada con ★)
+## Decisiones (confirmadas por Lucho el 2026-10-03; se tomó la propuesta ★ en todas)
 
 | # | Tema | Opciones |
 |---|---|---|
@@ -59,9 +59,9 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
 
 ## Fases
 
-- [ ] **Fase 1 — SQL y pruebas.** `kardex_version_1.sql` (< 98 líneas), `tests/db/kardex_version.test.sql` con mutaciones: conflicto con versión vieja, fila nueva esperada pero ya creada, fila borrada, cliente viejo sin versión (sigue guardando), aislamiento entre comunidades, validaciones intactas, devuelve la versión nueva, `for update` presente. Se agrega a `tests/db/run.sh` y a `supabase/README.md`.
-- [ ] **Fase 2 — Cliente.** Versión por producto en `monthState` / `useKardexData`, `useSaveQueue`, `kardexService`, manejo del conflicto y la ventana. Pruebas unitarias con mutaciones, incluido el escenario «dos pantallas» y el de «reenvío tras corte de internet».
-- [ ] **Fase 3 — Integración y producción.** `tests/integration/kardex-version.test.ts` (comunidad `ZZZ_TEST_`), checklist manual con **dos navegadores**, Lucho corre el SQL **antes** de desplegar la app, y luego `npm run test:integration`.
+- [x] **Fase 1 — SQL y pruebas** *(hecha el 2026-10-03)*. `kardex_version_1.sql` (< 98 líneas), `tests/db/kardex_version.test.sql` con mutaciones: conflicto con versión vieja, fila nueva esperada pero ya creada, fila borrada, cliente viejo sin versión (sigue guardando), aislamiento entre comunidades, validaciones intactas, devuelve la versión nueva, `for update` presente. Se agrega a `tests/db/run.sh` y a `supabase/README.md`.
+- [x] **Fase 2 — Cliente** *(hecha el 2026-10-03: `useSaveQueue(versioning)`, `useKardexData`, `kardexService`, `monthState`, `ConflictDialog`)*. Versión por producto en `monthState` / `useKardexData`, `useSaveQueue`, `kardexService`, manejo del conflicto y la ventana. Pruebas unitarias con mutaciones, incluido el escenario «dos pantallas» y el de «reenvío tras corte de internet».
+- [ ] **Fase 3 — Integración y producción** *(escrita `tests/integration/kardex-version.test.ts`; falta correr el SQL y la prueba)*. `tests/integration/kardex-version.test.ts` (comunidad `ZZZ_TEST_`), checklist manual con **dos navegadores**, Lucho corre el SQL **antes** de desplegar la app, y luego `npm run test:integration`.
 - [ ] **Fase 4 — Lista de mercado (H2b).** Mismo patrón para `market_list_save`, notas y participantes.
 
 ## Despliegue
@@ -82,3 +82,12 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
 
 - **H3, saldos anteriores guardados que quedan viejos** al corregir un mes pasado: se arreglaría haciendo que los resúmenes del servidor recalculen el encadenado en vez de leer el guardado, o recalculando los meses siguientes al guardar. Es otra decisión (toca el resumen para proveedores y la «foto» de la semana enviada).
 - **Aviso de presencia** («otra persona está guardando ahora»): cortesía opcional encima del control de versión, solo si en la práctica hay choques frecuentes.
+
+## Cómo se construyó (2026-10-03)
+
+- **SQL:** `supabase/kardex_version_1.sql` (94 líneas). `drop function` y `create` con `p_check_version boolean default false` y `p_expected_updated_at timestamptz default null`; devuelve `timestamptz`. La versión nueva es `clock_timestamp()` y no `now()`: dentro de una misma transacción `now()` no cambia y dos guardados seguidos tendrían la misma versión (lo detectó una mutación). Con versión: `select … for update` de la fila, comparación y `update`; si no había fila, `insert … on conflict do nothing` y, si no insertó, conflicto.
+- **Dos guardados a la vez (VERIFICADO a mano con dos conexiones y dos tokens distintos):** el segundo espera al primero y sale con `CONFLICTO_VERSION`; quitando el `for update` el segundo **pisaba** al primero sin avisar. Ojo: con el MISMO token los dos se serializaban por casualidad (cada llamada actualiza la fila de su sesión), por eso la prueba se hizo con dos tokens, que es lo que pasa con dos computadores.
+- **Cliente:** la versión viaja como TEXTO (pasarla por `Date` recorta los microsegundos y rompe la comparación). Se pregunta al **enviar**. Una lectura lenta del mes no puede devolver una versión a una más vieja (orden por contador). Un conflicto no se reintenta, descarta lo pendiente de ese producto, espera a que no haya un guardado fallido por red, recarga el mes y muestra `ConflictDialog`. `CONFLICTO_VERSION` es una condición esperada (todo en mayúsculas): no se reporta al desarrollador como error.
+- **Salvaguarda de despliegue:** si el servidor responde `PGRST202` (todavía no tiene la función nueva), `kardexService.saveProductData` guarda como antes en vez de dejar de guardar. Aun así, el orden correcto es SQL primero.
+- **Pendiente de comprobar en Supabase:** que `kardex_records.updated_at` sea `timestamptz` (la tabla se creó a mano): `select data_type from information_schema.columns where table_name = 'kardex_records' and column_name = 'updated_at';`.
+- **Límite conocido:** los saldos anteriores (`prev_balances`) siguen siendo un dato derivado; ver H3 (plan 013).

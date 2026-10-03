@@ -5,6 +5,9 @@ import { Database } from "@/types/database";
 import type { AjusteRowData as AjusteRow, KardexRecordRow, RpcResult } from "./kardexDataSource";
 import type { WeekSubmission } from "@/types/submissions";
 
+// Falso si el servidor aún no tiene el control de versión (ver saveProductData).
+let versionControlAvailable = true;
+
 type AjusteInsert = Omit<Database["public"]["Tables"]["ajustes"]["Insert"], "community">;
 
 export const kardexService = {
@@ -57,22 +60,33 @@ export const kardexService = {
     return authedRpc<{ year: number; month: number }[]>("kardex_months_with_data");
   },
 
+  // Guarda un producto del mes. `expectedUpdatedAt` es la versión (updated_at, como TEXTO: no pasarla por Date, que recorta los
+  // microsegundos) que la pantalla leyó, o null si no había fila; el servidor rechaza con CONFLICTO_VERSION si otra persona la cambió
+  // (plan 012). Devuelve la versión nueva. Con `undefined` guarda sin comprobar versión (cliente anterior / servidor sin actualizar).
   async saveProductData(
     year: number,
     month: number,
     productId: string,
     exits: number[],
     entries: number[],
-    prevBalances: number[]
-  ) {
-    return authedRpc<null>("kardex_save_product", {
-      p_year: year,
-      p_month: month,
-      p_product_id: productId,
-      p_exits: exits,
-      p_entries: entries,
-      p_prev_balances: prevBalances,
+    prevBalances: number[],
+    expectedUpdatedAt?: string | null
+  ): Promise<RpcResult<string | null>> {
+    const base = { p_year: year, p_month: month, p_product_id: productId, p_exits: exits, p_entries: entries, p_prev_balances: prevBalances };
+    if (expectedUpdatedAt === undefined || !versionControlAvailable) return authedRpc<string | null>("kardex_save_product", base);
+
+    const res = await authedRpc<string | null>("kardex_save_product", {
+      ...base,
+      p_check_version: true,
+      p_expected_updated_at: expectedUpdatedAt,
     });
+    // PGRST202: el servidor todavía no tiene la función con versión (kardex_version_1.sql sin correr). Se guarda como antes en vez
+    // de dejar de guardar, y no se vuelve a intentar con versión hasta recargar la página.
+    if (res.error?.code === "PGRST202") {
+      versionControlAvailable = false;
+      return authedRpc<string | null>("kardex_save_product", base);
+    }
+    return res;
   },
 
   // Semanas de un mes que la comunidad ya envió a la nutricionista.

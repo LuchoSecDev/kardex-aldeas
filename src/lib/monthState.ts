@@ -11,6 +11,8 @@ export interface MonthState {
   ajustesByProduct: Record<string, Record<number, number>>;
   // Saldo con el que cerró el mes anterior, por producto
   inheritedBase: Record<string, number>;
+  // Versión (updated_at, como TEXTO) de la fila guardada de cada producto; null si todavía no tiene fila (plan 012).
+  versions: Record<string, string | null>;
 }
 
 // Arma lo que la pantalla (y los exportadores) necesitan de un mes: las
@@ -36,6 +38,7 @@ export function buildMonthState(
   const exits: Record<string, number[]> = {};
   const entries: Record<string, number[]> = {};
   const prevBalances: Record<string, number[]> = {};
+  const versions: Record<string, string | null> = {};
 
   products.forEach((p) => {
     const row = monthRows.find((r) => r.product_id === p.id);
@@ -45,12 +48,13 @@ export function buildMonthState(
     const base = inheritedBase[p.id] ?? 0;
     const overrides = ajustesByProduct[p.id] || {};
 
+    versions[p.id] = row?.updated_at ?? null;
     exits[p.id] = productExits;
     entries[p.id] = productEntries;
     prevBalances[p.id] = computeCascade(base, overrides, productEntries, productExits);
   });
 
-  return { exits, entries, prevBalances, ajustesByProduct, inheritedBase };
+  return { exits, entries, prevBalances, ajustesByProduct, inheritedBase, versions };
 }
 
 export interface MonthLoadResult {
