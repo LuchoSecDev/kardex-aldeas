@@ -1,0 +1,237 @@
+/* Pantalla del desarrollador (/dev, plan 007). Las tarjetas de entrada reutilizan las clases de admin.css; aquí va solo el panel.
+   Usa los tonos de TEXTO de marca (--color-*-text) y el gris secundario, que cumplen el contraste AA (ver colorContrast.test.ts). */
+
+.dev-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  color: var(--color-text-main);
+}
+
+.dev-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.dev-title {
+  margin: 0;
+}
+
+.dev-lead {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.dev-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dev-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.dev-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.dev-card-n {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-primary-text);
+}
+
+.dev-card-n--small {
+  font-size: 1.25rem;
+}
+
+.dev-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.dev-filters .input-field {
+  width: auto;
+}
+
+.dev-updated {
+  color: var(--color-text-muted);
+  font-size: 0.9em;
+}
+
+.dev-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.dev-problem {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-left-width: 6px;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.dev-problem--error {
+  border-left-color: var(--color-accent-red);
+}
+
+.dev-problem--warning {
+  border-left-color: var(--color-warning);
+}
+
+.dev-problem--resolved {
+  border-left-color: var(--color-success);
+  opacity: 0.85;
+}
+
+.dev-problem-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dev-problem-title {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: 1.15rem;
+  color: var(--color-text-main);
+}
+
+.dev-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.dev-chip--error {
+  color: var(--color-accent-red-text);
+}
+
+.dev-chip--warning {
+  color: var(--color-warning-text);
+}
+
+.dev-chip--ok {
+  color: var(--color-success-text);
+}
+
+.dev-problem-meta {
+  margin: 0.4rem 0 0.6rem;
+  color: var(--color-text-muted);
+  font-size: 0.92em;
+}
+
+.dev-problem-explain {
+  margin: 0 0 0.75rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.dev-problem-explain dt {
+  font-weight: 700;
+  display: inline;
+}
+
+.dev-problem-explain dt::after {
+  content: ": ";
+}
+
+.dev-problem-explain dd {
+  display: inline;
+  margin: 0;
+}
+
+.dev-problem-actions,
+.dev-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.dev-confirm {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+}
+
+.dev-confirm p {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+.dev-detail {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.dev-detail-tech {
+  margin: 0 0 0.5rem;
+  color: var(--color-text-muted);
+}
+
+.dev-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.92em;
+}
+
+.dev-detail-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.dev-detail-time,
+.dev-detail-version {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.dev-error {
+  color: var(--color-accent-red-text);
+  font-weight: 600;
+}
+
+.dev-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+}
