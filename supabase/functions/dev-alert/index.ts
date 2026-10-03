@@ -141,9 +141,9 @@ export function createHandler(deps: Deps) {
     // un mensaje de prueba por correo y Telegram. No cuenta reportes, no toma el turno ni toca la base.
     if (req.headers.get("x-alert-test") === "1") {
       const text = ["Kardex Digital — prueba de alertas", "Si lees esto, este canal funciona.", `Hora de Colombia: ${colombiaTime(undefined, now())}`].join("\n");
-      const [email, telegram] = await Promise.all([sendEmail(doFetch, env, "Kardex: prueba de alertas", text), sendTelegram(doFetch, env, text)]);
-      log(`Prueba: correo=${email} telegram=${telegram}`);
-      return json(email === "ok" || telegram === "ok" ? 200 : 502, { test: true, email, telegram });
+      const [mail, tg] = await Promise.all([sendEmail(doFetch, env, "Kardex: prueba de alertas", text), sendTelegram(doFetch, env, text)]);
+      log(`Prueba: ${describeOutcomes(mail, tg)}`);
+      return json(mail.channel === "ok" || tg.channel === "ok" ? 200 : 502, { test: true, ...outcomesBody(mail, tg) });
     }
 
     let payload: { type?: string; table?: string; record?: LogRow };
@@ -194,44 +194,76 @@ export function createHandler(deps: Deps) {
 
     // 3) Avisar por los dos canales; si uno falla, el otro sale igual.
     const { subject, text } = buildAlert(record, counts, config, nowMs);
-    const email = sendEmail(doFetch, env, subject, text);
-    const telegram = sendTelegram(doFetch, env, text);
-    const [emailResult, telegramResult] = await Promise.all([email, telegram]);
-    log(`Aviso: correo=${emailResult} telegram=${telegramResult}`);
+    const [mail, tg] = await Promise.all([sendEmail(doFetch, env, subject, text), sendTelegram(doFetch, env, text)]);
+    log(`Aviso: ${describeOutcomes(mail, tg)}`);
 
     // Si no salió por NINGÚN canal, se devuelve el turno para que el siguiente reporte lo intente de nuevo.
-    if (emailResult !== "ok" && telegramResult !== "ok") {
+    if (mail.channel !== "ok" && tg.channel !== "ok") {
       await doFetch(`${url}/rest/v1/dev_alert_state?id=eq.1&last_alert_at=eq.${encodeURIComponent(nowIso)}`, {
         method: "PATCH", headers: supabaseHeaders(key), body: JSON.stringify({ last_alert_at: EPOCH }),
       }).catch(() => undefined);
-      return json(502, { alerted: false, email: emailResult, telegram: telegramResult });
+      return json(502, { alerted: false, ...outcomesBody(mail, tg) });
     }
-    return json(200, { alerted: true, email: emailResult, telegram: telegramResult, counts });
+    return json(200, { alerted: true, ...outcomesBody(mail, tg), counts });
   }
 }
 
 type Channel = "ok" | "sin configurar" | "error";
+type Outcome = { channel: Channel; detail?: string };
 
-async function sendEmail(doFetch: typeof fetch, env: Deps["env"], subject: string, text: string): Promise<Channel> {
+// Texto de diagnóstico de un canal que falló: el código HTTP y el motivo que da el servicio (p. ej. Telegram: «chat not found»).
+// Se limpia de cualquier secreto por si el servicio lo repitiera y se acota. De una excepción de red NO se toma el mensaje (puede
+// llevar la dirección completa, que en Telegram incluye el token del bot).
+export const scrub = (text: string, secrets: (string | undefined)[]) =>
+  secrets.reduce<string>((t, secret) => (secret && secret.length >= 4 ? t.split(secret).join("[oculto]") : t), text).slice(0, 160);
+
+async function failure(res: Response, secrets: (string | undefined)[]): Promise<Outcome> {
+  let reason = "";
+  try {
+    const raw = await res.text();
+    try {
+      const body = JSON.parse(raw) as { description?: unknown; message?: unknown; error?: unknown };
+      const found = body.description ?? body.message ?? body.error;
+      reason = typeof found === "string" ? found : "";
+    } catch {
+      reason = raw;
+    }
+  } catch {
+    reason = "";
+  }
+  return { channel: "error", detail: scrub(`HTTP ${res.status}${reason ? `: ${reason.replace(/\s+/g, " ").trim()}` : ""}`, secrets) };
+}
+
+const describeOutcomes = (mail: Outcome, tg: Outcome) =>
+  `correo=${mail.channel}${mail.detail ? ` (${mail.detail})` : ""} telegram=${tg.channel}${tg.detail ? ` (${tg.detail})` : ""}`;
+
+const outcomesBody = (mail: Outcome, tg: Outcome) => ({
+  email: mail.channel,
+  telegram: tg.channel,
+  ...(mail.detail ? { email_detail: mail.detail } : {}),
+  ...(tg.detail ? { telegram_detail: tg.detail } : {}),
+});
+
+async function sendEmail(doFetch: typeof fetch, env: Deps["env"], subject: string, text: string): Promise<Outcome> {
   const apiKey = env("RESEND_API_KEY");
   const to = env("ALERT_EMAIL_TO");
-  if (!apiKey || !to) return "sin configurar";
+  if (!apiKey || !to) return { channel: "sin configurar" };
   try {
     const res = await doFetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
       body: JSON.stringify({ from: env("ALERT_EMAIL_FROM") || "Kardex Alertas <onboarding@resend.dev>", to: [to], subject, text }),
     });
-    return res.ok ? "ok" : "error";
+    return res.ok ? { channel: "ok" } : await failure(res, [apiKey, to]);
   } catch {
-    return "error";
+    return { channel: "error", detail: "no se pudo conectar con Resend" };
   }
 }
 
-async function sendTelegram(doFetch: typeof fetch, env: Deps["env"], text: string): Promise<Channel> {
+async function sendTelegram(doFetch: typeof fetch, env: Deps["env"], text: string): Promise<Outcome> {
   const token = env("TELEGRAM_BOT_TOKEN");
   const chatId = env("TELEGRAM_CHAT_ID");
-  if (!token || !chatId) return "sin configurar";
+  if (!token || !chatId) return { channel: "sin configurar" };
   try {
     // Texto plano (sin parse_mode): un mensaje de error con símbolos no puede romper el formato ni inyectar enlaces.
     const res = await doFetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -239,9 +271,9 @@ async function sendTelegram(doFetch: typeof fetch, env: Deps["env"], text: strin
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text: text.slice(0, 4000) }),
     });
-    return res.ok ? "ok" : "error";
+    return res.ok ? { channel: "ok" } : await failure(res, [token, chatId]);
   } catch {
-    return "error";
+    return { channel: "error", detail: "no se pudo conectar con Telegram" };
   }
 }
 

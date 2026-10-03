@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULTS, buildAlert, colombiaTime, createHandler, readConfig, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
+import { DEFAULTS, buildAlert, colombiaTime, createHandler, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
 import type { LogRow } from "../../supabase/functions/dev-alert/index";
 
 // Edge Function `dev-alert` (plan 007, Fase A2): avisa por correo y Telegram cuando hay una racha de errores. Se prueba con
@@ -32,6 +32,9 @@ type Plan = {
   claimStatus?: number;
   resend?: number | "throw";
   telegram?: number | "throw";
+  resendBody?: unknown;                   // lo que responde Resend cuando falla
+  telegramBody?: unknown;                 // lo que responde Telegram cuando falla
+  throwMessage?: string;                  // mensaje de la excepción de red (el real puede llevar la dirección con el token)
 };
 
 function setup(plan: Plan = {}, env: Record<string, string | undefined> = ENV) {
@@ -52,12 +55,12 @@ function setup(plan: Plan = {}, env: Record<string, string | undefined> = ENV) {
       return reply(plan.claimStatus ?? 200, plan.claimed ?? [{ id: 1 }]);
     }
     if (url.startsWith("https://api.resend.com")) {
-      if (plan.resend === "throw") throw new Error("red caída");
-      return reply(plan.resend ?? 200, { id: "email-1" });
+      if (plan.resend === "throw") throw new Error(plan.throwMessage ?? "red caída");
+      return reply(plan.resend ?? 200, plan.resendBody ?? { id: "email-1" });
     }
     if (url.startsWith("https://api.telegram.org")) {
-      if (plan.telegram === "throw") throw new Error("red caída");
-      return reply(plan.telegram ?? 200, { ok: true });
+      if (plan.telegram === "throw") throw new Error(plan.throwMessage ?? "red caída");
+      return reply(plan.telegram ?? 200, plan.telegramBody ?? { ok: true });
     }
     return reply(404);
   }) as typeof fetch;
@@ -295,6 +298,66 @@ describe("el aviso", () => {
     }
     const none = setup({ rows: errors(3) }, { ...ENV, RESEND_API_KEY: undefined, TELEGRAM_CHAT_ID: undefined });
     expect((await none.call()).status).toBe(502);
+  });
+});
+
+describe("diagnóstico de un canal que falla", () => {
+  const TEST = { "x-alert-secret": SECRET, "x-alert-test": "1" };
+
+  it("Telegram: dice el código y el motivo que da Telegram (token malo, chat inexistente, bot sin iniciar)", async () => {
+    for (const [status, description] of [[401, "Unauthorized"], [400, "Bad Request: chat not found"], [403, "Forbidden: bot can't initiate conversation with a user"]] as const) {
+      const { call } = setup({ telegram: status, telegramBody: { ok: false, error_code: status, description } });
+      const res = await call("", TEST);
+      expect(res.status).toBe(200); // el correo sí salió
+      expect(await res.json()).toEqual({ test: true, email: "ok", telegram: "error", telegram_detail: `HTTP ${status}: ${description}` });
+    }
+  });
+
+  it("Resend: dice el motivo (p. ej. el remitente de pruebas solo envía al correo de la propia cuenta)", async () => {
+    const { call, logs } = setup({ resend: 403, resendBody: { name: "validation_error", message: "You can only send testing emails to your own email address" } });
+    expect(await (await call("", TEST)).json()).toEqual({
+      test: true, email: "error", telegram: "ok", email_detail: "HTTP 403: You can only send testing emails to your own email address",
+    });
+    expect(logs.join(" | ")).toContain("correo=error (HTTP 403: You can only send testing emails to your own email address)");
+  });
+
+  it("si el servicio repite un secreto en su mensaje, no sale (se tapa)", async () => {
+    const { call, logs } = setup({ telegram: 401, telegramBody: { ok: false, description: `Unauthorized token ${ENV.TELEGRAM_BOT_TOKEN} chat ${ENV.TELEGRAM_CHAT_ID}` } });
+    const res = await call("", TEST);
+    const seen = JSON.stringify(await res.json()) + logs.join(" | ");
+    expect(seen).toContain("[oculto]");
+    for (const secret of [ENV.TELEGRAM_BOT_TOKEN, ENV.TELEGRAM_CHAT_ID]) expect(seen).not.toContain(secret as string);
+  });
+
+  it("una respuesta que no es JSON se acota; de una excepción de red NO se toma el mensaje (puede llevar el token en la dirección)", async () => {
+    const largo = setup({ telegram: 502, telegramBody: undefined });
+    expect(JSON.stringify(await (await largo.call("", TEST)).json())).toContain("telegram_detail");
+
+    const { call, logs } = setup({ telegram: "throw", resend: "throw", throwMessage: "error sending request for url (https://api.telegram.org/bot111:token-de-prueba/sendMessage)" });
+    const res = await call("", TEST);
+    expect(res.status).toBe(502);
+    const body = await res.json();
+    expect(body).toMatchObject({ email_detail: "no se pudo conectar con Resend", telegram_detail: "no se pudo conectar con Telegram" });
+    const seen = JSON.stringify(body) + logs.join(" | ");
+    expect(seen).not.toContain("token-de-prueba");
+    expect(seen).not.toContain("api.telegram.org");
+  });
+
+  it("si todo sale bien no hay detalles; el aviso real también los lleva en la respuesta y el log", async () => {
+    const ok = setup();
+    expect(await (await ok.call("", TEST)).json()).toEqual({ test: true, email: "ok", telegram: "ok" });
+
+    const real = setup({ rows: errors(3), telegram: 400, telegramBody: { description: "Bad Request: chat not found" } });
+    const res = await real.call();
+    expect(await res.json()).toMatchObject({ alerted: true, email: "ok", telegram: "error", telegram_detail: "HTTP 400: Bad Request: chat not found" });
+    expect(real.logs.join(" | ")).toContain("telegram=error (HTTP 400: Bad Request: chat not found)");
+  });
+
+  it("scrub tapa todas las apariciones, ignora secretos muy cortos y acota a 160 caracteres", () => {
+    expect(scrub("a SECRETO b SECRETO", ["SECRETO"])).toBe("a [oculto] b [oculto]");
+    expect(scrub("abc", ["abc"])).toBe("abc"); // menos de 4 caracteres: no se tapa (taparía palabras comunes)
+    expect(scrub("x".repeat(300), [])).toHaveLength(160);
+    expect(scrub("hola", [undefined])).toBe("hola");
   });
 });
 
