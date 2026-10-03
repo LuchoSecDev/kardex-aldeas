@@ -1,5 +1,6 @@
+import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { DEFAULTS, buildAlert, cleanEnv, colombiaTime, createHandler, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
+import { DEFAULTS, EXPLANATIONS, GENERIC_EXPLANATION, buildAlert, causeOf, cleanEnv, colombiaTime, createHandler, explain, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
 import type { LogRow } from "../../supabase/functions/dev-alert/index";
 
 // Edge Function `dev-alert` (plan 007, Fase A2): avisa por correo y Telegram cuando hay una racha de errores. Se prueba con
@@ -250,9 +251,10 @@ describe("el aviso", () => {
     const mail = sent(calls, "https://api.resend.com")[0];
     expect(mail.url).toBe("https://api.resend.com/emails");
     expect(mail.headers.authorization).toBe("Bearer re_clave_de_prueba");
-    expect(mail.body).toMatchObject({ from: "Kardex Alertas <onboarding@resend.dev>", to: ["yo@ejemplo.com"], subject: "Kardex: alerta de errores (3 errores, 1 advertencia)" });
+    expect(mail.body).toMatchObject({ from: "Kardex Alertas <onboarding@resend.dev>", to: ["yo@ejemplo.com"], subject: "Kardex: No se pudo guardar un cambio del kardex. (Maná)" });
     const text = (mail.body as { text: string }).text;
-    for (const piece of ["3 errores y 1 advertencia en los últimos 10 minutos", "Comunidad: Maná", "kardex_save_product", "Código: P0001", "Mensaje: Datos incompletos", "Versión: abc1234", "2026-10-02 11:59"]) {
+    for (const piece of ["⚠ Maná: No se pudo guardar un cambio del kardex.", "Qué pasó: El servidor rechazó los datos", "Riesgo: Lo que escribió la colaboradora", "Qué hacer: Pedir que revisen",
+      "3 errores y 1 advertencia en los últimos 10 minutos (todas las comunidades)", "Comunidad: Maná", "kardex_save_product", "Código: P0001", "Mensaje: Datos incompletos", "Versión: abc1234", "2026-10-02 11:59"]) {
       expect(text, piece).toContain(piece);
     }
 
@@ -420,10 +422,74 @@ describe("secretos", () => {
   });
 });
 
+describe("explicaciones en lenguaje natural", () => {
+  it("cada llamada a la base que hace la app tiene su explicación (si se agrega una nueva, hay que explicarla)", () => {
+    const usadas = new Set<string>();
+    for (const file of readdirSync("src/lib").filter((f) => f.endsWith(".ts"))) {
+      const text = readFileSync(`src/lib/${file}`, "utf8");
+      for (const m of text.matchAll(/authedRpc<[^>]*>[(]"([a-z_]+)"/g)) usadas.add(m[1]);
+    }
+    expect(usadas.size).toBeGreaterThanOrEqual(17);
+    expect([...usadas].filter((fn) => !(fn in EXPLANATIONS))).toEqual([]);
+  });
+
+  it("toda explicación tiene las tres partes, escritas como frase y sin jerga técnica", () => {
+    for (const [fn, e] of Object.entries({ ...EXPLANATIONS, generica: GENERIC_EXPLANATION })) {
+      for (const part of [e.what, e.risk, e.action]) {
+        expect(part.length, fn).toBeGreaterThan(15);
+        expect(part, fn).toMatch(/^[A-ZÁÉÍÓÚÑ¿¡«]/);
+        expect(part, fn).toMatch(/[.»)]$/);
+      }
+      for (const jerga of ["RPC", "JWT", "SQL", "P0001", "PGRST", "supabase_", "stack"]) {
+        expect(`${e.what} ${e.risk} ${e.action}`, `${fn}: ${jerga}`).not.toContain(jerga);
+      }
+    }
+  });
+
+  it("guardar y enviar avisan de que algo podría no estar guardado; cargar dice que no se perdió nada", () => {
+    for (const fn of ["kardex_save_product", "market_list_save", "market_list_save_changes", "market_set_participants"]) expect(EXPLANATIONS[fn].risk, fn).toMatch(/podría/);
+    for (const fn of ["kardex_submit_week", "market_list_submit"]) expect(EXPLANATIONS[fn].risk, fn).toMatch(/nutricionista no/);
+    for (const fn of ["kardex_load_month", "kardex_load_ajustes", "market_list_load", "market_catalog"]) expect(EXPLANATIONS[fn].risk, fn).toMatch(/No se perdió nada/);
+  });
+
+  it("la causa depende del nivel y del código: internet, datos rechazados, error del servidor o fallo propio", () => {
+    expect(causeOf({ level: "warning", code: null })).toContain("conexión a internet");
+    expect(causeOf({ level: "warning", code: "P0001" })).toContain("conexión a internet"); // el nivel manda
+    expect(causeOf({ level: "error", code: "P0001" })).toContain("rechazó los datos");
+    expect(causeOf({ level: "error", code: "PGRST301" })).toContain("código PGRST301");
+    expect(causeOf({ level: "error", code: null })).toContain("Fallo inesperado dentro de la app");
+  });
+
+  it("una función desconocida usa la explicación genérica, y los nombres de Object no se confunden con funciones", () => {
+    for (const fn of ["no_existe", "constructor", "__proto__", "toString", "hasOwnProperty"]) {
+      expect(explain({ community: "Maná", fn, level: "error", code: null }).what, fn).toBe(GENERIC_EXPLANATION.what);
+    }
+  });
+
+  it("el título lleva la comunidad y lo que pasó", () => {
+    expect(explain({ community: "Casa Blanca", fn: "kardex_submit_week", level: "error", code: null }).title).toBe("Casa Blanca: No se pudo enviar la semana a la nutricionista.");
+    expect(explain({ community: "Maná", fn: "window.onerror", level: "error", code: null }).title).toBe("Maná: Una pantalla de la app tuvo un fallo inesperado.");
+  });
+});
+
 describe("el texto del aviso", () => {
-  it("singular y plural", () => {
-    expect(buildAlert(record, { errors: 1, warnings: 1 }, DEFAULTS, NOW).subject).toBe("Kardex: alerta de errores (1 error, 1 advertencia)");
-    expect(buildAlert(record, { errors: 4, warnings: 0 }, DEFAULTS, NOW).subject).toBe("Kardex: alerta de errores (4 errores, 0 advertencias)");
+  it("singular y plural en el resumen", () => {
+    expect(buildAlert(record, { errors: 1, warnings: 1 }, DEFAULTS, NOW).text).toContain("Resumen: 1 error y 1 advertencia en los últimos 10 minutos");
+    expect(buildAlert(record, { errors: 4, warnings: 0 }, DEFAULTS, NOW).text).toContain("Resumen: 4 errores y 0 advertencias en los últimos 10 minutos");
+  });
+
+  it("el asunto dice qué pasó y dónde, en palabras simples", () => {
+    expect(buildAlert(record, { errors: 3, warnings: 0 }, DEFAULTS, NOW).subject).toBe("Kardex: No se pudo guardar un cambio del kardex. (Maná)");
+    expect(buildAlert({ ...record, fn: "nada_conocido" }, { errors: 3, warnings: 0 }, DEFAULTS, NOW).subject).toBe("Kardex: Una operación de la app falló. (Maná)");
+  });
+
+  it("el texto va en este orden: qué pasó, riesgo, qué hacer, resumen y detalle técnico", () => {
+    const { text } = buildAlert(record, { errors: 3, warnings: 0 }, DEFAULTS, NOW);
+    const orden = ["⚠ Maná:", "Qué pasó:", "Riesgo:", "Qué hacer:", "Resumen:", "Detalle técnico del último reporte:", "- Comunidad:", "- Función:", "- Mensaje:"];
+    const posiciones = orden.map((t) => text.indexOf(t));
+    expect(posiciones.every((p) => p >= 0)).toBe(true);
+    expect([...posiciones].sort((a, b) => a - b)).toEqual(posiciones);
+    expect(text).not.toContain("undefined");
   });
 
   it("la hora es la de Colombia (UTC-5), también al cruzar la medianoche, y sin fecha usa la actual", () => {
