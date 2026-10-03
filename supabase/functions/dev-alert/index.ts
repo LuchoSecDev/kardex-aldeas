@@ -99,6 +99,12 @@ export function buildAlert(record: LogRow, counts: { errors: number; warnings: n
   return { subject, text };
 }
 
+// Quita espacios, saltos de línea y comillas de los extremos; un valor que queda vacío cuenta como «sin configurar».
+export const cleanEnv = (value: string | undefined): string | undefined => {
+  const cleaned = (value ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
+  return cleaned === "" ? undefined : cleaned;
+};
+
 type Deps = {
   env: (name: string) => string | undefined;
   fetch: typeof fetch;
@@ -110,7 +116,10 @@ const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
 export function createHandler(deps: Deps) {
-  const { env, now, log } = deps;
+  const { now, log } = deps;
+  // Todo secreto se lee limpio: al pegarlo en el panel suelen colarse un espacio o un salto de línea al final, o comillas, y un token
+  // «casi igual» hace que Telegram o Resend lo rechacen sin que se vea por qué.
+  const env = (name: string) => cleanEnv(deps.env(name));
   const doFetch = deps.fetch;
 
   const supabaseHeaders = (key: string, extra: Record<string, string> = {}) => ({

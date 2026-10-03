@@ -97,6 +97,8 @@ El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del pane
 8. **Remitente de Resend:** `onboarding@resend.dev` es el remitente de pruebas; con él solo se puede enviar al correo de la propia cuenta (INFERRED, confirmarlo). Para otros destinatarios hace falta verificar un dominio.
 9. Ver `tests/manual/checklist.md` («Alertas al desarrollador»).
 
+**Secretos pegados con espacios o saltos de línea:** al pegar un valor en el panel suelen colarse un espacio o un salto de línea al final, o comillas; la función los quita sola (un valor que queda vacío cuenta como «sin configurar»), pero conviene pegarlos limpios.
+
 **Si un canal dice `"error"`:** la respuesta trae `email_detail` o `telegram_detail` con el código y el motivo que da el servicio (por ejemplo Telegram: `HTTP 400: Bad Request: chat not found` = chat id equivocado o el bot sin iniciar; `HTTP 401: Unauthorized` = token del bot mal copiado; Resend: `HTTP 403: You can only send testing emails to your own email address` = el remitente de pruebas solo envía al correo de tu propia cuenta). Los secretos se tapan y de una excepción de red no se toma el mensaje (puede llevar el token en la dirección).
 
 **Si la respuesta es `500 Internal Server Error` en texto plano** (cabecera `sb-error-code: EDGE_FUNCTION_ERROR`): la función se cayó con una excepción; el motivo está en Edge Functions → `dev-alert` → **Logs**. Desde el 2026-10-03 la función captura esas excepciones, escribe `Error interno: <nombre>: <mensaje>` en el log y responde `{"error":"Error interno"}`; pegar de nuevo el archivo para tener esa versión.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULTS, buildAlert, colombiaTime, createHandler, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
+import { DEFAULTS, buildAlert, cleanEnv, colombiaTime, createHandler, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
 import type { LogRow } from "../../supabase/functions/dev-alert/index";
 
 // Edge Function `dev-alert` (plan 007, Fase A2): avisa por correo y Telegram cuando hay una racha de errores. Se prueba con
@@ -358,6 +358,53 @@ describe("diagnóstico de un canal que falla", () => {
     expect(scrub("abc", ["abc"])).toBe("abc"); // menos de 4 caracteres: no se tapa (taparía palabras comunes)
     expect(scrub("x".repeat(300), [])).toHaveLength(160);
     expect(scrub("hola", [undefined])).toBe("hola");
+  });
+});
+
+describe("secretos pegados con espacios, saltos de línea o comillas", () => {
+  const TEST = { "x-alert-secret": SECRET, "x-alert-test": "1" };
+  // Saltos de línea y tabulaciones armados con códigos para no depender de escapes dentro de los textos.
+  const NL = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+  const TAB = String.fromCharCode(9);
+
+  it("cleanEnv quita espacios, saltos de línea y comillas de los extremos y trata lo vacío como ausente", () => {
+    expect(cleanEnv("  abc  ")).toBe("abc");
+    expect(cleanEnv(`abc${NL}`)).toBe("abc");
+    expect(cleanEnv('"abc"')).toBe("abc");
+    expect(cleanEnv("'abc'")).toBe("abc");
+    expect(cleanEnv(` "abc" ${CR}${NL}`)).toBe("abc");
+    expect(cleanEnv("a b")).toBe("a b"); // lo de adentro no se toca
+    expect(cleanEnv("")).toBeUndefined();
+    expect(cleanEnv(`  ${NL} `)).toBeUndefined();
+    expect(cleanEnv('""')).toBeUndefined();
+    expect(cleanEnv(undefined)).toBeUndefined();
+  });
+
+  it("el token y el chat de Telegram, la clave de Resend y el remitente se usan limpios", async () => {
+    const sucios = {
+      ...ENV,
+      TELEGRAM_BOT_TOKEN: ` "${ENV.TELEGRAM_BOT_TOKEN}"${NL}`, TELEGRAM_CHAT_ID: ` ${ENV.TELEGRAM_CHAT_ID} ${NL}`,
+      RESEND_API_KEY: `${TAB}${ENV.RESEND_API_KEY}${NL}`, ALERT_EMAIL_TO: ` ${ENV.ALERT_EMAIL_TO}`, ALERT_EMAIL_FROM: ` Alertas <a@b.co>${NL}`,
+    };
+    const { call, calls } = setup({}, sucios);
+    expect(await (await call("", TEST)).json()).toEqual({ test: true, email: "ok", telegram: "ok" });
+    const tg = sent(calls, "https://api.telegram.org")[0];
+    expect(tg.url).toBe("https://api.telegram.org/bot111:token-de-prueba/sendMessage");
+    expect(tg.body).toMatchObject({ chat_id: "987654" });
+    const mail = sent(calls, "https://api.resend.com")[0];
+    expect(mail.headers.authorization).toBe("Bearer re_clave_de_prueba");
+    expect(mail.body).toMatchObject({ to: ["yo@ejemplo.com"], from: "Alertas <a@b.co>" });
+  });
+
+  it("un secreto que queda vacío al limpiarlo cuenta como sin configurar", async () => {
+    const { call } = setup({}, { ...ENV, TELEGRAM_BOT_TOKEN: `  ""  ${NL}` });
+    expect(await (await call("", TEST)).json()).toMatchObject({ email: "ok", telegram: "sin configurar" });
+  });
+
+  it("la clave compartida pegada con un salto de línea al final sigue funcionando", async () => {
+    const { call } = setup({}, { ...ENV, ALERT_WEBHOOK_SECRET: `${SECRET}${NL}` });
+    expect((await call("", TEST)).status).toBe(200);
   });
 });
 
