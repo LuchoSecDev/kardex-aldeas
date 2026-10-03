@@ -1,6 +1,6 @@
 # 012 — Control de versión al guardar (que nadie pise lo de otra persona)
 
-**Estado (2026-10-03):** 🚧 **SQL corrido en Supabase por Lucho y verificado; falta la prueba manual antes de empujar la app.** Decisiones D1–D5 aprobadas. Fases 1 y 2 construidas y probadas (SQL con 9 mutaciones y la suite SQL completa; cliente con 24 pruebas y 10 mutaciones; 747 pruebas unitarias). Lucho comprobó que `kardex_records.updated_at` es `timestamptz`, corrió `kardex_version_1.sql` y `tests/integration/kardex-version.test.ts` pasó **5 de 5 contra Supabase real**; la suite de integración completa pasó 117 (69 saltadas por ser opt-in). **Regla de Lucho: no se empuja la app (`feature/control-de-version`, sin push) hasta probar todo a mano** con el checklist «Dos computadores» (`tests/manual/checklist.md`). Falta además la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
+**Estado (2026-10-03):** ✅ **Fases 1 a 3 hechas y publicadas** (SQL corrido en Supabase, pruebas manuales de Lucho correctas, app en `main`); falta la Fase 4 (lista de mercado). Antes: Decisiones D1–D5 aprobadas. Fases 1 y 2 construidas y probadas (SQL con 9 mutaciones y la suite SQL completa; cliente con 24 pruebas y 10 mutaciones; 747 pruebas unitarias). Lucho comprobó que `kardex_records.updated_at` es `timestamptz`, corrió `kardex_version_1.sql` y `tests/integration/kardex-version.test.ts` pasó **5 de 5 contra Supabase real**; la suite de integración completa pasó 117 (69 saltadas por ser opt-in). **Regla de Lucho: no se empuja la app (`feature/control-de-version`, sin push) hasta probar todo a mano** con el checklist «Dos computadores» (`tests/manual/checklist.md`). Falta además la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
 **Rama:** `feature/control-de-version`  **Origen:** hallazgo H2 de [`README.md`](README.md)
 
 ## Objetivo
@@ -64,8 +64,8 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
 - [ ] **Fase 3 — Integración y producción** *(en curso)*.
   - [x] Lucho corrió `kardex_version_1.sql` en Supabase y confirmó que `updated_at` es `timestamptz` (2026-10-03).
   - [x] `tests/integration/kardex-version.test.ts` (comunidad `ZZZ_TEST_`): **5 de 5 contra Supabase real**; suite de integración completa: 117 pasan, 69 saltadas (opt-in).
-  - [ ] Prueba manual con **dos navegadores** (checklist «Dos computadores»), incluido el caso de un navegador sin internet que se reconecta. **Hasta que no se haga, no se empuja.**
-  - [ ] Push de `feature/control-de-version` a `main` en los dos remotos (aprobación aparte, después de la prueba manual).
+  - [x] Prueba manual hecha por Lucho (2026-10-03): checklist «Dos computadores» y corte de internet en un navegador real, **funcionan bien**; también comprobó el aviso «no se pudo enviar» del panel `/dev`.
+  - [x] Publicado: `feature/control-de-version` a `main` en los dos remotos (2026-10-03), por avance directo.
 - [ ] **Fase 4 — Lista de mercado (H2b).** Mismo patrón para `market_list_save`, notas y participantes.
 
 ## Despliegue
