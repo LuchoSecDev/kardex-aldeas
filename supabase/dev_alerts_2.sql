@@ -9,9 +9,9 @@
 -- Integrations → Vault → Secrets → «Add new secret»), así no quedan en el repositorio ni en el historial del SQL Editor:
 --   alert_function_url    https://<ID-DEL-PROYECTO>.supabase.co/functions/v1/dev-alert
 --   alert_webhook_secret  la MISMA clave que ALERT_WEBHOOK_SECRET de los Secrets de la función
---   alert_api_key         la clave PUBLICABLE (sb_publishable_..., panel → Settings → API Keys). Es pública, pero Supabase la
---                         exige en la cabecera `apikey` para llamar a una Edge Function («INVALID_CREDENTIALS» si falta);
---                         la clave anon vieja (eyJ...) en `Authorization` ya NO sirve. Opcional solo si desactivaste esa exigencia.
+--   alert_anon_key        (opcional) la clave anon pública (eyJ...): va en `Authorization: Bearer ...`, que es lo que pide la
+--                         verificación de JWT de las Edge Functions (el propio panel la pone así en sus webhooks).
+--   alert_api_key         (opcional) la clave publicable (sb_publishable_...): va en la cabecera `apikey`; solo si la función la pide.
 -- Si falta alguna de las dos primeras, el trigger no hace nada. Un aviso NUNCA debe impedir que el reporte se guarde: cualquier
 -- error al armar o mandar la llamada se traga.
 
@@ -24,11 +24,13 @@ as $$
 declare
   v_url     text;
   v_secret  text;
+  v_anon    text;
   v_apikey  text;
   v_headers jsonb;
 begin
   select decrypted_secret into v_url    from vault.decrypted_secrets where name = 'alert_function_url';
   select decrypted_secret into v_secret from vault.decrypted_secrets where name = 'alert_webhook_secret';
+  select decrypted_secret into v_anon   from vault.decrypted_secrets where name = 'alert_anon_key';
   select decrypted_secret into v_apikey from vault.decrypted_secrets where name = 'alert_api_key';
 
   if coalesce(v_url, '') = '' or coalesce(v_secret, '') = '' then
@@ -36,6 +38,9 @@ begin
   end if;
 
   v_headers := jsonb_build_object('Content-Type', 'application/json', 'x-alert-secret', v_secret);
+  if coalesce(v_anon, '') <> '' then
+    v_headers := v_headers || jsonb_build_object('Authorization', 'Bearer ' || v_anon);
+  end if;
   if coalesce(v_apikey, '') <> '' then
     v_headers := v_headers || jsonb_build_object('apikey', v_apikey);
   end if;
