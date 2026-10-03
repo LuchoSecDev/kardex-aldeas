@@ -50,7 +50,9 @@ Es también la forma concreta de cumplir la «vigilancia del servicio» que prom
   - [x] **A2a — Función de alertas** *(construida el 2026-10-02, sin desplegar)*: `supabase/functions/dev-alert/index.ts` (un solo archivo, para pegarlo en el editor del panel), `supabase/dev_alerts_1.sql` (una fila cerrada con la hora del último aviso) y sus pruebas (`tests/db/dev_alerts.test.sql`, `tests/unit/devAlertFunction.test.ts`). Avisa por correo (Resend) y Telegram cuando hay **3 errores o 10 advertencias en 10 minutos** de cualquier comunidad, **un aviso cada 30 minutos como máximo**. Los umbrales se pueden cambiar con variables (`ALERT_ERRORS`, `ALERT_WARNINGS`, `ALERT_WINDOW_MIN`, `ALERT_COOLDOWN_MIN`).
   - [ ] **A2b — Desplegar las alertas** (necesita a Lucho en la PC; pasos abajo) y el chequeo de disponibilidad externo.
   - [ ] **A3 — Cuenta del desarrollador** (`dev_account`, sesiones y bloqueo): **se movió a la Fase B**, que es donde hace falta (la pantalla `/dev`); mientras tanto los errores se ven en el Editor de tablas de Supabase. Así no se abre una superficie de autenticación nueva sin tener quién la use.
-- [ ] **Fase B — Pantalla `/dev` y acciones remotas:** login, monitor de comunidades, visor de errores, desbloquear / PIN temporal con auditoría.
+- [ ] **Fase B — Pantalla `/dev` y acciones remotas.** Se entrega en dos partes (decisión de Lucho, 2026-10-03: primero **lo que se rompió**, el resto es secundario):
+  - [ ] **B1 — Problemas explicados** (diseño abajo, **pendiente del OK de Lucho**): cuenta del desarrollador, login y la lista de problemas agrupados, explicados en lenguaje natural, con botón «resuelto».
+  - [ ] **B2 — Estado de las comunidades y acciones remotas:** PIN bloqueado, última actividad, semanas sin enviar; desbloquear y PIN temporal con auditoría.
 - [ ] **Fase C — Integridad contable** (solo los invariantes definidos y probados).
 
 ## Pruebas
@@ -108,3 +110,39 @@ El código fuente es `supabase/functions/dev-alert/index.ts`; el editor del pane
 ## Seguridad de las alertas
 
 La función solo acepta al webhook con la clave compartida (comparación en tiempo constante; sin clave configurada rechaza todo), usa la clave de servicio solo del lado del servidor (nunca llega al navegador), manda texto plano a Telegram (sin `parse_mode`) y no escribe secretos en los logs ni en las respuestas. Lleva el último reporte ya limpiado por el servidor (sin argumentos de llamadas ni cantidades del kardex).
+
+## Fase B1 — diseño propuesto (pendiente del OK de Lucho)
+
+**Qué ve el desarrollador:** una pantalla `/dev` (sin enlace desde ninguna parte, `noindex`) con los **problemas agrupados y explicados en lenguaje natural**, no una fila por error.
+
+> **Maná · No se pudo guardar un cambio del kardex.** — 12 veces hoy · primera 09:10 · última 11:59 · versión abc1234
+> *Qué pasó:* parece un problema de conexión a internet. *Riesgo:* lo que escribió la colaboradora podría no haberse guardado. *Qué hacer:* pedir que revisen que el cambio quedó…
+> [Ver detalle técnico] [Marcar como resuelto]
+
+- **Agrupación:** por (comunidad, función, origen, nivel, código): la misma falla repetida 12 veces es UNA línea con su contador. Un error nuevo después de «resuelto» reabre el grupo.
+- **Filtros:** «Solo sin resolver» (por defecto) o «Todos»; periodo de 24 horas, 7 o 30 días. Botón «Actualizar» (y al volver a la pestaña); sin recarga automática constante.
+- **Arriba:** tarjetas con errores y advertencias sin resolver, comunidades afectadas y la hora del último reporte (hora de Colombia).
+- **Explicaciones:** el mismo diccionario del aviso (`src/lib/errorExplanations.ts`), con una prueba que comprueba que es **idéntico** al de la función de alertas.
+- **Detalle técnico:** los últimos 20 reportes del grupo (mensaje, versión, hora). Lo que ya viene limpiado del servidor: sin argumentos de llamadas ni cantidades.
+
+**Acceso (misma pauta que `admin_auth.sql`, en tablas y token aparte):**
+
+| Pieza | Diseño |
+|---|---|
+| Cuenta | `dev_account` (una fila): contraseña con bcrypt (`crypt` + `gen_salt('bf')`), `must_change`, `failed_count`, `locked_until` |
+| Contraseña | Mínimo **12** caracteres (la de la nutricionista pide 10). La inicial es TEMPORAL y obliga a cambiarla en el primer ingreso |
+| Bloqueo | 5 intentos fallidos = 15 minutos (igual que el PIN y la nutricionista). Compromiso conocido: alguien podría bloquear a propósito la pantalla `/dev`; dura 15 minutos y no afecta a las comunidades ni a los avisos (salen por otro lado) |
+| Sesión | `dev_sessions`: token de 8 h deslizante, guardado con SHA-256, tabla **aparte**; un token de comunidad o de la nutricionista no sirve aquí ni al revés (mensaje de error distinto: `SESION_DEV_INVALIDA`). El cliente lo guarda solo en memoria (`devSession.ts`) |
+| Funciones | `dev_login`, `dev_ping`, `dev_logout`, `dev_change_password`; todas `security definer` con `set search_path`; tablas cerradas (RLS + `revoke all`) |
+| Recuperación | **Propuesta: SIN código de recuperación**; si se olvida, se restablece con `dev_reset_password.sql` (la clave real va en un archivo que no se sube a git). Lucho es el único dueño de la base, así que no hace falta un camino público de recuperación, y es un punto menos de ataque. *Cambia lo escrito arriba en «Diseño» (`dev_recover_password`)* |
+
+**Lectura y acciones (SQL `dev_errors_2.sql`, todas exigen el token del desarrollador):**
+`dev_error_summary` (conteos para las tarjetas), `dev_error_groups(p_days, p_only_open)` (los grupos con su contador, primera y última vez, versión y último mensaje), `dev_error_group_detail` (los últimos reportes de un grupo, con tope) y `dev_resolve_group` (marca como resueltos los reportes abiertos de ese grupo hasta ese momento y lo anota en `dev_audit_log`). Se validan los rangos (días 1–90, tope de filas) y nunca se arma SQL con texto del usuario.
+
+**Seguridad (ASVS 5.0.0, nivel 2 en V6/V7/V8):** contraseña larga y bcrypt, bloqueo por intentos, sesión con vencimiento y token aparte, tablas cerradas, funciones mínimas, auditoría de lo que cambia datos, y mensajes de error que no distinguen «cuenta inexistente» de «contraseña incorrecta». La desviación conocida del PIN de 4 dígitos **no aplica** a esta cuenta.
+
+**Piezas:** SQL `dev_auth_1.sql` (tablas y entrada), `dev_auth_2.sql` (cambio de contraseña y auditoría), `dev_errors_2.sql` (lectura y resolver) y `dev_reset_password.sql` (plantilla sin clave real); servicio `devService.ts`, sesión `devSession.ts`, diccionario `errorExplanations.ts`; componentes `DevLogin`, `DevPasswordForm`, `DevPanel` y `DevProblemList`; página `src/app/dev/page.tsx`.
+
+**Pruebas:** SQL local con mutaciones (login, bloqueo, token de comunidad o de nutricionista rechazado, contraseña temporal que solo deja cambiarla, agrupación correcta, resolver solo el grupo pedido y reabrir con un error nuevo, validación de rangos, auditoría, tablas cerradas); integración contra Supabase con la cuenta de prueba (opt-in, solo inicia sesión); unitarias de servicio y pantalla; guarda de que `/dev` no se enlaza desde otra pantalla y lleva `noindex`; checklist manual.
+
+**Despliegue:** SQL aditivo primero (`dev_auth_1`, `dev_auth_2`, `dev_errors_2`), luego el reset con la contraseña temporal, luego la app. Sin el SQL, la pantalla no existe en producción.
