@@ -36,6 +36,8 @@ pruebas: si agregas un script, agrégalo ahí también (y en este archivo).
 | 24 | `dev_errors_2.sql`, `dev_errors_3.sql` | Lectura de los problemas agrupados (resumen y lista, luego detalle) y «marcar como resuelto» para `/dev` (plan 007, Fase B1). Todas las funciones exigen el token del desarrollador. |
 | 25 | `kardex_version_1.sql` | Control de versión al guardar un producto del kardex (plan 012, hallazgo H2): `kardex_save_product` rechaza con `CONFLICTO_VERSION` un guardado hecho sobre datos que otra persona ya cambió, y devuelve la versión nueva. **Correrlo ANTES de desplegar la app nueva**; con la app anterior se comporta igual que antes. Antes de correrlo, comprobar que `kardex_records.updated_at` es `timestamptz`. |
 
+**Diagnósticos de solo lectura** (`supabase/diagnosticos/diag_1..5_*.sql`, plan 013, Fase 0): cada uno es un solo `select` que se pega y corre en el SQL Editor **sin cambiar nada**; no forman parte del orden ni de `run.sh` (una prueba, `diagnosticosSoloLectura.test.ts`, vigila que sigan siendo solo lectura). Miden el esquema real y las discrepancias de saldos antes de decidir si hace falta reparar datos.
+
 Sueltos (no son parte del orden): `admin_reset_password.sql` (reset de la cuenta de la nutricionista; el real va en
 `.env.admin-reset.sql`, que **no** se sube a git), `dev_reset_password.sql` (crea o resetea la cuenta del desarrollador; se corre
 **después** de `dev_auth_1/2.sql`; el real va en `.env.dev-reset.sql`, que tampoco se sube, y la clave se borra del SQL Editor al

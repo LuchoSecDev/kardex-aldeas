@@ -1,6 +1,6 @@
 # 013 — Corrección histórica de un producto: ventana aislada, servidor como única autoridad y «Guardar corrección»
 
-**Estado:** 📝 Propuesta **revisada el 2026-10-03** con las decisiones y condiciones de Lucho. **Lucho confirmó el 2026-10-03 las recomendaciones Q1, Q2, Q3, Q4, Q6 y Q7** (ver sección 8); **Q5 está en aclaración** (sección 5.4: el tope no limita la lectura). Es solo diseño: **no hay código ni SQL de este plan, y nada se corre en Supabase sin su OK.** Depende del plan 012 (control de versión), cuyo SQL ya está corrido en producción (`kardex_version_1.sql`, comprobado por Lucho el 2026-10-03; `kardex_records.updated_at` es `timestamptz`).
+**Estado:** 📝 Propuesta **revisada el 2026-10-03** con las decisiones y condiciones de Lucho. **Lucho confirmó el 2026-10-03 las recomendaciones Q1, Q2, Q3, Q4, Q6 y Q7** (ver sección 8); **Q5 confirmada: 120 meses, y el tope solo limita la escritura, no la lectura** (sección 5.4). Es solo diseño: **no hay código ni SQL de este plan, y nada se corre en Supabase sin su OK.** Depende del plan 012 (control de versión), cuyo SQL ya está corrido en producción (`kardex_version_1.sql`, comprobado por Lucho el 2026-10-03; `kardex_records.updated_at` es `timestamptz`).
 **Rama:** `feature/correccion-de-meses` (cuando se programe)  **Origen:** hallazgo H3 de [`README.md`](README.md)
 
 ## 1. Qué se revisó para esta versión
@@ -100,7 +100,7 @@ Se evalúa **en el servidor** con la fecha de `America/Bogota` (`(now() at time 
 - `kardex_save_months` es **una sola función** (una transacción): cualquier excepción (conflicto, validación, tope, fallo de la auditoría) revierte **todo**, incluida la auditoría. Nunca queda una parte de la cadena.
 - **Tope de meses en el servidor, solo para la ESCRITURA de una corrección** (Q5): si la cadena que una corrección tendría que reescribir (desde el mes corregido hasta el último mes con datos de ese producto) supera el tope, `CORRECCION_FUERA_DE_TOPE`, explícito, sin truncar ni guardar parcialmente; la pantalla lo explica. **Es una protección contra una escritura desmesurada; no limita en nada cuánto historial se puede ver.**
 - **Lectura sin tope (aclaración de Lucho, 2026-10-03):** ver meses anteriores, abrir cualquier mes, el Excel y el PDF, el historial de meses con datos (`kardex_months_with_data`), la vista de solo lectura de la nutricionista y la futura lectura de la auditoría **no pasan por el tope y no se limitan por antigüedad**. Hoy el selector de años cubre 10 años hacia atrás y 10 hacia adelante (`KardexDashboard.tsx`) y los meses sin registros se ven en ceros. La auditoría (`kardex_corrections`) es append-only y se leerá completa, con paginación, sin descartar registros viejos.
-- **Valor del tope, revisado tras la pregunta de Lucho:** de 24 pasa a **120 meses (10 años)**, para que **todo lo que se puede ver (el rango del selector) se pueda corregir**. Con 24, a los dos años de uso un mes antiguo se podría ver pero no corregir. 120 no tiene costo real (una corrección toca como mucho 120 filas de un solo producto, milisegundos de bloqueo) y sigue protegiendo de lo desmesurado. **Pendiente de su confirmación** y cambiable con un script.
+- **Valor del tope, revisado tras la pregunta de Lucho:** de 24 pasa a **120 meses (10 años)**, para que **todo lo que se puede ver (el rango del selector) se pueda corregir**. Con 24, a los dos años de uso un mes antiguo se podría ver pero no corregir. 120 no tiene costo real (una corrección toca como mucho 120 filas de un solo producto, milisegundos de bloqueo) y sigue protegiendo de lo desmesurado. **Confirmado por Lucho el 2026-10-03** y cambiable con un script.
 - Los códigos nuevos van en mayúsculas (`MES_CERRADO`, `CONFLICTO_VERSION`, `ALCANCE_INCOMPLETO`, `CORRECCION_FUERA_DE_TOPE`): son condiciones esperadas y no se reportan al desarrollador como fallos (`isExpectedCondition`); la cola de guardado **no** debe tratarlos como «fallo de red» ni reintentarlos.
 
 ### 5.5 Autorización
@@ -139,12 +139,12 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
 | D7 | Base del cálculo | Propuesto ★: el cierre del mes previo **guardado** (como hoy). Alternativa: recalcular desde el primer mes con datos, ignorando lo guardado; es más robusto ante datos viejos inconsistentes, pero **cambiaría cifras que la nutricionista ya vio** |
 | D8 | Escrituras en el mes actual o futuros cuando hay filas posteriores | Ver Q2 |
 | D9 | `kardex_insert_ajuste` | Propuesto ★: atómico con el recálculo; en meses cerrados, solo dentro de una corrección |
-| D10 | Tope de meses de una corrección (escritura) | Propuesto **120** (era 24); la lectura no tiene tope. Pendiente de confirmar (Q5) |
+| D10 | Tope de meses de una corrección (escritura) | ✅ **120** (confirmado el 2026-10-03; era 24); la lectura no tiene tope |
 | D11 | Reparar datos históricos ya inconsistentes | Después del diagnóstico solo lectura (sección 11) |
 | D12 | El kardex deja de usar el reloj del navegador | Propuesto ★ (Q3) |
 | D13 | Precisión y redondeo al guardar | Por definir (Q6) |
 
-**Respuestas de Lucho (2026-10-03):** de acuerdo con las recomendaciones de Q1 (se mantiene la regla; se revisa tras un mes de uso cuántas correcciones hubo entre el día 1 y el 5), Q2 (también por la ventana cuando hay meses posteriores con datos), Q3 (el kardex pasa a la hora de Bogotá), Q4 (motivo de 5 a 500 caracteres, con al menos una letra o dígito, sin caracteres de control), Q6 (se redondean a 4 decimales solo los saldos calculados; entradas y salidas tal como se escribieron) y Q7 (el servidor recalcula los saldos en todo guardado y la base es el cierre del mes previo guardado, **después del diagnóstico y como paso de despliegue separado**). Q5 en aclaración.
+**Respuestas de Lucho (2026-10-03):** de acuerdo con las recomendaciones de Q1 (se mantiene la regla; se revisa tras un mes de uso cuántas correcciones hubo entre el día 1 y el 5), Q2 (también por la ventana cuando hay meses posteriores con datos), Q3 (el kardex pasa a la hora de Bogotá), Q4 (motivo de 5 a 500 caracteres, con al menos una letra o dígito, sin caracteres de control), Q6 (se redondean a 4 decimales solo los saldos calculados; entradas y salidas tal como se escribieron) y Q7 (el servidor recalcula los saldos en todo guardado y la base es el cierre del mes previo guardado, **después del diagnóstico y como paso de despliegue separado**). Q5: **120 meses** (confirmado el 2026-10-03).
 
 **Preguntas concretas para Lucho (se conservan como registro):**
 
@@ -152,13 +152,13 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
 - **Q2.** «El mes calendario actual se edita normalmente» **contradice** la garantía de «saldos guardados consistentes» si ese producto ya tiene filas en meses **posteriores** al actual (alguien llenó por adelantado). ¿Los meses con filas posteriores también pasan por la ventana aunque sean el mes actual, o aceptamos esa excepción?
 - **Q3.** El kardex hoy usa la hora del navegador para elegir el mes inicial; la lista de mercado usa Bogotá. ¿Confirmas que el kardex debe pasar a `America/Bogota` (cambio pequeño y visible)?
 - **Q4.** Motivo: ¿mínimo 5 caracteres, máximo 500 y al menos una letra o dígito, o prefieres exactamente el patrón de los ajustes (1 a 500)?
-- **Q5.** *(Aclarada.)* Lucho preguntó si un tope de 24 meses afectaría ver meses anteriores para la auditoría. **No: el tope solo limita cuántos meses reescribe UNA corrección, no la lectura.** Con 24, sin embargo, un mes de hace más de dos años se podría ver pero no corregir; por eso se propone **120 meses** (el rango del selector). ¿Confirmas 120?
+- **Q5.** *(Aclarada.)* Lucho preguntó si un tope de 24 meses afectaría ver meses anteriores para la auditoría. **No: el tope solo limita cuántos meses reescribe UNA corrección, no la lectura.** Con 24, sin embargo, un mes de hace más de dos años se podría ver pero no corregir; por eso se propone **120 meses** (el rango del selector). **Respuesta: confirmado 120 (2026-10-03).**
 - **Q6.** Precisión: ¿redondeamos lo guardado a 4 decimales? (Hoy el navegador guarda los decimales tal cual salen del cálculo.)
 - **Q7 (D6/D7).** ¿Apruebas que el servidor recalcule los saldos en **todo** guardado y que la base sea el cierre del mes previo guardado, o prefieres recalcular desde el origen? Antes de decidir conviene ver el diagnóstico de la sección 11.
 
 ## 9. Fases (cada una en su rama y con aprobación de push aparte)
 
-- [ ] **Fase 0 — Diagnóstico solo lectura** (sin cambiar nada): ver sección 11. *Aceptación:* informe entregado a Lucho antes de escribir SQL; no se ejecutó ninguna escritura.
+- [ ] **Fase 0 — Diagnóstico solo lectura** (sin cambiar nada): ver sección 11. **Scripts listos y probados en local (2026-10-03); falta que Lucho los corra y entregue los resultados.** *Aceptación:* informe entregado a Lucho antes de escribir SQL; no se ejecutó ninguna escritura.
 - [ ] **Fase 1 — SQL** (varios scripts de menos de 98 líneas, en este orden de dependencia; Lucho los corre antes de desplegar la app):
   1. función interna de cálculo del encadenado (única autoridad) y de «hoy en Bogotá» (`_kardex_today`, reemplazable en las pruebas locales);
   2. `kardex_save_product` nueva (regla de meses cerrados, bloqueo por producto, recálculo en servidor, versión del plan 012);
@@ -189,13 +189,19 @@ Tabla cerrada `kardex_corrections` (RLS activo, `revoke all`), **append-only**: 
 
 ## 11. Diagnóstico previo (solo lectura, antes de cualquier reparación)
 
-Scripts de consulta que **no modifican nada** y que Lucho corre en el SQL Editor (sin cambios en Supabase); se entregan solo los **conteos y la lista de comunidad, producto y mes**, no se editan datos:
-1. **Esquema real:** columnas, tipos, restricciones, disparadores, índices, RLS y permisos de `kardex_records`, `ajustes` y `week_submissions` en producción (C4).
-2. **Discrepancias históricas:** filas cuyo `prev_balances` guardado **no coincide** con el recalculado desde el cierre del mes previo guardado (D7-A) y, aparte, con el recalculado desde el origen (D7-B), por comunidad, producto y mes; cuántas están en meses ya **enviados** a la nutricionista.
-3. **Meses futuros con datos** (relevante para Q2) y productos con filas posteriores al mes actual.
-4. **Ajustes:** semanas con más de un ajuste vigente y ajustes cuyo `saldo_anterior` registrado no coincide con el cálculo de entonces.
+**Preparado el 2026-10-03** en `supabase/diagnosticos/` (cinco scripts de un solo `select`, sin escritura; ninguno cambia nada y una prueba lo vigila). Se **probaron en un Postgres local** con datos inconsistentes sembrados a propósito (saldos viejos, ajuste que manda, hueco entre meses, mes futuro, formas y valores raros) y con la transacción forzada a solo lectura. **No se han corrido en producción: los corre Lucho.** Se corren de uno en uno (el editor muestra el resultado del último enunciado) y solo se necesitan los **conteos y la lista de comunidad, producto y mes**; no contienen datos personales.
 
-Con ese informe se decide (D11) si hace falta un **script de reparación**, que sería una zona de aprobación aparte (escritura masiva): se revisa fila por fila, se respalda antes y la nutricionista debe saber que cifras ya enviadas pueden cambiar.
+| Script | Qué responde | Cómo leerlo |
+|---|---|---|
+| `diag_1_esquema.sql` | Cómo es de verdad el esquema en producción (C4): columnas, restricciones, disparadores, índices, RLS, permisos de las tablas del kardex y firmas de las funciones | Que no haya disparadores inesperados, que `anon` no tenga permisos sobre las tablas y que haya **una sola** `kardex_save_product` |
+| `diag_2_cadena_guardada.sql` | ¿El saldo anterior guardado coincide con el encadenado a partir del cierre **guardado** del mes previo? (D7-A) | Sin filas `DETALLE` = todo coincide; `RESUMEN` cuenta por comunidad y mes |
+| `diag_3_huecos_y_futuros.sql` | **Huecos**: un producto con saldo de cierre distinto de cero cuyo siguiente mes con datos no es el inmediato (la app solo hereda del mes inmediato anterior, así que ese saldo **parte de cero** en el mes siguiente); **meses futuros** con datos (Q2); contexto por comunidad | Cada fila `HUECO` es un saldo que se perdería; cada `FUTURO`, un mes llenado por adelantado |
+| `diag_4_cadena_desde_origen.sql` | ¿Qué diría el encadenado si se recalculara **desde el primer mes**, ignorando lo guardado? (D7-B) | Si el 2 sale limpio y este no, hay un arrastre equivocado desde mucho antes |
+| `diag_5_valores_y_ajustes.sql` | Forma de los arreglos, valores no numéricos o negativos, decimales de más de 4 (Q6), ajustes repetidos o con semana fuera de rango y semanas ya enviadas por comunidad | Sin filas de un tipo = sin hallazgos |
+
+**Hallazgo adicional que salió al diseñar el diagnóstico 3 (C9, INFERIDO del código; el diagnóstico lo confirma o lo descarta):** `buildMonthState` toma la herencia **solo** del mes inmediato anterior y, si ese mes no tiene fila del producto, parte de **0**. Una fila solo existe cuando alguien guardó ese producto en ese mes. Si un producto con saldo no se toca durante un mes, el mes siguiente lo muestra en cero: el saldo «desaparece» sin que nadie lo corrija. Es otro error de papel (olvidar arrastrar un saldo) y puede importar más que H3. **Pregunta Q8 para Lucho** cuando haya resultados: ¿cómo debe comportarse la herencia ante un mes sin fila (heredar el último cierre existente, o seguir en cero)? Cambiarlo es una decisión de negocio y de contrato del guardado, no se decide en silencio.
+
+Con el informe se decide (D11) si hace falta un **script de reparación**, que sería una zona de aprobación aparte (escritura masiva): se revisa fila por fila, se respalda antes y la nutricionista debe saber que cifras ya enviadas pueden cambiar.
 
 ## 12. Checklist manual (para `tests/manual/checklist.md` en la Fase 3)
 
