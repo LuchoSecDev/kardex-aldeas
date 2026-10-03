@@ -1,6 +1,6 @@
 # 008 — Zona de cambios en la lista de mercado (notas del pedido)
 
-**Estado:** 📝 Propuesta con las decisiones **confirmadas por Lucho el 2026-10-01** (nota con producto opcional, 20 por lista, la nutricionista responde y la comunidad recibe campanita). Falta programarla.
+**Estado:** ✅ **Desplegada** (Fases A–D en `main`; SQL `market_changes_1..6` y `market_replies_1..4` corridos por Lucho y pruebas de integración en verde el 2026-10-02). Decisiones **confirmadas por Lucho el 2026-10-01** (nota con producto opcional, 20 por lista, la nutricionista responde y la comunidad recibe campanita).
 **Rama:** `feature/zona-de-cambios` (cuando se programe)  **Fecha:** 2026-10-01
 
 ## Objetivo

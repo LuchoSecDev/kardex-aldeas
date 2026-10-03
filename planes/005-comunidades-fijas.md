@@ -33,7 +33,7 @@ las tres puertas.
 
 - [x] **Fase A — SQL y pruebas.** `tests/db/community_creation.test.sql` (con 5 mutaciones comprobadas: `grant` de las funciones cerradas, `provision_community` sin comprobar la clave, `login` sin PIN y clave legible por `anon`), y los otros 4 `tests/db/*.test.sql` ahora crean sus comunidades con `provision_community`.
 - [x] **Fase B — Pantalla.** `tests/unit/homePage.test.tsx` (9 pruebas, con 2 mutaciones comprobadas) y verificación en navegador (escritorio y 360 px, sin scroll horizontal ni errores de consola; la lista real mostró solo Fortaleza y Maná, y Fortaleza avisó «todavía no tiene PIN»).
-- [ ] **Fase C — Producción.** Correr el SQL, desplegar, correr `npm run test:integration` (incluye `community-creation.test.ts`) y el checklist manual.
+- [x] **Fase C — Producción.** *(Hecha el 2026-10-01: SQL corrido por Lucho, app desplegada y `npm run test:integration` en verde, incluido `community-creation.test.ts`.)* Queda marcar el checklist manual (`tests/manual/checklist.md`) con una comunidad `ZZZ_TEST_`.
 
 ## Despliegue
 

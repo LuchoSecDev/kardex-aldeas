@@ -30,7 +30,7 @@ solo se podían reemplazar por SQL. Este plan deja que **la propia comunidad** e
 
 - [x] **Fase A — SQL.** `tests/db/change_pin.test.sql` (7 mutaciones comprobadas: sin verificar el PIN actual, sin cerrar sesiones, sin regla de PIN débil, permitir PIN igual, no contar el intento, no registrar la fecha, helper abierto a internet).
 - [x] **Fase B — Pantalla.** `unit/pin.test.ts`, `unit/changePinModal.test.tsx` y `unit/communityShell.test.tsx` (mutaciones comprobadas); verificada en el navegador (escritorio y 360 px) con Casa Blanca y la llamada de cambio **simulada** (no se tocó ningún PIN real).
-- [ ] **Fase C — Producción.** Correr el SQL, desplegar, `npm run test:integration` (incluye `change-pin.test.ts`) y el checklist manual (con una comunidad `ZZZ_TEST_`).
+- [x] **Fase C — Producción.** *(Hecha el 2026-10-01: `change_pin.sql` corrido por Lucho, app desplegada y `npm run test:integration` en verde, incluido `change-pin.test.ts`.)* Queda marcar el checklist manual (`tests/manual/checklist.md`) con una comunidad `ZZZ_TEST_`.
 
 ## Despliegue
 

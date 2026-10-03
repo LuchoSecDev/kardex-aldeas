@@ -1,6 +1,6 @@
 # 009 — Avisos de confirmación («toasts») para las acciones manuales
 
-**Estado:** 🚧 Programada y probada en local (2026-10-01); sin SQL. Falta desplegar.
+**Estado:** ✅ **Desplegada** (`9990ea4`, 2026-10-02; sin SQL). Pendiente: probarla en el celular real de una colaboradora (ver «Pendientes»).
 **Rama:** `feature/toasts`  **Fecha:** 2026-10-01
 
 ## Objetivo
