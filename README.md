@@ -88,7 +88,7 @@ que se corre a mano en el SQL Editor, **en el orden de ese README**. Los datos d
 
 ## Lo que hay que tener presente
 
-- **Un solo computador por comunidad a la vez:** si dos equipos de la misma casa editan el mismo mes, el último guardado pisa al otro sin avisar (hallazgo H2 en [`planes/README.md`](planes/README.md); la mitigación está propuesta, no hecha).
+- **Dos personas de la misma casa:** en el **kardex**, si otra persona cambió un producto mientras tú escribías, el guardado no la pisa: la pantalla avisa y carga lo último ([plan 012](planes/012-control-de-version.md), desplegado). La **lista de mercado** todavía guarda sin esa comprobación (hallazgo H2b), así que ahí sigue valiendo «una sola persona a la vez».
 - **PIN de 4 dígitos:** es una desviación consciente respecto a un mínimo de 8 caracteres, por la comodidad de las colaboradoras;
   se compensa con el bloqueo por intentos y con que los datos solo se leen con el token de sesión.
 - **Copias de seguridad:** el plan gratuito de Supabase no tiene copias automáticas. Está pendiente decidir entre una copia
@@ -97,7 +97,9 @@ que se corre a mano en el SQL Editor, **en el orden de ese README**. Los datos d
 - **Datos personales de los niños:** la aplicación no los guarda; está pendiente de confirmarlo formalmente con la organización.
 - **Pendientes del proyecto:** logo de Aldeas (requiere su autorización escrita), IVA de la cuenta de cobro, migración a
   Cloudflare, y las siguientes etapas del panel `/dev`. La minuta patrón del ICBF ([plan 011](planes/011-minuta-patron.md)) es una
-  función futura, aplazada a propósito para no complicar el trabajo de las colaboradoras.
+  función futura, aplazada a propósito para no complicar el trabajo de las colaboradoras. La **corrección de meses anteriores**
+  ([plan 013](planes/013-correccion-de-meses.md)) está **en pausa hasta que la gerencia apruebe el proyecto**: su SQL ya está en
+  producción pero con los interruptores apagados, así que no cambia nada de lo que ven las colaboradoras.
 
 ## Más documentación
 

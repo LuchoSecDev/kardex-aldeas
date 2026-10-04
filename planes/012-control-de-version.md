@@ -1,6 +1,6 @@
 # 012 — Control de versión al guardar (que nadie pise lo de otra persona)
 
-**Estado (2026-10-03):** ✅ **Fases 1 a 3 hechas y publicadas** (SQL corrido en Supabase, pruebas manuales de Lucho correctas, app en `main`); falta la Fase 4 (lista de mercado). Antes: Decisiones D1–D5 aprobadas. Fases 1 y 2 construidas y probadas (SQL con 9 mutaciones y la suite SQL completa; cliente con 24 pruebas y 10 mutaciones; 747 pruebas unitarias). Lucho comprobó que `kardex_records.updated_at` es `timestamptz`, corrió `kardex_version_1.sql` y `tests/integration/kardex-version.test.ts` pasó **5 de 5 contra Supabase real**; la suite de integración completa pasó 117 (69 saltadas por ser opt-in). **Regla de Lucho: no se empuja la app (`feature/control-de-version`, sin push) hasta probar todo a mano** con el checklist «Dos computadores» (`tests/manual/checklist.md`). Falta además la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
+**Estado (2026-10-03):** ✅ **Fases 1 a 3 hechas y publicadas** (SQL corrido en Supabase, pruebas manuales de Lucho correctas, app en `main`); la Fase 4 (lista de mercado) queda **aplazada** (decisión de Lucho, 2026-10-03: el uso real es de una persona a la vez por casa y el proyecto espera la aprobación de la gerencia). Antes: Decisiones D1–D5 aprobadas. Fases 1 y 2 construidas y probadas (SQL con 9 mutaciones y la suite SQL completa; cliente con 24 pruebas y 10 mutaciones; 747 pruebas unitarias). Lucho comprobó que `kardex_records.updated_at` es `timestamptz`, corrió `kardex_version_1.sql` y `tests/integration/kardex-version.test.ts` pasó **5 de 5 contra Supabase real**; la suite de integración completa pasó 117 (69 saltadas por ser opt-in). **Regla de Lucho: no se empuja la app (`feature/control-de-version`, sin push) hasta probar todo a mano** con el checklist «Dos computadores» (`tests/manual/checklist.md`). Falta además la Fase 4 (lista de mercado). Nada de SQL se corre en Supabase sin su OK.
 **Rama:** `feature/control-de-version`  **Origen:** hallazgo H2 de [`README.md`](README.md)
 
 ## Objetivo
@@ -66,7 +66,7 @@ Un aviso que **no se cierra solo**: «Otra persona cambió *Arroz* y *Leche* mie
   - [x] `tests/integration/kardex-version.test.ts` (comunidad `ZZZ_TEST_`): **5 de 5 contra Supabase real**; suite de integración completa: 117 pasan, 69 saltadas (opt-in).
   - [x] Prueba manual hecha por Lucho (2026-10-03): checklist «Dos computadores» y corte de internet en un navegador real, **funcionan bien**; también comprobó el aviso «no se pudo enviar» del panel `/dev`.
   - [x] Publicado: `feature/control-de-version` a `main` en los dos remotos (2026-10-03), por avance directo.
-- [ ] **Fase 4 — Lista de mercado (H2b).** Mismo patrón para `market_list_save`, notas y participantes.
+- [ ] **Fase 4 — Lista de mercado (H2b).** Mismo patrón para `market_list_save`, notas y participantes. **Aplazada** (2026-10-03). Mientras tanto la lista de mercado sigue guardando sin comprobar versión: vale la regla práctica «una sola persona a la vez por casa».
 
 ## Despliegue
 

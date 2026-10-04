@@ -31,6 +31,7 @@ Kardex de alimentos y lista de mercado para Aldeas Infantiles SOS Colombia: siti
 - PIN, sesiones, tokens y rate limit; el panel `/admin` y sus funciones `admin_*`; políticas RLS y grants.
 - Los scripts `lock_down_*`, `fixed_communities.sql` y todo lo que borre o reescriba datos.
 - CI/CD (`.github/workflows`), `public/_headers`, `next.config.ts` y el hosting.
+- Los interruptores `kardex_settings` (`closed_month_rule`, `server_chain`): están **apagados** en producción y no se encienden sin la Fase 2 del plan 013 y la aprobación de Lucho (planes/013, sección 15).
 - Las reglas de negocio acordadas en `planes/` y la propuesta comercial.
 
 ## Convenciones

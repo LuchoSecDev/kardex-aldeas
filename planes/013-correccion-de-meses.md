@@ -1,7 +1,7 @@
 # 013 — Corrección histórica de un producto: ventana aislada, servidor como única autoridad y «Guardar corrección»
 
-**Estado:** 📝 Propuesta **revisada el 2026-10-03** con las decisiones y condiciones de Lucho. **Lucho confirmó el 2026-10-03 las recomendaciones Q1, Q2, Q3, Q4, Q6 y Q7** (ver sección 8); **Q5 confirmada: 120 meses, y el tope solo limita la escritura, no la lectura** (sección 5.4). Es solo diseño: **no hay código ni SQL de este plan, y nada se corre en Supabase sin su OK.** Depende del plan 012 (control de versión), cuyo SQL ya está corrido en producción (`kardex_version_1.sql`, comprobado por Lucho el 2026-10-03; `kardex_records.updated_at` es `timestamptz`).
-**Rama:** `feature/correccion-de-meses` (cuando se programe)  **Origen:** hallazgo H3 de [`README.md`](README.md)
+**Estado:** ⏸️ **EN PAUSA desde el 2026-10-03, por decisión de Lucho:** la aplicación ya cubre lo que se necesitaba y el proyecto espera la aprobación de la gerencia; **se retoma cuando se apruebe** (pasos en la sección 15). Hecho: el diseño completo con todas sus decisiones (D1–D14, Q1–Q8) confirmadas, la **Fase 0** (diagnóstico en producción) y la **Fase 1** (los seis scripts `kardex_chain_1..6.sql`, **ya corridos en Supabase con los dos interruptores APAGADOS**, sin ningún cambio de comportamiento). Falta la Fase 2 (cliente), la 3 y la 4. Nada de SQL se corre en Supabase sin su OK.
+**Rama:** `feature/correccion-de-meses` (SQL y pruebas de la Fase 1; el cliente de la Fase 2 sigue ahí al retomar)  **Origen:** hallazgo H3 de [`README.md`](README.md)
 
 ## 1. Qué se revisó para esta versión
 
@@ -253,3 +253,29 @@ Con el informe se decidió (D11) si hace falta un **script de reparación**, que
 ## 14. Fuera de alcance
 
 Corregir o anular ajustes ya registrados, borrar meses, correcciones de varias comunidades por la nutricionista, y reparar datos históricos sin el diagnóstico y la aprobación de la sección 11.
+
+## 15. Pausa y cómo retomar (2026-10-03)
+
+**Por qué se pausa:** decisión de Lucho. La aplicación web funciona bien y ya incluye más de lo que se pidió; este plan es una mejora de robustez ante errores de arrastre de saldos de meses pasados, y el proyecto aún no cuenta con la aprobación de la gerencia. No hay datos reales afectados hoy (diagnóstico de la sección 11.1).
+
+**Estado exacto de producción:**
+- Los seis scripts `kardex_chain_1..6.sql` **están corridos**, y `kardex_version_1.sql` del plan 012 también. Se comprobó que las funciones existen y que `npm run test:integration` sigue en 117 pasadas y 69 saltadas (opt-in).
+- Los interruptores `closed_month_rule` y `server_chain` están **APAGADOS** (se deduce de que las pruebas de integración siguen guardando en meses pasados y saldos arbitrarios; para confirmarlo basta `select key, enabled from kardex_settings;`). Con ellos apagados la aplicación se comporta como antes; lo único nuevo en el guardado es el bloqueo por producto, que no se nota.
+- La app publicada en `main` **no usa todavía** nada de este plan: no sabe de `MES_CERRADO`, ni de la ventana «Corregir», ni de la versión que ahora devuelve `kardex_insert_ajuste`.
+
+**Mientras esté en pausa, NO hacer:**
+1. **Encender ningún interruptor.** `server_chain` produciría falsos `CONFLICTO_VERSION` tras cada ajuste de saldo con la app actual; `closed_month_rule` rechazaría guardados que la app actual todavía ofrece.
+2. **Editar los seis scripts ya corridos sin avisar:** el repositorio y producción deben coincidir. Un cambio exige un script nuevo (o volver a correr el modificado) y se anota aquí.
+3. Borrar `feature/correccion-de-meses` o los archivos `supabase/kardex_chain_*.sql` (son lo que está en producción).
+
+**Riesgo conocido que sigue abierto mientras tanto (C9):** con los interruptores apagados, un producto sin fila en un mes sigue reiniciando su saldo heredado en 0 al mes siguiente. Aún no ha podido ocurrir (solo hay un mes real, octubre de 2026). **La herencia se estrena el 1 de noviembre y el primer hueco posible aparece desde diciembre de 2026.** Vigilancia sin código: **correr `diag_3_huecos_y_futuros.sql` (filas `HUECO`) y `diag_2_cadena_guardada.sql` a principios de diciembre y de cada mes**; si salen filas reales, avisar a las colaboradoras y retomar el plan antes. Una mitigación manual inmediata: pedir que, al abrir un mes nuevo, se guarde una vez cada producto con saldo.
+
+**Qué falta (en este orden) cuando se retome:**
+1. **Confirmar la aprobación** y que las decisiones D1–D14 / Q1–Q8 siguen vigentes (la regla de los 5 días, Bogotá, 120 meses, motivo de 5 a 500 caracteres, herencia del último cierre).
+2. **Reverificar el entorno antes de tocar nada:** `npm run test:db` y `npm test` en verde en `main`; volver a correr los diagnósticos 1 a 5 (el esquema y los datos pueden haber cambiado); `select key, enabled from kardex_settings;`.
+3. **Fase 2, cliente:** `useMonthCorrection` y `MonthCorrectionModal` (mismo estilo y teclado que las demás ventanas, con simulacro del servidor antes de confirmar y vista previa con `computeCascade`); manejo de `MES_CERRADO`, `CONFLICTO_VERSION`, `ALCANCE_INCOMPLETO`, `CORRECCION_FUERA_DE_TOPE` y `SIN_CAMBIOS` sin tratarlos como falla de red ni reintentarlos; que `kardexService.insertAjuste` use la versión nueva que devuelve; que la pantalla use `kardex_inherited_bases` y `kardex_product_history`; `bogotaDate` para el mes inicial y para decidir cuándo ofrecer «Corregir» (D12).
+4. **Adaptar las pruebas de integración** que guardan en meses pasados fijos (marzo y agosto de 2026): deben usar meses del presente o del futuro calculados con la fecha de hoy, o fallarán al encender `closed_month_rule`.
+5. **Fase 3, producción:** encender **`server_chain` primero** (cuando el cliente nuevo ya esté desplegado), verificar con `npm run test:integration` y el checklist manual; después **`closed_month_rule`**; cada paso con aprobación de Lucho y reversible apagándolo (`update kardex_settings set enabled = false where key = '...';`).
+6. **Fase 4 (opcional):** lectura de la auditoría en `/admin` y `/dev`, completa y con paginación; varios productos a la vez.
+
+**Datos de prueba:** las comunidades `ZZZ_TEST_BORRAR_AUTO_*` siguen en producción; `supabase/cleanup_test_data.sql` las borra, incluida la auditoría de correcciones (desactiva el disparador solo durante la limpieza). Lucho prefiere correrlo una sola vez cuando termine de probar.
