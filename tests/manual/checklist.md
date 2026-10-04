@@ -172,7 +172,8 @@ Antes de empezar: `npx tsc --noEmit`, `npm run build`, `npm run test:all` en ver
 - [ ] Autoprueba de punta a punta (paso 7 del plan 007: tres filas `ZZZ_TEST_alerta` insertadas desde el SQL Editor): llegan **un** correo y **un** mensaje, y `net._http_response` muestra 200.
 - [ ] Sin la cabecera `x-alert-secret`, o con una equivocada, la función responde 401 y no manda nada.
 - [ ] Racha real: con una comunidad de prueba y la red cortada, 3 guardados fallidos distintos en 10 minutos dejan 1 aviso (no 3).
-- [ ] Un segundo aviso no llega antes de 30 minutos aunque sigan los errores.
+- [ ] **Fallos de conexión de un solo computador:** 3 advertencias de la MISMA comunidad en 10 minutos (por ejemplo, 3 funciones distintas fallando por falta de internet y reconectando) avisan; 2 no. Advertencias de comunidades distintas avisan solo a partir de 5.
+- [ ] Un segundo aviso de advertencias no llega antes de 30 minutos; si en esa espera aparecen 3 errores, el aviso de errores llega a los 10 minutos del anterior.
 - [ ] Con el correo mal configurado (clave de Resend falsa) el aviso de Telegram sale igual, y viceversa.
 - [ ] En ningún mensaje aparece un token, una clave ni cantidades del kardex.
 
