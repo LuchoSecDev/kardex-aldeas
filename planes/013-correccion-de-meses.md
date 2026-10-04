@@ -1,7 +1,7 @@
 # 013 — Corrección histórica de un producto: ventana aislada, servidor como única autoridad y «Guardar corrección»
 
 **Estado:** ⏸️ **EN PAUSA desde el 2026-10-03, por decisión de Lucho:** la aplicación ya cubre lo que se necesitaba y el proyecto espera la aprobación de la gerencia; **se retoma cuando se apruebe** (pasos en la sección 15). Hecho: el diseño completo con todas sus decisiones (D1–D14, Q1–Q8) confirmadas, la **Fase 0** (diagnóstico en producción) y la **Fase 1** (los seis scripts `kardex_chain_1..6.sql`, **ya corridos en Supabase con los dos interruptores APAGADOS**, sin ningún cambio de comportamiento). Falta la Fase 2 (cliente), la 3 y la 4. Nada de SQL se corre en Supabase sin su OK.
-**Rama:** `feature/correccion-de-meses` (SQL y pruebas de la Fase 1; el cliente de la Fase 2 sigue ahí al retomar)  **Origen:** hallazgo H3 de [`README.md`](README.md)
+**Rama:** el SQL y las pruebas de la Fase 1 ya están en `main` (publicados el 2026-10-03, `7e4b31e`); el cliente de la Fase 2 irá en una rama nueva, `feature/correccion-de-meses`, creada desde `main` al retomar  **Origen:** hallazgo H3 de [`README.md`](README.md)
 
 ## 1. Qué se revisó para esta versión
 
@@ -266,7 +266,7 @@ Corregir o anular ajustes ya registrados, borrar meses, correcciones de varias c
 **Mientras esté en pausa, NO hacer:**
 1. **Encender ningún interruptor.** `server_chain` produciría falsos `CONFLICTO_VERSION` tras cada ajuste de saldo con la app actual; `closed_month_rule` rechazaría guardados que la app actual todavía ofrece.
 2. **Editar los seis scripts ya corridos sin avisar:** el repositorio y producción deben coincidir. Un cambio exige un script nuevo (o volver a correr el modificado) y se anota aquí.
-3. Borrar `feature/correccion-de-meses` o los archivos `supabase/kardex_chain_*.sql` (son lo que está en producción).
+3. Borrar o modificar los archivos `supabase/kardex_chain_*.sql` de `main` (son lo que está en producción).
 
 **Riesgo conocido que sigue abierto mientras tanto (C9):** con los interruptores apagados, un producto sin fila en un mes sigue reiniciando su saldo heredado en 0 al mes siguiente. Aún no ha podido ocurrir (solo hay un mes real, octubre de 2026). **La herencia se estrena el 1 de noviembre y el primer hueco posible aparece desde diciembre de 2026.** Vigilancia sin código: **correr `diag_3_huecos_y_futuros.sql` (filas `HUECO`) y `diag_2_cadena_guardada.sql` a principios de diciembre y de cada mes**; si salen filas reales, avisar a las colaboradoras y retomar el plan antes. Una mitigación manual inmediata: pedir que, al abrir un mes nuevo, se guarde una vez cada producto con saldo.
 
