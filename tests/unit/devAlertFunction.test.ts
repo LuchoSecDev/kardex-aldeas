@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { DEFAULTS, EXPLANATIONS, GENERIC_EXPLANATION, buildAlert, causeOf, cleanEnv, colombiaTime, createHandler, explain, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
+import { DEFAULTS, EXPLANATIONS, GENERIC_EXPLANATION, buildAlert, causeOf, cleanEnv, colombiaTime, cooldownFor, countRows, createHandler, explain, readConfig, scrub, secretsMatch, shouldAlert } from "../../supabase/functions/dev-alert/index";
 import type { LogRow } from "../../supabase/functions/dev-alert/index";
 
 // Edge Function `dev-alert` (plan 007, Fase A2): avisa por correo y Telegram cuando hay una racha de errores. Se prueba con
@@ -26,7 +26,7 @@ const payload = (over: Record<string, unknown> = {}) => JSON.stringify({ type: "
 
 type Call = { url: string; method: string; headers: Record<string, string>; body: unknown };
 type Plan = {
-  rows?: { level: string }[];            // lo que devuelve el conteo de reportes
+  rows?: { level: string; community?: string }[];   // lo que devuelve el conteo de reportes
   claimed?: unknown[];                    // filas que devuelve la actualización del turno
   countStatus?: number;
   countThrows?: boolean;                  // una excepción inesperada al consultar Supabase
@@ -72,7 +72,8 @@ function setup(plan: Plan = {}, env: Record<string, string | undefined> = ENV) {
 }
 
 const errors = (n: number) => Array.from({ length: n }, () => ({ level: "error" }));
-const warnings = (n: number) => Array.from({ length: n }, () => ({ level: "warning" }));
+// n advertencias; con `community` son todas de esa comunidad, y sin ella cada una es de una comunidad distinta.
+const warnings = (n: number, community?: string) => Array.from({ length: n }, (_, i) => ({ level: "warning", community: community ?? `Casa ${i + 1}` }));
 const sent = (calls: Call[], host: string) => calls.filter((c) => c.url.startsWith(host));
 
 describe("acceso: solo el webhook con la clave compartida", () => {
@@ -162,47 +163,107 @@ describe("modo prueba (x-alert-test: 1)", () => {
 });
 
 describe("cuándo avisa", () => {
-  it("sin racha no avisa: 2 errores y 9 advertencias en la ventana", async () => {
-    const { call, calls } = setup({ rows: [...errors(2), ...warnings(9)] });
+  it("sin racha no avisa: 2 errores y 4 advertencias de comunidades distintas", async () => {
+    const { call, calls } = setup({ rows: [...errors(2), ...warnings(4)] });
     const res = await call();
-    expect(await res.json()).toMatchObject({ alerted: false, reason: "sin racha", counts: { errors: 2, warnings: 9 } });
+    expect(await res.json()).toMatchObject({ alerted: false, reason: "sin racha", counts: { errors: 2, warnings: 4 } });
     expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(0);
     expect(sent(calls, "https://api.")).toHaveLength(0);
   });
 
-  it("3 errores avisan; 10 advertencias también; 9 advertencias no", async () => {
+  it("3 errores avisan; 5 advertencias entre todas también; 4 no", async () => {
     expect(shouldAlert({ errors: 3, warnings: 0 }, DEFAULTS)).toBe(true);
     expect(shouldAlert({ errors: 2, warnings: 0 }, DEFAULTS)).toBe(false);
-    expect(shouldAlert({ errors: 0, warnings: 10 }, DEFAULTS)).toBe(true);
-    expect(shouldAlert({ errors: 0, warnings: 9 }, DEFAULTS)).toBe(false);
+    expect(shouldAlert({ errors: 0, warnings: 5 }, DEFAULTS)).toBe(true);
+    expect(shouldAlert({ errors: 0, warnings: 4 }, DEFAULTS)).toBe(false);
     const { call } = setup({ rows: errors(3) });
     expect(await (await call()).json()).toMatchObject({ alerted: true });
   });
 
+  it("3 advertencias de UNA misma comunidad avisan (un computador con mala conexión); 2 no", async () => {
+    expect(shouldAlert({ errors: 0, warnings: 3, topWarnings: { community: "Maná", count: 3 } }, DEFAULTS)).toBe(true);
+    expect(shouldAlert({ errors: 0, warnings: 2, topWarnings: { community: "Maná", count: 2 } }, DEFAULTS)).toBe(false);
+    const avisa = setup({ rows: warnings(3, "Maná") });
+    expect(await (await avisa.call()).json()).toMatchObject({ alerted: true, counts: { warnings: 3, topWarnings: { community: "Maná", count: 3 } } });
+    expect(sent(avisa.calls, "https://api.resend.com")).toHaveLength(1);
+    expect(sent(avisa.calls, "https://api.telegram.org")).toHaveLength(1);
+    const noAvisa = setup({ rows: warnings(2, "Maná") });
+    expect(await (await noAvisa.call()).json()).toMatchObject({ alerted: false, reason: "sin racha" });
+  });
+
+  it("3 advertencias de 3 comunidades distintas no avisan (no es una sola con problemas) pero 5 sí", async () => {
+    expect(await (await setup({ rows: warnings(3) }).call()).json()).toMatchObject({ alerted: false, reason: "sin racha" });
+    expect(await (await setup({ rows: warnings(5) }).call()).json()).toMatchObject({ alerted: true });
+  });
+
+  it("las advertencias de una comunidad no se suman a las de otra para el umbral por comunidad", () => {
+    const counts = countRows([...warnings(2, "Maná"), ...warnings(2, "Fortaleza"), ...warnings(1, "Shalom")]);
+    expect(counts.warnings).toBe(5);
+    expect(counts.topWarnings?.count).toBe(2);
+    expect(shouldAlert({ ...counts, warnings: 4 }, DEFAULTS)).toBe(false);
+  });
+
+  it("countRows cuenta niveles, ignora lo desconocido y elige la comunidad con más advertencias", () => {
+    expect(countRows([])).toEqual({ errors: 0, warnings: 0 });
+    expect(countRows([{ level: "error" }, { level: "error" }, { level: "otro" }])).toEqual({ errors: 2, warnings: 0 });
+    const counts = countRows([...warnings(2, "Maná"), ...warnings(3, "Fortaleza"), ...errors(1)]);
+    expect(counts).toEqual({ errors: 1, warnings: 5, topWarnings: { community: "Fortaleza", count: 3 } });
+    // Sin comunidad en la fila: se agrupan juntas.
+    expect(countRows([{ level: "warning" }, { level: "warning" }, { level: "warning" }]).topWarnings).toEqual({ community: "", count: 3 });
+  });
+
   it("los umbrales se pueden cambiar con variables de entorno, y los valores inválidos usan los de siempre", async () => {
-    expect(readConfig((n) => ({ ALERT_ERRORS: "1", ALERT_WARNINGS: "2", ALERT_WINDOW_MIN: "5", ALERT_COOLDOWN_MIN: "60" })[n])).toEqual({ errors: 1, warnings: 2, windowMin: 5, cooldownMin: 60 });
-    expect(readConfig((n) => ({ ALERT_ERRORS: "0", ALERT_WARNINGS: "-4", ALERT_WINDOW_MIN: "abc", ALERT_COOLDOWN_MIN: "" })[n])).toEqual(DEFAULTS);
+    const env: Record<string, string> = { ALERT_ERRORS: "1", ALERT_WARNINGS: "2", ALERT_WARNINGS_PER_COMMUNITY: "7", ALERT_WINDOW_MIN: "5", ALERT_COOLDOWN_MIN: "60", ALERT_ERROR_COOLDOWN_MIN: "15" };
+    expect(readConfig((n) => env[n])).toEqual({ errors: 1, warnings: 2, warningsPerCommunity: 7, windowMin: 5, cooldownMin: 60, errorCooldownMin: 15 });
+    const malos: Record<string, string> = { ALERT_ERRORS: "0", ALERT_WARNINGS: "-4", ALERT_WARNINGS_PER_COMMUNITY: "x", ALERT_WINDOW_MIN: "abc", ALERT_COOLDOWN_MIN: "", ALERT_ERROR_COOLDOWN_MIN: "0" };
+    expect(readConfig((n) => malos[n])).toEqual(DEFAULTS);
     const { call } = setup({ rows: errors(1) }, { ...ENV, ALERT_ERRORS: "1" });
     expect(await (await call()).json()).toMatchObject({ alerted: true });
   });
 
-  it("cuenta solo la ventana de 10 minutos y pide máximo 1000 filas", async () => {
+  it("los valores de fábrica son los acordados", () => {
+    expect(DEFAULTS).toEqual({ errors: 3, warnings: 5, warningsPerCommunity: 3, windowMin: 10, cooldownMin: 30, errorCooldownMin: 10 });
+  });
+
+  it("cuenta solo la ventana de 10 minutos, pide la comunidad y máximo 1000 filas", async () => {
     const { call, calls } = setup({ rows: [] });
     await call();
     const count = calls.find((c) => c.url.includes("/rest/v1/system_error_logs"))!;
     expect(decodeURIComponent(count.url)).toContain("created_at=gte.2026-10-02T16:50:00.000Z");
+    expect(count.url).toContain("select=level,community");
     expect(count.url).toContain("limit=1000");
     expect(count.headers.authorization).toBe("Bearer service-role-de-prueba");
     expect(count.headers.apikey).toBe("service-role-de-prueba");
   });
 });
 
-describe("un solo aviso por turno (enfriamiento de 30 minutos)", () => {
-  it("toma el turno con una actualización condicional: solo si el último aviso es anterior a hace 30 minutos", async () => {
-    const { call, calls } = setup({ rows: errors(3) });
+describe("un solo aviso por turno (enfriamiento de 30 minutos; 10 si la racha trae errores)", () => {
+  it("cooldownFor: 30 minutos para advertencias y 10 cuando hay errores en la racha", () => {
+    expect(cooldownFor({ errors: 0, warnings: 6 }, DEFAULTS)).toBe(30);
+    expect(cooldownFor({ errors: 2, warnings: 6 }, DEFAULTS)).toBe(30);
+    expect(cooldownFor({ errors: 3, warnings: 0 }, DEFAULTS)).toBe(10);
+    expect(cooldownFor({ errors: 5, warnings: 9 }, DEFAULTS)).toBe(10);
+  });
+
+  it("una racha de solo advertencias toma el turno si el último aviso es anterior a hace 30 minutos", async () => {
+    const { call, calls } = setup({ rows: warnings(3, "Maná") });
     await call();
     const claim = calls.find((c) => c.method === "PATCH")!;
     expect(decodeURIComponent(claim.url)).toContain("dev_alert_state?id=eq.1&last_alert_at=lt.2026-10-02T16:30:00.000Z");
+  });
+
+  it("una racha con errores usa el enfriamiento corto: así un aviso de advertencias no tapa un problema más grave", async () => {
+    const { call, calls } = setup({ rows: [...errors(3), ...warnings(3, "Maná")] });
+    await call();
+    const claim = calls.find((c) => c.method === "PATCH")!;
+    expect(decodeURIComponent(claim.url)).toContain("dev_alert_state?id=eq.1&last_alert_at=lt.2026-10-02T16:50:00.000Z");
+  });
+
+  it("toma el turno con una actualización condicional (con la racha de errores, el último aviso debe ser anterior a hace 10 minutos)", async () => {
+    const { call, calls } = setup({ rows: errors(3) });
+    await call();
+    const claim = calls.find((c) => c.method === "PATCH")!;
+    expect(decodeURIComponent(claim.url)).toContain("dev_alert_state?id=eq.1&last_alert_at=lt.2026-10-02T16:50:00.000Z");
     expect(claim.body).toEqual({ last_alert_at: "2026-10-02T17:00:00.000Z" });
     expect(claim.headers.prefer).toBe("return=representation");
   });
@@ -476,6 +537,13 @@ describe("el texto del aviso", () => {
   it("singular y plural en el resumen", () => {
     expect(buildAlert(record, { errors: 1, warnings: 1 }, DEFAULTS, NOW).text).toContain("Resumen: 1 error y 1 advertencia en los últimos 10 minutos");
     expect(buildAlert(record, { errors: 4, warnings: 0 }, DEFAULTS, NOW).text).toContain("Resumen: 4 errores y 0 advertencias en los últimos 10 minutos");
+  });
+
+  it("nombra la comunidad con más advertencias cuando las hay", () => {
+    const withTop = buildAlert(record, { errors: 0, warnings: 4, topWarnings: { community: "Maná", count: 3 } }, DEFAULTS, NOW).text;
+    expect(withTop).toContain("La comunidad con más advertencias: Maná (3).");
+    expect(buildAlert(record, { errors: 3, warnings: 0 }, DEFAULTS, NOW).text).not.toContain("La comunidad con más advertencias");
+    expect(buildAlert(record, { errors: 0, warnings: 3, topWarnings: { community: "", count: 3 } }, DEFAULTS, NOW).text).toContain("desconocida (3)");
   });
 
   it("el asunto dice qué pasó y dónde, en palabras simples", () => {

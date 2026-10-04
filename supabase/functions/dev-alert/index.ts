@@ -12,17 +12,18 @@
 //   ALERT_EMAIL_TO        correo que recibe la alerta
 //   TELEGRAM_BOT_TOKEN    token del bot
 //   TELEGRAM_CHAT_ID      chat al que escribe el bot
-// OPCIONALES: ALERT_EMAIL_FROM (por defecto el remitente de pruebas de Resend), ALERT_ERRORS (3), ALERT_WARNINGS (10),
-//   ALERT_WINDOW_MIN (10), ALERT_COOLDOWN_MIN (30).
+// OPCIONALES: ALERT_EMAIL_FROM (por defecto el remitente de pruebas de Resend), ALERT_ERRORS (3), ALERT_WARNINGS (5, de todas las
+//   comunidades), ALERT_WARNINGS_PER_COMMUNITY (3), ALERT_WINDOW_MIN (10), ALERT_COOLDOWN_MIN (30), ALERT_ERROR_COOLDOWN_MIN (10).
 // Ya vienen puestos por Supabase: SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.
 //
 // PRUEBA DE CANALES: una llamada con la clave compartida y la cabecera `x-alert-test: 1` manda un mensaje de prueba por correo y
 // Telegram, sin contar reportes ni tomar el turno.
 //
-// Qué avisa: cuando en los últimos 10 minutos hay 3 o más errores (o 10 o más advertencias) de cualquier comunidad, y como
-// máximo UN aviso cada 30 minutos (el turno se toma con una actualización condicional en `dev_alert_state`, así dos reportes
-// simultáneos no mandan dos avisos). Lleva el último reporte, que ya viene limpio del servidor: sin argumentos de llamadas ni
-// cantidades del kardex.
+// Qué avisa: cuando en los últimos 10 minutos hay 3 o más errores de cualquier comunidad, o advertencias (casi siempre fallos de
+// conexión): 3 o más de UNA misma comunidad, o 5 o más entre todas. Como máximo UN aviso cada 30 minutos; si la racha incluye
+// errores, el enfriamiento es de 10 minutos, para que un aviso de advertencias no tape un problema más grave (el turno se toma con
+// una actualización condicional en `dev_alert_state`, así dos reportes simultáneos no mandan dos avisos). Lleva el último reporte,
+// que ya viene limpio del servidor: sin argumentos de llamadas ni cantidades del kardex.
 
 // Lo mínimo de Deno que se usa, declarado para que `tsc` del proyecto compile este archivo (en Deno existe de verdad).
 declare const Deno: { env: { get(name: string): string | undefined }; serve(handler: (req: Request) => Response | Promise<Response>): unknown };
@@ -39,9 +40,19 @@ export type LogRow = {
   app_version?: string;
 };
 
-export type Config = { errors: number; warnings: number; windowMin: number; cooldownMin: number };
+export type Config = {
+  errors: number;
+  warnings: number;
+  warningsPerCommunity: number;
+  windowMin: number;
+  cooldownMin: number;
+  errorCooldownMin: number;
+};
 
-export const DEFAULTS: Config = { errors: 3, warnings: 10, windowMin: 10, cooldownMin: 30 };
+export const DEFAULTS: Config = { errors: 3, warnings: 5, warningsPerCommunity: 3, windowMin: 10, cooldownMin: 30, errorCooldownMin: 10 };
+
+// Lo contado en la ventana: errores, advertencias y la comunidad con más advertencias.
+export type Counts = { errors: number; warnings: number; topWarnings?: { community: string; count: number } };
 const EPOCH = "1970-01-01T00:00:00.000Z";
 
 const asInt = (value: string | undefined, fallback: number) => {
@@ -52,13 +63,36 @@ const asInt = (value: string | undefined, fallback: number) => {
 export const readConfig = (get: (name: string) => string | undefined): Config => ({
   errors: asInt(get("ALERT_ERRORS"), DEFAULTS.errors),
   warnings: asInt(get("ALERT_WARNINGS"), DEFAULTS.warnings),
+  warningsPerCommunity: asInt(get("ALERT_WARNINGS_PER_COMMUNITY"), DEFAULTS.warningsPerCommunity),
   windowMin: asInt(get("ALERT_WINDOW_MIN"), DEFAULTS.windowMin),
   cooldownMin: asInt(get("ALERT_COOLDOWN_MIN"), DEFAULTS.cooldownMin),
+  errorCooldownMin: asInt(get("ALERT_ERROR_COOLDOWN_MIN"), DEFAULTS.errorCooldownMin),
 });
 
+// Cuenta las filas de la ventana por nivel y busca la comunidad con más advertencias.
+export function countRows(rows: { level: string; community?: string }[]): Counts {
+  const perCommunity = new Map<string, number>();
+  let errors = 0;
+  let warnings = 0;
+  for (const r of rows) {
+    if (r.level === "error") errors += 1;
+    else if (r.level === "warning") {
+      warnings += 1;
+      const community = r.community ?? "";
+      perCommunity.set(community, (perCommunity.get(community) ?? 0) + 1);
+    }
+  }
+  let top: Counts["topWarnings"];
+  for (const [community, count] of perCommunity) if (!top || count > top.count) top = { community, count };
+  return top ? { errors, warnings, topWarnings: top } : { errors, warnings };
+}
+
 // ¿Hay racha? Cuenta lo que ya está guardado (incluye el reporte que disparó el webhook).
-export const shouldAlert = (counts: { errors: number; warnings: number }, config: Config) =>
-  counts.errors >= config.errors || counts.warnings >= config.warnings;
+export const shouldAlert = (counts: Counts, config: Config) =>
+  counts.errors >= config.errors || counts.warnings >= config.warnings || (counts.topWarnings?.count ?? 0) >= config.warningsPerCommunity;
+
+// Enfriamiento del aviso: más corto si la racha incluye errores (más graves que las advertencias de conexión).
+export const cooldownFor = (counts: Counts, config: Config) => (counts.errors >= config.errors ? config.errorCooldownMin : config.cooldownMin);
 
 // Comparación en tiempo constante: no revela por el tiempo de respuesta cuántos caracteres de la clave acertó quien prueba.
 export function secretsMatch(received: string | null, expected: string | undefined): boolean {
@@ -173,7 +207,7 @@ export function explain(r: { community: string; fn: string; level: string; code?
   return { title: `${r.community}: ${e.what}`, what: e.what, cause: causeOf(r), risk: e.risk, action: e.action };
 }
 
-export function buildAlert(record: LogRow, counts: { errors: number; warnings: number }, config: Config, nowMs: number) {
+export function buildAlert(record: LogRow, counts: Counts, config: Config, nowMs: number) {
   const resumen = `${plural(counts.errors, "error", "errores")} y ${plural(counts.warnings, "advertencia", "advertencias")} en los últimos ${config.windowMin} minutos`;
   const e = explain(record);
   const subject = `Kardex: ${e.what} (${record.community})`;
@@ -184,7 +218,7 @@ export function buildAlert(record: LogRow, counts: { errors: number; warnings: n
     `Riesgo: ${e.risk}`,
     `Qué hacer: ${e.action}`,
     "",
-    `Resumen: ${resumen} (todas las comunidades).`,
+    `Resumen: ${resumen} (todas las comunidades).${counts.topWarnings ? ` La comunidad con más advertencias: ${counts.topWarnings.community || "desconocida"} (${counts.topWarnings.count}).` : ""}`,
     "",
     "Detalle técnico del último reporte:",
     `- Comunidad: ${record.community}`,
@@ -274,20 +308,19 @@ export function createHandler(deps: Deps) {
     const since = new Date(nowMs - config.windowMin * 60_000).toISOString();
 
     // 1) ¿Hay racha en la ventana?
-    const countRes = await doFetch(`${url}/rest/v1/system_error_logs?select=level&created_at=gte.${encodeURIComponent(since)}&limit=1000`, {
+    const countRes = await doFetch(`${url}/rest/v1/system_error_logs?select=level,community&created_at=gte.${encodeURIComponent(since)}&limit=1000`, {
       headers: supabaseHeaders(key),
     });
     if (!countRes.ok) {
       log(`No se pudo contar los reportes (HTTP ${countRes.status})`);
       return json(502, { error: "No se pudo consultar system_error_logs" });
     }
-    const rows = (await countRes.json()) as { level: string }[];
-    const counts = { errors: rows.filter((r) => r.level === "error").length, warnings: rows.filter((r) => r.level === "warning").length };
+    const counts = countRows((await countRes.json()) as { level: string; community?: string }[]);
     if (!shouldAlert(counts, config)) return json(200, { alerted: false, reason: "sin racha", counts });
 
     // 2) Tomar el turno: solo avisa quien logra actualizar `last_alert_at` (si el último aviso fue hace más del enfriamiento).
     const nowIso = new Date(nowMs).toISOString();
-    const cutoff = new Date(nowMs - config.cooldownMin * 60_000).toISOString();
+    const cutoff = new Date(nowMs - cooldownFor(counts, config) * 60_000).toISOString();
     const claim = await doFetch(`${url}/rest/v1/dev_alert_state?id=eq.1&last_alert_at=lt.${encodeURIComponent(cutoff)}`, {
       method: "PATCH",
       headers: supabaseHeaders(key, { prefer: "return=representation" }),
